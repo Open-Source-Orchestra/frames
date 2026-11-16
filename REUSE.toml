@@ -1,0 +1,16 @@
+version = 1
+SPDX-PackageName = "frames"
+SPDX-PackageSupplier = "Open Source Orchestra <contribute@opensourceorchestra.org>"
+SPDX-PackageDownloadLocation = "https://github.com/Open-Source-Orchestra/frames"
+
+[[annotations]]
+path = ["**/*.js", "**/*.mjs", "**/*.html", "**/*.css", "wrangler.example.jsonc", ".gitignore"]
+precedence = "aggregate"
+SPDX-FileCopyrightText = "2026 Shaka Lei Kaumaka / Open Source Orchestra and the AI ʻohana"
+SPDX-License-Identifier = "AGPL-3.0-or-later"
+
+[[annotations]]
+path = ["**/*.md", "NOTICE", "llms.txt", "frames/**", "schema/**", "media/**", "builder/*.json"]
+precedence = "aggregate"
+SPDX-FileCopyrightText = "2026 Shaka Lei Kaumaka / Open Source Orchestra and the AI ʻohana"
+SPDX-License-Identifier = "CC-BY-SA-4.0"
