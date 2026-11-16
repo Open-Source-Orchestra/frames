@@ -6,8 +6,9 @@ This program is free software: you can redistribute it and/or modify it under th
 terms of the GNU Affero General Public License as published by the Free Software
 Foundation, either version 3 of the License, or (at your option) any later version.
 See LICENSE (AGPL-3.0-or-later). The datasets (frames/*.json), documentation, page
-copy, signature artwork and design are licensed CC BY-SA 4.0
-(LICENSES/CC-BY-SA-4.0.txt). REUSE.toml says which file is which.
+copy and design are licensed CC BY-SA 4.0 (LICENSES/CC-BY-SA-4.0.txt). The one
+exception is Shaka's personal signature (see below). REUSE.toml says which file
+is which.
 
 What the copyleft means, in plain words:
 - Forks stay open. You may copy, change, host and even sell this frame. Whoever
@@ -36,6 +37,9 @@ your fork as the original. These terms travel with every copy and every fork.
 this attribution term is a permitted 7(b) term and must be kept.)
 
 Media and names that are NOT ours to license
+- media/signature.svg is Shaka Lei Kaumaka's personal signature. Copy it unmodified
+  with this repository; never use it as anyone else's signature. Forks bring their
+  own (tools/vectorize-signature.py). LICENSES/LicenseRef-Shaka-Signature.txt
 - Songs, recordings and films listed in a dataset belong to the people heard and
   seen in them; each item carries its own credit and license, and is listed only
   with the consent of everyone audible (see the consent law in docs/FRAME-SPEC.md).
