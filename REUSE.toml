@@ -14,3 +14,9 @@ path = ["**/*.md", "NOTICE", "llms.txt", "frames/**", "schema/**", "media/**", "
 precedence = "aggregate"
 SPDX-FileCopyrightText = "2026 Shaka Lei Kaumaka / Open Source Orchestra and the AI ʻohana"
 SPDX-License-Identifier = "CC-BY-SA-4.0"
+
+[[annotations]]
+path = ["media/signature.svg"]
+precedence = "override"
+SPDX-FileCopyrightText = "2026 Shaka Lei Kaumaka"
+SPDX-License-Identifier = "LicenseRef-Shaka-Signature"
