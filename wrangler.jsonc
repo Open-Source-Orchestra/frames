@@ -1,0 +1,10 @@
+// Open Source Orchestra Frames — static site + CDN for frames.js (assets-only Worker).
+// Forkers: you don't need this. GitHub Pages serves the repo root as-is (Settings → Pages → main / root).
+{
+  "name": "oso-frames",
+  "compatibility_date": "2026-11-13",
+  "assets": { "directory": "./dist", "not_found_handling": "404-page" },
+  "workers_dev": true,
+  "routes": [ { "pattern": "frames.opensourceorchestra.org", "custom_domain": true } ],
+  "observability": { "enabled": false }
+}
