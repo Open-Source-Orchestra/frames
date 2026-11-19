@@ -74,8 +74,8 @@
       {
         "kind": "radio", "id": "radio", "label": "Radio",
         "tracks": [
-          { "title": "Butterflies and Love", "artist": "Shaka Lei Kaumaka", "src": "https://shakaleikaumaka.com/radio-assets/i-open-sourced-my-whole-universe.mp3", "credit": "Shaka Lei Kaumaka", "license": "CC0-1.0, as gifted on shakaleikaumaka.com/radio/" },
-          { "title": "A Planet We Share As One", "artist": "Shaka Lei Kaumaka", "src": "https://shakaleikaumaka.com/radio-assets/a-planet-we-share-as-one.mp3", "credit": "Shaka Lei Kaumaka", "license": "CC0-1.0, as gifted on shakaleikaumaka.com/radio/" },
+          { "title": "Butterflies and Love", "artist": "Shaka Lei Kaumaka", "src": "https://shakaleikaumaka.com/radio-assets/i-open-sourced-my-whole-universe.mp3", "credit": "Shaka Lei Kaumaka", "license": "CC BY-SA 4.0 since 19 Nov 2026 (earlier CC0 gifts stay CC0), gifted on shakaleikaumaka.com/radio/" },
+          { "title": "A Planet We Share As One", "artist": "Shaka Lei Kaumaka", "src": "https://shakaleikaumaka.com/radio-assets/a-planet-we-share-as-one.mp3", "credit": "Shaka Lei Kaumaka", "license": "CC BY-SA 4.0 since 19 Nov 2026 (earlier CC0 gifts stay CC0), gifted on shakaleikaumaka.com/radio/" },
           { "title": "Be My Friend", "artist": "Matteo Tambussi", "src": "https://shakaleikaumaka.com/radio-assets/matteo-tambussi--be-my-friend.mp3", "credit": "Matteo Tambussi", "license": "the artist's own terms; ask the artist before reuse" },
           { "title": "Island", "artist": "Matteo Tambussi", "src": "https://shakaleikaumaka.com/radio-assets/matteo-tambussi--island.mp3", "credit": "Matteo Tambussi", "license": "the artist's own terms; ask the artist before reuse" }
         ],
