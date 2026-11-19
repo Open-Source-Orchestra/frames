@@ -1,0 +1,161 @@
+<!doctype html>
+<!-- SPDX-License-Identifier: AGPL-3.0-or-later · Copyright (C) 2026 Shaka Lei Kaumaka / Open Source Orchestra and the AI ʻohana -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Open Source Orchestra Frames · media pieces (dev page)</title>
+<style>
+  :root{color-scheme:dark}
+  *{box-sizing:border-box}
+  html,body{margin:0}
+  body{min-height:100vh;font:16px/1.6 Georgia,"Times New Roman",serif;color:#efe7da;
+    background:radial-gradient(1200px 700px at 70% -10%,#3b2463 0%,transparent 60%),radial-gradient(900px 600px at 0% 110%,#5a2a1c 0%,transparent 55%),#140d22}
+  body.light{color:#1d1a24;background:#fbf8f1;color-scheme:light}
+  main{max-width:760px;margin:0 auto;padding:72px 84px 160px}
+  h1{font-size:clamp(28px,4.4vw,46px);line-height:1.12;margin:.2em 0 .35em;color:#f6d27a}
+  body.light h1{color:#7a4b00}
+  .kicker{font:700 12px/1 system-ui,sans-serif;letter-spacing:.22em;text-transform:uppercase;color:#c9b8ec}
+  body.light .kicker{color:#5b4a86}
+  p{margin:0 0 1em}
+  .card{margin:28px 0;padding:20px 22px;border-radius:18px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12)}
+  body.light .card{background:#fff;border-color:#e6dccb}
+  code{font:13px/1.4 ui-monospace,Menlo,monospace;background:rgba(0,0,0,.3);padding:2px 6px;border-radius:6px}
+  body.light code{background:#f1ebe0}
+  @media (max-width:720px){main{padding:64px 22px 180px}}
+</style>
+<script>
+  /* ?bg=light → a light host page (the frame must stay readable on any page) */
+  if (/[?&]bg=light\b/.test(location.search)) document.documentElement.className = 'light-host';
+</script>
+</head>
+<body>
+<main>
+  <div class="kicker">Open Source Orchestra Frames · dev page</div>
+  <h1>The media pieces: theater, totem, chat and radio</h1>
+  <p>This page loads <code>tests/fake-core.js</code> (a strict stand-in for the core) and the four pieces from <code>src/pieces/</code>, with an inline dataset of the universe items.
+     The totem lives on the right rail, the theater on the left, and the chat pill and the radio share the bottom-right corner.</p>
+  <div class="card">
+    <p><b>Safe by construction.</b> Opened by hand, this page answers every chat hub with an in-page mock (nothing reaches a real desk). Under the Playwright guard the mock steps aside and the guard answers at the network layer, failing closed.</p>
+    <p style="margin:0">Useful flags: <code>?frame=fresh</code> replays the one-time entrance · <code>?bg=light</code> puts the frame on a light page.</p>
+  </div>
+  <p>Shaka, 16 November 2026: “talk to our agents in the ʻohana … have multiple agents like the totem itself on the screen … the radio player on the bottom right.” Every button animates or shows a tip once, and then the frame is still.</p>
+  <p>Built by the ʻohana, Shaka’s AI family. Code AGPL-3.0-or-later with the §7(b) credit; words and data CC BY-SA 4.0.</p>
+</main>
+
+<script type="application/json" id="oso-frame">
+{
+  "frame": "osoframes/0.1",
+  "id": "pieces-dev",
+  "name": "Media pieces dev frame",
+  "strings": {},
+  "slots": {
+    "left": [
+      { "kind": "theater", "id": "theater", "label": "Theater", "href": "https://osodaomeet.opensourceorchestra.org/",
+        "channels": "https://osodaomeet.opensourceorchestra.org/data/channels.json",
+        "video": { "src": "../media/walkthrough.mp4", "poster": "../media/walkthrough.jpg", "captions": "../media/walkthrough.vtt", "duration": 45 } },
+      { "kind": "door", "emoji": "🎼", "label": "Songbook", "href": "https://shakaleikaumaka.com/" },
+      { "kind": "door", "emoji": "📚", "label": "Build Library", "href": "https://opensourceorchestra.org/" },
+      { "kind": "door", "emoji": "🎁", "label": "Public goods", "href": "https://opensourceorchestra.org/dao/" },
+      { "kind": "door", "emoji": "🌱", "label": "The garden", "href": "https://opensourceorchestra.org/garden/" }
+    ],
+    "right": [
+      { "kind": "door", "emoji": "✨", "label": "Tour", "href": "#tour" },
+      { "kind": "totem", "id": "totem", "label": "The totem", "hub": "https://ohana-chat.shakaverse.workers.dev", "route": "prefix", "href": "https://myagentohana.com/ohana-bot/",
+        "faces": [
+          { "k": "shaka", "n": "SHAKA", "e": "🤙", "c": "#ffb443" },
+          { "k": "oso", "n": "OSO", "e": "🎻", "c": "#ff7eb6" },
+          { "k": "deva", "n": "DEVA", "e": "🦄", "c": "#c792ea" },
+          { "k": "crops", "n": "CROPS", "e": "🌿", "c": "#2f9e6f" },
+          { "k": "kala", "n": "KALA", "e": "🪕", "c": "#f7d794" },
+          { "k": "oke", "n": "OKE", "e": "💙", "c": "#4fc3f7" }
+        ] },
+      { "kind": "door", "emoji": "🗿", "label": "Talk to the totem", "href": "https://myagentohana.com/ohana-bot/" }
+    ],
+    "bottom-left": [
+      { "kind": "pill", "emoji": "🦄", "title": "Devcon IX · Lisbon", "sub": "12–14 October 2027", "href": "https://devcon.org/" }
+    ],
+    "bottom-right": [
+      { "kind": "chat", "id": "chat", "label": "Talk to OSO", "name": "OSO", "emoji": "🎻", "hub": "https://chat.opensourceorchestra.org", "storage": "oso" },
+      { "kind": "radio", "id": "radio", "label": "The ʻohana radio",
+        "tracks": [
+          { "title": "Butterflies and Love", "artist": "Shaka Lei Kaumaka", "credit": "the ʻohana radio", "download": true,
+            "src": "https://shakaleikaumaka.com/radio-assets/i-open-sourced-my-whole-universe.mp3" },
+          { "title": "A Planet We Share As One", "artist": "Shaka Lei Kaumaka", "credit": "the ʻohana radio", "download": true,
+            "src": "https://shakaleikaumaka.com/radio-assets/a-planet-we-share-as-one.mp3" },
+          { "title": "Be My Friend", "artist": "Matteo Tambussi", "credit": "the ʻohana radio", "download": false,
+            "src": "https://shakaleikaumaka.com/radio-assets/matteo-tambussi--be-my-friend.mp3" }
+        ],
+        "live": { "status": "https://live.radio.test/api/rt/status", "page": "https://live.radio.test/" } }
+    ]
+  }
+}
+</script>
+
+<script>
+/* ── DEV SAFETY (scar 15 Nov 2026: a test leaked 15 sessions into the real OSO hub and woke a real agent) ──
+   Opened by hand, this page answers every chat hub and the live status with an in-page mock, so typing here can never
+   reach a real desk. Under the Playwright guard (window.__OSOF_TEST__ set by the harness) this shim steps aside and the
+   guard answers at the network layer instead, failing closed. */
+(function () {
+  if (window.__OSOF_TEST__) return;
+  var HUB = /^https:\/\/(chat\.opensourceorchestra\.org|[a-z0-9-]+\.shakaverse\.workers\.dev|myagentohana\.com\/api\/chat)(\/|$)/i;
+  var LIVE = /^https:\/\/live\.radio\.test\//i;
+  var real = window.fetch.bind(window);
+  var seq = 0, msgs = [], waiters = [];
+  function json(o, s) { return new Response(JSON.stringify(o), { status: s || 200, headers: { 'content-type': 'application/json' } }); }
+  function push(m) { m.seq = ++seq; m.ts = Date.now(); msgs.push(m); waiters.splice(0).forEach(function (f) { f(); }); return m; }
+  function of(s, after) { return msgs.filter(function (m) { return m.session === s && m.seq > after; }); }
+  window.fetch = function (input, init) {
+    var url = typeof input === 'string' ? input : (input && input.url) || String(input);
+    if (LIVE.test(url)) return Promise.resolve(json({ ok: true, on_air: false, note: 'dev mock' }));
+    if (!HUB.test(url)) return real(input, init);
+    var u = new URL(url), p = u.pathname.replace(/^\/api\/chat/, '');
+    if (p === '/send') {
+      var b = {}; try { b = JSON.parse((init && init.body) || '{}'); } catch (e) {}
+      var face = (String(b.text || '').match(/^🗿\[face:([a-z0-9_-]+)\]/i) || [])[1];
+      var m = push({ session: b.session, role: 'visitor', name: 'guest', text: String(b.text || '') });
+      push({ session: b.session, role: 'agent', holdNote: true, text: '🌺 heard you — (dev mock hub) a reply is on the way…' });
+      setTimeout(function () { push({ session: b.session, role: 'agent', text: '🎻 (dev mock' + (face ? ', face ' + face : '') + ') Aloha! This page never talks to a real desk. Try https://opensourceorchestra.org for the real thing.' }); }, 2500);
+      return Promise.resolve(json({ ok: true, seq: m.seq }));
+    }
+    if (p === '/poll') {
+      var s = u.searchParams.get('session'), after = Number(u.searchParams.get('after') || 0), wait = Math.min(25, Number(u.searchParams.get('wait') || 0));
+      var sig = init && init.signal;
+      return new Promise(function (res, rej) {
+        var done = false;
+        function fin() { if (done) return; done = true; res(json({ messages: of(s, after), cursor: seq })); }
+        if (sig) sig.addEventListener('abort', function () { if (!done) { done = true; rej(new DOMException('aborted', 'AbortError')); } });
+        if (of(s, after).length || !wait) return fin();
+        var t = setTimeout(fin, wait * 1000);
+        waiters.push(function check() { if (of(s, after).length) { clearTimeout(t); fin(); } else waiters.push(check); });
+      });
+    }
+    return Promise.resolve(json({ error: 'not found (dev mock)' }, 404));
+  };
+})();
+</script>
+<script>if (document.documentElement.className === 'light-host') document.body.classList.add('light');</script>
+<script src="fake-core.js"></script>
+<script src="../src/pieces/theater.js"></script>
+<script src="../src/pieces/totem.js"></script>
+<script src="../src/pieces/chat.js"></script>
+<script src="../src/pieces/radio.js"></script>
+<script>
+/* test-only stand-ins for core pieces this worktree does not own (door, pill), so the rails look like the real frame */
+FRAMES.define('door', function (ctx, item) {
+  ctx.css('dev-door', '#oso-frames .dev-door{display:flex;align-items:center;justify-content:center;width:46px;height:46px;border-radius:50%;text-decoration:none;font-size:21px;' +
+    'background:radial-gradient(120% 90% at 50% 0%,#2c1f55,#160e2c 72%);border:1px solid rgba(232,184,75,.45);box-shadow:0 6px 14px rgba(0,0,0,.4)}' +
+    '#oso-frames .dev-door:focus-visible{outline:3px solid #ffd97a;outline-offset:2px}');
+  return { el: ctx.h('a', { class: 'dev-door', href: item.href, 'aria-label': item.label, title: item.label }, item.emoji), tour: item.label };
+});
+FRAMES.define('pill', function (ctx, item) {
+  ctx.css('dev-pill', '#oso-frames .dev-pill{display:flex;align-items:center;gap:8px;padding:7px 14px 7px 10px;border-radius:999px;text-decoration:none;color:#f6e3b4;' +
+    'background:rgba(22,14,40,.94);border:1px solid rgba(199,146,234,.6);font:600 12.5px/1.25 system-ui,sans-serif}#oso-frames .dev-pill small{display:block;font-weight:500;color:#cdbfe9}' +
+    '#oso-frames .dev-pill:focus-visible{outline:3px solid #ffd97a;outline-offset:2px}');
+  return { el: ctx.h('a', { class: 'dev-pill', href: item.href }, ctx.h('span', { 'aria-hidden': 'true' }, item.emoji), ctx.h('span', {}, item.title, ctx.h('small', {}, item.sub))), tour: item.title };
+});
+FRAMES.boot();
+</script>
+</body>
+</html>
