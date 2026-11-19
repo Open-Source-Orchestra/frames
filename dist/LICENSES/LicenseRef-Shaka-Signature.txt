@@ -1,0 +1,16 @@
+Shaka Lei Kaumaka — personal signature (media/signature.svg)
+
+Copyright (C) 2026 Shaka Lei Kaumaka. All rights reserved, except:
+
+1. You may copy and redistribute this file UNMODIFIED as part of complete or
+   partial copies of the Open Source Orchestra Frames repository.
+2. You may display it on doors of the Open Source Orchestra and of the AI ʻohana.
+
+You may NOT use it as the signature of any other frame, website, person,
+document, NFT, product or endorsement, and you may not modify it.
+Forks: replace it with your OWN signature (tools/vectorize-signature.py turns a
+drawing into pen strokes) or remove the signature item from your dataset.
+
+Why: code, data and words of the frame are copyleft (AGPL-3.0-or-later and
+CC BY-SA 4.0) so they flow to everyone. A signature is a person's mark, not a
+gift to re-use — it stays with the person who drew it.

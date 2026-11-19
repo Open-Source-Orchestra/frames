@@ -1,0 +1,23 @@
+/*
+  Access-Control-Allow-Origin: *
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: interest-cohort=()
+/frames.js
+  ! Cache-Control
+  Cache-Control: public, max-age=300
+/frames.min.js
+  ! Cache-Control
+  Cache-Control: public, max-age=300
+/frames/*
+  ! Cache-Control
+  Cache-Control: public, max-age=300
+/media/*
+  ! Cache-Control
+  Cache-Control: public, max-age=86400
+/*.md
+  Content-Type: text/markdown; charset=utf-8
+/LICENSE
+  Content-Type: text/plain; charset=utf-8
+/NOTICE
+  Content-Type: text/plain; charset=utf-8

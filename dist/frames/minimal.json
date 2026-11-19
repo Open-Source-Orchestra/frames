@@ -1,0 +1,19 @@
+{
+  "$schema": "https://frames.opensourceorchestra.org/schema/frame-0.1.json",
+  "frame": "osoframes/0.1",
+  "id": "minimal",
+  "name": "A minimal frame",
+  "credit": { "add": [] },
+  "license": { "data": "CC-BY-SA-4.0", "code": "AGPL-3.0-or-later" },
+  "strings": {},
+  "slots": {
+    "top-left": [
+      { "kind": "globe", "tip": "Choose your language. The page and the frame follow you." }
+    ],
+    "left": [
+      { "kind": "door", "id": "home", "emoji": "🏠", "label": "Home", "href": "/", "tip": "Back to the front door of this site.", "anim": "bob" },
+      { "kind": "door", "id": "orchestra", "emoji": "🎻", "label": "Open Source Orchestra", "href": "https://opensourceorchestra.org/", "tip": "The orchestra this frame comes from: music, open to all.", "anim": "sway" },
+      { "kind": "door", "id": "fork-this-frame", "emoji": "🍴", "label": "Fork this frame", "href": "https://github.com/Open-Source-Orchestra/frames", "tip": "Make your own frame: one script tag, one dataset.", "anim": "spin" }
+    ]
+  }
+}

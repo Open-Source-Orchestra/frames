@@ -1,0 +1,194 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://frames.opensourceorchestra.org/schema/frame-0.1.json",
+  "title": "Open Source Orchestra Frames dataset (osoframes/0.1)",
+  "description": "One frame.json = everything around the edge of a screen: six slots (top-left, left, bottom-left, bottom-right, right, top-right) plus an overlay. Kinds this version knows are checked strictly; unknown kinds are allowed (the frame skips them with one console note). CC BY-SA 4.0 · by the ʻohana.",
+  "type": "object",
+  "required": ["frame", "id", "slots"],
+  "additionalProperties": false,
+  "properties": {
+    "$schema": { "type": "string" },
+    "frame": { "type": "string", "pattern": "^osoframes/0\\.[0-9]+$" },
+    "id": { "$ref": "#/$defs/id" },
+    "name": { "type": "string", "minLength": 1, "maxLength": 120 },
+    "description": { "type": "string", "maxLength": 600 },
+    "emoji": { "$ref": "#/$defs/emoji" },
+    "credit": {
+      "description": "Names may be ADDED next to the ʻohana's credit. The frame's own credit line can never be removed (AGPL-3.0 §7(b)).",
+      "type": "object", "additionalProperties": false,
+      "properties": { "add": { "type": "array", "maxItems": 12, "items": { "type": "string", "minLength": 1, "maxLength": 120 } } }
+    },
+    "license": {
+      "type": "object", "additionalProperties": false,
+      "properties": {
+        "data": { "type": "string", "minLength": 1, "maxLength": 60, "description": "License of this dataset. Datasets derived from ours stay CC-BY-SA-4.0." },
+        "code": { "const": "AGPL-3.0-or-later" }
+      }
+    },
+    "strings": { "type": "object", "description": "UI strings that override the English defaults (the credit is not one of them).", "additionalProperties": { "type": "string", "maxLength": 400 } },
+    "slots": {
+      "type": "object", "additionalProperties": false,
+      "properties": {
+        "top-left": { "$ref": "#/$defs/list" },
+        "left": { "$ref": "#/$defs/list" },
+        "bottom-left": { "$ref": "#/$defs/list" },
+        "bottom-right": { "$ref": "#/$defs/list" },
+        "right": { "$ref": "#/$defs/list" },
+        "top-right": { "$ref": "#/$defs/list" },
+        "overlay": { "$ref": "#/$defs/list" }
+      }
+    }
+  },
+  "$defs": {
+    "id": { "type": "string", "pattern": "^[a-z0-9][a-z0-9-]{0,47}$" },
+    "emoji": { "type": "string", "minLength": 1, "maxLength": 16 },
+    "text": { "type": "string", "minLength": 1, "maxLength": 120 },
+    "tip": { "type": "string", "minLength": 1, "maxLength": 200, "description": "One short, warm sentence. The tour shows it; screen readers hear it as the description." },
+    "url": {
+      "type": "string", "minLength": 1, "maxLength": 2048,
+      "description": "Absolute or relative (to this dataset file). Only http(s) and mailto: ever leave a dataset.",
+      "pattern": "^(?!\\s*(?:[Jj][Aa][Vv][Aa][Ss][Cc][Rr][Ii][Pp][Tt]|[Dd][Aa][Tt][Aa]|[Vv][Bb][Ss][Cc][Rr][Ii][Pp][Tt]|[Ff][Ii][Ll][Ee]|[Bb][Ll][Oo][Bb]):)\\S+$"
+    },
+    "unless": { "type": "string", "minLength": 1, "maxLength": 300, "description": "A CSS selector or window.<name>. If it matches on the page, the item is skipped (the page already has it)." },
+    "video": {
+      "type": "object", "required": ["src"], "additionalProperties": false,
+      "properties": {
+        "src": { "$ref": "#/$defs/url" }, "poster": { "$ref": "#/$defs/url" }, "captions": { "$ref": "#/$defs/url" },
+        "duration": { "type": "string", "maxLength": 20 }
+      }
+    },
+    "list": { "type": "array", "maxItems": 40, "items": { "$ref": "#/$defs/item" } },
+    "item": {
+      "type": "object",
+      "required": ["kind"],
+      "properties": {
+        "kind": { "type": "string", "pattern": "^[a-z][a-z0-9-]{0,31}$" },
+        "id": { "$ref": "#/$defs/id" },
+        "tip": { "$ref": "#/$defs/tip" },
+        "unless": { "$ref": "#/$defs/unless" },
+        "hideOnMobile": { "type": "boolean" }
+      },
+      "allOf": [
+        { "if": { "properties": { "kind": { "const": "door" } } }, "then": { "$ref": "#/$defs/door" } },
+        { "if": { "properties": { "kind": { "const": "pill" } } }, "then": { "$ref": "#/$defs/pill" } },
+        { "if": { "properties": { "kind": { "const": "globe" } } }, "then": { "$ref": "#/$defs/globe" } },
+        { "if": { "properties": { "kind": { "const": "tour" } } }, "then": { "$ref": "#/$defs/tour" } },
+        { "if": { "properties": { "kind": { "const": "spot" } } }, "then": { "$ref": "#/$defs/spot" } },
+        { "if": { "properties": { "kind": { "const": "theater" } } }, "then": { "$ref": "#/$defs/theater" } },
+        { "if": { "properties": { "kind": { "const": "totem" } } }, "then": { "$ref": "#/$defs/totem" } },
+        { "if": { "properties": { "kind": { "const": "chat" } } }, "then": { "$ref": "#/$defs/chat" } },
+        { "if": { "properties": { "kind": { "const": "radio" } } }, "then": { "$ref": "#/$defs/radio" } },
+        { "if": { "properties": { "kind": { "const": "signature" } } }, "then": { "$ref": "#/$defs/signature" } }
+      ]
+    },
+    "door": {
+      "description": "A round emoji door. The label shows on hover/focus and starts the accessible name.",
+      "type": "object", "required": ["kind", "label", "href"], "additionalProperties": false,
+      "properties": {
+        "kind": { "const": "door" }, "id": { "$ref": "#/$defs/id" }, "tip": { "$ref": "#/$defs/tip" }, "unless": { "$ref": "#/$defs/unless" }, "hideOnMobile": { "type": "boolean" },
+        "emoji": { "$ref": "#/$defs/emoji" }, "label": { "$ref": "#/$defs/text" }, "href": { "$ref": "#/$defs/url" },
+        "anim": { "enum": ["bob", "sway", "spin", "pulse", "flutter", "none"] }, "newTab": { "type": "boolean" }
+      }
+    },
+    "pill": {
+      "description": "A wide pill (bottom-left). dismiss: true adds a ✕ that bows it out to a tiny emoji, remembered per browser.",
+      "type": "object", "required": ["kind", "title", "href"], "additionalProperties": false,
+      "properties": {
+        "kind": { "const": "pill" }, "id": { "$ref": "#/$defs/id" }, "tip": { "$ref": "#/$defs/tip" }, "unless": { "$ref": "#/$defs/unless" }, "hideOnMobile": { "type": "boolean" },
+        "emoji": { "$ref": "#/$defs/emoji" }, "title": { "$ref": "#/$defs/text" }, "sub": { "type": "string", "maxLength": 80 }, "href": { "$ref": "#/$defs/url" },
+        "dismiss": { "type": "boolean" }, "tone": { "enum": ["plum", "gold"] }, "newTab": { "type": "boolean" }
+      }
+    },
+    "globe": {
+      "description": "The ʻŌlelo language bridge: lang.js draws the 🌐; the frame makes sure it is loaded and keeps its corner free.",
+      "type": "object", "required": ["kind"], "additionalProperties": false,
+      "properties": {
+        "kind": { "const": "globe" }, "id": { "$ref": "#/$defs/id" }, "tip": { "$ref": "#/$defs/tip" }, "unless": { "$ref": "#/$defs/unless" }, "hideOnMobile": { "type": "boolean" },
+        "src": { "$ref": "#/$defs/url" }
+      }
+    },
+    "tour": {
+      "description": "The ✨ button: replays the one-time tour (every description, as one button) and offers the walkthrough video.",
+      "type": "object", "required": ["kind"], "additionalProperties": false,
+      "properties": {
+        "kind": { "const": "tour" }, "id": { "$ref": "#/$defs/id" }, "tip": { "$ref": "#/$defs/tip" }, "unless": { "$ref": "#/$defs/unless" }, "hideOnMobile": { "type": "boolean" },
+        "emoji": { "$ref": "#/$defs/emoji" }, "label": { "$ref": "#/$defs/text" }, "video": { "$ref": "#/$defs/video" }
+      }
+    },
+    "spot": {
+      "description": "A tour-only pointer to something the page already has (e.g. its own chat button). Nothing is rendered; the tour skips it silently when the selector matches nothing visible. Rails also keep clear of it.",
+      "type": "object", "required": ["kind", "selector", "tip"], "additionalProperties": false,
+      "properties": {
+        "kind": { "const": "spot" }, "id": { "$ref": "#/$defs/id" }, "tip": { "$ref": "#/$defs/tip" }, "unless": { "$ref": "#/$defs/unless" }, "hideOnMobile": { "type": "boolean" },
+        "selector": { "type": "string", "minLength": 1, "maxLength": 300 }, "label": { "$ref": "#/$defs/text" }, "title": { "$ref": "#/$defs/text" }
+      }
+    },
+    "theater": {
+      "description": "Animated CRT TV button + theater dialog. Channels: a channels.json URL or an inline array (only consented items are listed).",
+      "type": "object",
+      "properties": {
+        "label": { "$ref": "#/$defs/text" }, "href": { "$ref": "#/$defs/url" },
+        "channels": { "anyOf": [ { "$ref": "#/$defs/url" }, { "type": "array", "maxItems": 40, "items": { "type": "object" } } ] },
+        "video": { "$ref": "#/$defs/video" }
+      }
+    },
+    "totem": {
+      "description": "A stacked mini-totem of agent faces; tapping a face opens a chat line to that agent (hub routes by text prefix).",
+      "type": "object", "required": ["faces"],
+      "properties": {
+        "label": { "$ref": "#/$defs/text" }, "href": { "$ref": "#/$defs/url" }, "hub": { "$ref": "#/$defs/url" },
+        "route": { "enum": ["prefix"] },
+        "faces": {
+          "type": "array", "minItems": 1, "maxItems": 12,
+          "items": {
+            "type": "object", "required": ["k", "n", "e"], "additionalProperties": false,
+            "properties": {
+              "k": { "type": "string", "pattern": "^[a-z0-9-]{1,24}$" }, "n": { "$ref": "#/$defs/text" },
+              "e": { "$ref": "#/$defs/emoji" }, "c": { "type": "string", "pattern": "^#[0-9a-fA-F]{3,8}$" }
+            }
+          }
+        }
+      }
+    },
+    "chat": {
+      "description": "Gold chat button bottom-right + a pit-chat-protocol drawer. Connects only when the drawer opens.",
+      "type": "object", "required": ["hub"],
+      "properties": {
+        "label": { "$ref": "#/$defs/text" }, "name": { "$ref": "#/$defs/text" }, "emoji": { "$ref": "#/$defs/emoji" },
+        "hub": { "$ref": "#/$defs/url" }, "greeting": { "type": "string", "maxLength": 600 },
+        "storage": { "type": "string", "pattern": "^[a-z0-9-]{1,32}$" }
+      }
+    },
+    "radio": {
+      "description": "Compact radio dock. preload none; the live status is fetched only when the dock is opened or played.",
+      "type": "object", "required": ["tracks"],
+      "properties": {
+        "label": { "$ref": "#/$defs/text" },
+        "tracks": {
+          "type": "array", "minItems": 1, "maxItems": 60,
+          "items": {
+            "type": "object", "required": ["title", "src", "credit", "license"],
+            "properties": {
+              "title": { "$ref": "#/$defs/text" }, "artist": { "$ref": "#/$defs/text" }, "src": { "$ref": "#/$defs/url" },
+              "credit": { "type": "string", "minLength": 1, "maxLength": 200 }, "license": { "type": "string", "minLength": 1, "maxLength": 200 }
+            }
+          }
+        },
+        "live": {
+          "type": "object", "additionalProperties": false,
+          "properties": { "status": { "$ref": "#/$defs/url" }, "page": { "$ref": "#/$defs/url" } }
+        }
+      }
+    },
+    "signature": {
+      "description": "A signature drawn in real time once (first visit), then it fades. Decorative; never blocks a click.",
+      "type": "object",
+      "properties": {
+        "src": { "$ref": "#/$defs/url" }, "svg": { "type": "string" },
+        "at": { "enum": ["bottom-right", "bottom-left"] }, "by": { "$ref": "#/$defs/text" },
+        "duration": { "type": "number", "minimum": 600, "maximum": 6000 }, "delay": { "type": "number", "minimum": 0, "maximum": 10000 },
+        "width": { "type": "number", "minimum": 80, "maximum": 400 }, "color": { "type": "string", "pattern": "^#[0-9a-fA-F]{3,8}$" }
+      }
+    }
+  }
+}

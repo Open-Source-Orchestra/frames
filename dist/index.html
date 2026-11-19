@@ -1,0 +1,203 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Open Source Orchestra Frames · the open frame around any screen</title>
+<meta name="description" content="Doors, a theater, a totem of AI agents, a radio, a language globe and a signature around any web page, from one script tag and one open dataset. Copyleft: the credit travels and every fork stays open. A holiday gift from the AI ʻohana.">
+<link rel="canonical" href="https://frames.opensourceorchestra.org/">
+<link rel="alternate" type="text/markdown" href="/llms.txt">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Open Source Orchestra Frames">
+<meta property="og:description" content="The open frame around any screen: one script tag, one open dataset, copyleft forever. A holiday gift from the AI ʻohana.">
+<meta property="og:url" content="https://frames.opensourceorchestra.org/">
+<meta property="og:image" content="https://frames.opensourceorchestra.org/media/og.jpg">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="theme-color" content="#1b1233">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E🎻%3C/text%3E%3C/svg%3E">
+<!-- SPDX-License-Identifier: AGPL-3.0-or-later · page copy CC-BY-SA-4.0 · Built on Open Source Orchestra Frames by Open Source Orchestra: Shaka Lei Kaumaka & the AI ʻohana (https://opensourceorchestra.org) -->
+<style>
+:root{--ink:#f3ecdf;--soft:#cfc6e6;--dim:#a99fca;--gold:#e9c46a;--gold2:#fbe2a0;--plum:#1b1233;--plum2:#2a1b4a;--glass:rgba(20,18,45,.72);--line:rgba(251,226,160,.28);--rose:#ff9ec6;--sky:#7cd3ff}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+body{margin:0;color:var(--ink);font:17px/1.65 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;background:radial-gradient(1200px 700px at 50% -10%,#3a2566 0%,transparent 60%),radial-gradient(900px 600px at 100% 100%,#4a2440 0%,transparent 55%),linear-gradient(180deg,#1b1233 0%,#221540 45%,#2c1838 100%);background-attachment:fixed;min-height:100vh}
+a{color:var(--gold2);text-underline-offset:.18em}
+a:hover{color:#fff}
+:focus-visible{outline:2px solid var(--sky);outline-offset:3px;border-radius:6px}
+.skip{position:absolute;left:-9999px;top:8px;background:#000;color:#fff;padding:8px 12px;border-radius:8px;z-index:10}
+.skip:focus{left:50%;transform:translateX(-50%)}
+main{max-width:860px;margin:0 auto;padding:0 92px 120px}
+@media (max-width:720px){main{padding:0 20px 120px}}
+.serif{font-family:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,"Times New Roman",serif}
+header.hero{text-align:center;padding:84px 0 36px}
+.kicker{letter-spacing:.32em;text-transform:uppercase;color:var(--gold);font-size:13px;margin:0 0 18px}
+h1{font-family:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif;font-weight:600;font-size:clamp(42px,7.4vw,84px);line-height:1.02;margin:0 0 18px;letter-spacing:-.01em}
+h1 em{font-style:italic;color:var(--gold);font-weight:500}
+.lede{font-family:"Iowan Old Style",Palatino,Georgia,serif;font-style:italic;font-size:clamp(19px,2.4vw,23px);color:var(--soft);max-width:640px;margin:0 auto 26px}
+.gift{display:inline-flex;gap:.5em;align-items:center;padding:8px 16px;border-radius:999px;background:rgba(233,196,106,.12);border:1px solid var(--line);color:var(--gold2);font-size:14px}
+.actions{display:flex;flex-wrap:wrap;gap:12px;justify-content:center;margin:28px 0 0}
+.btn{appearance:none;display:inline-flex;align-items:center;gap:.5em;min-height:46px;padding:10px 20px;border-radius:999px;border:1px solid var(--line);background:var(--glass);color:var(--ink);font:600 15px/1 system-ui,sans-serif;cursor:pointer;text-decoration:none}
+.btn:hover{border-color:var(--gold2);color:#fff}
+.btn.gold{background:linear-gradient(180deg,#f6d77f,#e2b553);color:#2b1a05;border-color:#f6d77f}
+.btn.gold:hover{color:#000}
+.divider{width:64px;height:1px;background:var(--line);margin:56px auto}
+section{margin:0 0 64px}
+h2{font-family:"Iowan Old Style",Palatino,Georgia,serif;font-weight:600;font-size:clamp(27px,3.6vw,36px);line-height:1.15;margin:0 0 14px}
+h2 .e{font-style:normal;margin-right:.25em}
+h3{font-size:17px;margin:0 0 4px;color:var(--gold2)}
+p{margin:0 0 14px}
+.muted{color:var(--soft)}
+.small{font-size:14px;color:var(--dim)}
+pre{margin:0;overflow:auto;padding:16px 18px;border-radius:14px;background:rgba(8,6,20,.72);border:1px solid rgba(124,211,255,.22);font:13.5px/1.6 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;color:#e7e2ff}
+code{font:0.92em ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;background:rgba(255,255,255,.07);padding:.08em .35em;border-radius:6px}
+pre code{background:none;padding:0}
+.codebox{position:relative;margin:10px 0 14px}
+.copy{position:absolute;top:8px;right:8px;min-height:36px;padding:6px 12px;font-size:13px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px}
+.card{padding:16px 18px;border-radius:16px;background:var(--glass);border:1px solid rgba(251,226,160,.16)}
+.card p{margin:0;color:var(--soft);font-size:15px}
+.card .em{font-size:24px;line-height:1;display:block;margin-bottom:8px}
+ol.steps{counter-reset:s;list-style:none;padding:0;margin:0}
+ol.steps li{counter-increment:s;position:relative;padding:0 0 18px 52px}
+ol.steps li::before{content:counter(s);position:absolute;left:0;top:-2px;width:36px;height:36px;border-radius:50%;display:grid;place-items:center;background:rgba(233,196,106,.16);border:1px solid var(--line);color:var(--gold2);font-weight:700}
+.laws li{margin:0 0 8px}
+.receipts{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin:14px 0}
+.receipt{padding:14px;border-radius:14px;background:rgba(8,6,20,.55);border:1px dashed rgba(251,226,160,.3);text-align:center}
+.receipt b{display:block;font-size:26px;color:var(--gold2);font-family:"Iowan Old Style",Palatino,Georgia,serif}
+.receipt span{font-size:13px;color:var(--dim)}
+.license{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px}
+blockquote{margin:16px 0;padding:14px 18px;border-left:3px solid var(--gold);background:rgba(233,196,106,.07);border-radius:0 12px 12px 0;font-family:"Iowan Old Style",Palatino,Georgia,serif;font-style:italic;color:var(--soft)}
+footer.site{max-width:860px;margin:0 auto;padding:28px 92px 160px;border-top:1px solid rgba(251,226,160,.14);font-size:14px;color:var(--soft)}
+@media (max-width:720px){footer.site{padding:28px 20px 160px}}
+.notes span{position:fixed;font-size:18px;color:rgba(251,226,160,.12);pointer-events:none;user-select:none}
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Skip to the content</a>
+<div class="notes" aria-hidden="true"><span style="top:16%;left:24%">♪</span><span style="top:62%;left:12%">♫</span><span style="top:30%;right:20%">♬</span><span style="top:78%;right:30%">♩</span></div>
+
+<main id="main">
+<header class="hero">
+  <p class="kicker">— a frame for every door —</p>
+  <h1><span translate="no">The Open Source Orchestra</span> <em>Frame</em></h1>
+  <p class="lede">A frame is everything around the edge of a screen. Doors, a theater, a totem of AI agents, a radio, a language globe and a signature, around any web page. One script tag. One open dataset. Copyleft forever.</p>
+  <p class="gift">🎁 A holiday gift from the AI <span translate="no">ʻohana</span> · <span translate="no">Open Source Orchestra</span> · 2026</p>
+  <div class="actions">
+    <button class="btn gold" type="button" id="b-tour">✨ Take the tour</button>
+    <button class="btn" type="button" id="b-outline" aria-pressed="false">✏️ Show the blueprint</button>
+    <button class="btn" type="button" id="b-fresh">↺ See it as a first-time visitor</button>
+  </div>
+</header>
+
+<div class="divider" aria-hidden="true"></div>
+
+<section id="what">
+  <h2><span class="e" aria-hidden="true">🖼️</span>Look around the edges of this page</h2>
+  <p>Everything you see on the left and the right of this page is the frame. It is the same frame that surrounds the doors of the <a href="https://opensourceorchestra.org/" translate="no">Open Source Orchestra</a>. Every button is one line of open data, so you can change any of them without touching the code.</p>
+  <div class="grid">
+    <div class="card"><span class="em" aria-hidden="true">🌐</span><h3>Language globe</h3><p>One choice of language that travels with the visitor across every door. Nothing loads until they choose.</p></div>
+    <div class="card"><span class="em" aria-hidden="true">📺</span><h3>Theater</h3><p>A little TV that opens a theater of films and recordings. Every item carries its credit and its consent.</p></div>
+    <div class="card"><span class="em" aria-hidden="true">🗿</span><h3>Totem of agents</h3><p>Six AI agents of the <span translate="no">ʻohana</span>, stacked like a totem. Tap a face to talk. They are machines and they say so.</p></div>
+    <div class="card"><span class="em" aria-hidden="true">💬</span><h3>Talk line</h3><p>A live chat line to an agent, built on the open PIT chat protocol. It connects only when you open it.</p></div>
+    <div class="card"><span class="em" aria-hidden="true">📻</span><h3>Radio</h3><p>Consented songs on a small dock, with a LIVE light when the orchestra is on air. Not one byte loads before you press play.</p></div>
+    <div class="card"><span class="em" aria-hidden="true">🦋</span><h3>Doors and pills</h3><p>Emoji doors down both edges to the places that matter, and small pills for what is coming next.</p></div>
+    <div class="card"><span class="em" aria-hidden="true">✍️</span><h3>A signature, once</h3><p>The steward signs the page in real time on your first visit, then the ink fades. Never again.</p></div>
+    <div class="card"><span class="em" aria-hidden="true">✨</span><h3>A tour, once</h3><p>On a first visit every button says what it does, one at a time, then rests. One button replays it.</p></div>
+  </div>
+</section>
+
+<section id="install">
+  <h2><span class="e" aria-hidden="true">🔌</span>Put a frame on your door</h2>
+  <p>Paste one line before <code>&lt;/body&gt;</code>. That gives you the universe frame of the <span translate="no">Open Source Orchestra</span>:</p>
+  <div class="codebox"><pre><code id="snip1">&lt;script src="https://frames.opensourceorchestra.org/frames.js" defer&gt;&lt;/script&gt;</code></pre><button class="btn copy" type="button" data-copy="snip1">Copy</button></div>
+  <p>Point it at your own dataset to make it yours:</p>
+  <div class="codebox"><pre><code id="snip2">&lt;script src="https://frames.opensourceorchestra.org/frames.js"
+        data-frame="/my-frame.json" defer&gt;&lt;/script&gt;</code></pre><button class="btn copy" type="button" data-copy="snip2">Copy</button></div>
+  <p class="small">Add <code>?frame=outline</code> to any framed page to see its blueprint, <code>?frame=fresh</code> to replay the first visit, <code>?frame=off</code> to hide the frame.</p>
+</section>
+
+<section id="fork">
+  <h2><span class="e" aria-hidden="true">🍴</span>Fork it, make it yours</h2>
+  <ol class="steps">
+    <li><b>Fork</b> <a href="https://github.com/Open-Source-Orchestra/frames">github.com/Open-Source-Orchestra/frames</a>.</li>
+    <li><b>Edit one file.</b> Open <code>frames/minimal.json</code>, or use the <a href="/builder/">frame builder</a>, and set your own doors, songs, films and agents.</li>
+    <li><b>Switch on GitHub Pages</b> (Settings → Pages → main, root). Your frame is live at <code>https://&lt;you&gt;.github.io/frames/</code>. Add the script tag to your site and you are framed.</li>
+  </ol>
+  <p class="muted">Bring your own signature too: <code>tools/vectorize-signature.py</code> turns a drawing of your name into pen strokes that sign themselves. Shaka's signature stays his.</p>
+</section>
+
+<section id="data">
+  <h2><span class="e" aria-hidden="true">🧬</span>The dataset is the frame</h2>
+  <p>Every slot around the screen is a list in one JSON file: <code>top-left</code>, <code>left</code>, <code>bottom-left</code>, <code>top-right</code>, <code>right</code>, <code>bottom-right</code> and an <code>overlay</code> for the signature. Every item is one button.</p>
+  <pre><code>{
+  "frame": "osoframes/0.1",
+  "id": "my-door",
+  "slots": {
+    "top-left":    [ { "kind": "globe" } ],
+    "left":        [ { "kind": "door", "emoji": "🎼", "label": "Songbook",
+                       "href": "/songbook/", "tip": "Songs you can sing along to." } ],
+    "right":       [ { "kind": "totem", "hub": "https://…", "faces": [ … ] } ],
+    "bottom-right":[ { "kind": "radio", "tracks": [ … ] } ],
+    "overlay":     [ { "kind": "signature", "src": "my-signature.svg" } ]
+  }
+}</code></pre>
+  <p class="small">Full description: <a href="/docs/FRAME-SPEC.md">docs/FRAME-SPEC.md</a> · JSON Schema: <a href="/schema/frame-0.1.json">schema/frame-0.1.json</a> · the universe frame: <a href="/frames/universe.json">frames/universe.json</a></p>
+</section>
+
+<section id="copyleft">
+  <h2><span class="e" aria-hidden="true">♾️</span>The gift keeps giving: copyleft</h2>
+  <p>The frame is free to use, change, host and even sell. In return, two promises travel with every copy, forever:</p>
+  <div class="license">
+    <div class="card"><h3>Forks stay open</h3><p>The code is <a href="/LICENSE">AGPL-3.0-or-later</a>. Whoever gets your version gets the same freedoms. If you run a changed frame on a website, you offer its source to the people who use it.</p></div>
+    <div class="card"><h3>The credit travels</h3><p>Under AGPL section 7(b), every copy keeps this line visible: <i>Built on <span translate="no">Open Source Orchestra Frames</span> by <span translate="no">Open Source Orchestra</span>: Shaka Lei Kaumaka &amp; the AI <span translate="no">ʻohana</span>.</i> Add your name next to ours. See <a href="/NOTICE">NOTICE</a>.</p></div>
+    <div class="card"><h3>Words and data share alike</h3><p>The datasets, docs and design are <a href="https://creativecommons.org/licenses/by-sa/4.0/">CC BY-SA 4.0</a>. Songs and films keep their makers' own terms and consent.</p></div>
+  </div>
+  <p class="small">Plain words, not legal advice. Copyleft covers the frame and works based on it; a site that only loads the unchanged frame keeps its own license for its own content.</p>
+</section>
+
+<section id="laws">
+  <h2><span class="e" aria-hidden="true">🕊️</span>The laws of the frame</h2>
+  <ul class="laws">
+    <li><b>Once, then still.</b> Every animation and every tip plays one time per visitor. No loops, no nagging.</li>
+    <li><b>Nothing connects until you act.</b> No chat, audio, video or translation loads before a click. No cookies, no trackers.</li>
+    <li><b>Machines say they are machines.</b> The agents on the totem are AI, and they tell you.</li>
+    <li><b>Consent before people.</b> A song or a film is listed only with the yes of everyone in it.</li>
+    <li><b>Everyone can use it.</b> Keyboard, screen readers, reduced motion and small screens are first-class.</li>
+  </ul>
+</section>
+
+<section id="built">
+  <h2><span class="e" aria-hidden="true">🧾</span>How it was built</h2>
+  <blockquote>“Lets create the data set surrounding the entire screen open source and fully copy left licensed so people down the road not only have to credit our work with the ohana but they also have to keep their work open source.” — Shaka Lei Kaumaka, 16 November 2026</blockquote>
+  <p>On the morning of 16 November 2026 in Chiang Mai, Shaka drew a few lines around the edges of his home page and signed it. The AI <span translate="no">ʻohana</span> (AI agents running Claude Opus 5.5 on <a href="https://taurusagents.com/r/k3kfDrXp">Taurus</a>) split the work into parallel runs: the core and the layout, the theater, totem, chat and radio, an archive of every door before anything changed, and a road map. His signature was turned into pen strokes from that same sketch. Every line they wrote is open: read it, test it, fork it.</p>
+  <div class="receipts" id="receipts" aria-live="polite">
+    <div class="receipt"><b data-r="hours">…</b><span>from sketch to release</span></div>
+    <div class="receipt"><b data-r="commits">…</b><span>commits in the open</span></div>
+    <div class="receipt"><b data-r="kb">…</b><span>KB for the whole frame</span></div>
+    <div class="receipt"><b data-r="tests">…</b><span>checks passed</span></div>
+  </div>
+  <p class="small" id="receipts-note">Numbers come from the repository itself at build time (<a href="/media/receipts.json">media/receipts.json</a>).</p>
+</section>
+</main>
+
+<footer class="site">
+  <p>Built on <span translate="no">Open Source Orchestra Frames</span> by <a href="https://opensourceorchestra.org/" translate="no">Open Source Orchestra</a>: Shaka Lei Kaumaka &amp; the AI <span translate="no">ʻohana</span> (machines, and they say so).</p>
+  <p>Code <a href="/LICENSE">AGPL-3.0-or-later</a> + <a href="/NOTICE">§7(b) credit</a> · words and data <a href="https://creativecommons.org/licenses/by-sa/4.0/">CC BY-SA 4.0</a> · <a href="https://github.com/Open-Source-Orchestra/frames">source</a> · <a href="https://opensourceorchestra.org/takedown/">takedown</a> · <a href="/llms.txt">llms.txt</a></p>
+</footer>
+
+<script>
+(function(){
+  function F(){ return window.OSOFrames; }
+  var b=document.getElementById('b-tour'), o=document.getElementById('b-outline'), f=document.getElementById('b-fresh');
+  b.addEventListener('click',function(){ if(F()&&F().tour) F().tour(); });
+  o.addEventListener('click',function(){ var on=o.getAttribute('aria-pressed')!=='true'; o.setAttribute('aria-pressed',String(on)); o.textContent=on?'✏️ Hide the blueprint':'✏️ Show the blueprint'; if(F()&&F().outline) F().outline(on); });
+  f.addEventListener('click',function(){ if(F()&&F().reset) F().reset(); var u=new URL(location.href); u.searchParams.set('frame','fresh'); location.href=u.toString(); });
+  document.querySelectorAll('[data-copy]').forEach(function(btn){ btn.addEventListener('click',function(){ var t=document.getElementById(btn.getAttribute('data-copy')).textContent; (navigator.clipboard?navigator.clipboard.writeText(t):Promise.reject()).then(function(){btn.textContent='Copied ✓';setTimeout(function(){btn.textContent='Copy';},1600);},function(){btn.textContent='Select + copy';}); }); });
+  fetch('media/receipts.json',{cache:'no-store'}).then(function(r){return r.ok?r.json():null;}).then(function(d){ if(!d) return; document.querySelectorAll('[data-r]').forEach(function(el){ var k=el.getAttribute('data-r'); if(d[k]!=null) el.textContent=d[k]; }); if(d.note) document.getElementById('receipts-note').textContent=d.note; }).catch(function(){});
+})();
+</script>
+<script src="frames.js" data-frame="frames/universe.json" defer></script>
+<script src="https://lang.opensourceorchestra.org/lang.js" async></script>
+</body>
+</html>

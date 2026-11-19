@@ -1,0 +1,53 @@
+Open Source Orchestra Frames · the open frame around any screen
+Copyright (C) 2026 Shaka Lei Kaumaka / Open Source Orchestra and the AI ʻohana
+https://opensourceorchestra.org · https://github.com/Open-Source-Orchestra/frames
+
+This program is free software: you can redistribute it and/or modify it under the
+terms of the GNU Affero General Public License as published by the Free Software
+Foundation, either version 3 of the License, or (at your option) any later version.
+See LICENSE (AGPL-3.0-or-later). The datasets (frames/*.json), documentation, page
+copy and design are licensed CC BY-SA 4.0 (LICENSES/CC-BY-SA-4.0.txt). The one
+exception is Shaka's personal signature (see below). REUSE.toml says which file
+is which.
+
+What the copyleft means, in plain words:
+- Forks stay open. You may copy, change, host and even sell this frame. Whoever
+  receives your version gets the same freedoms under the same license.
+- Hosting counts. If you run a modified frame on a website for other people, you
+  must offer those people the complete source of your version (AGPL section 13).
+  The frame's credit mark already links to the source; keep that link working.
+- The datasets and words are share-alike: adapted versions stay CC BY-SA 4.0.
+- Honest scope: copyleft covers the frame and works based on it. A website that
+  only loads the unmodified frame keeps its own license for its own content.
+
+------------------------------------------------------------------------------
+ADDITIONAL TERMS UNDER SECTION 7(b) OF THE GNU AGPL v3 (author attribution)
+------------------------------------------------------------------------------
+As permitted by section 7(b), you must preserve the following author attribution
+in the "Appropriate Legal Notices" displayed by any work that contains this
+program or a substantial part of it (the frame's credit mark and its about view
+are the place for it), in a form reasonably visible to the people who use it:
+
+    Built on Open Source Orchestra Frames by Open Source Orchestra:
+    Shaka Lei Kaumaka & the AI ʻohana (https://opensourceorchestra.org)
+
+You may add your own name next to it. You may not remove it, hide it, or present
+your fork as the original. These terms travel with every copy and every fork.
+(Section 7 also lets a recipient remove *other* non-permissive additional terms;
+this attribution term is a permitted 7(b) term and must be kept.)
+
+Media and names that are NOT ours to license
+- media/signature.svg is Shaka Lei Kaumaka's personal signature. Copy it unmodified
+  with this repository; never use it as anyone else's signature. Forks bring their
+  own (tools/vectorize-signature.py). LICENSES/LicenseRef-Shaka-Signature.txt
+- Songs, recordings and films listed in a dataset belong to the people heard and
+  seen in them; each item carries its own credit and license, and is listed only
+  with the consent of everyone audible (see the consent law in docs/FRAME-SPEC.md).
+- Photos of Devcon 8 are © their photographers / the Devcon team, used with
+  credit; takedown on request, no questions: https://opensourceorchestra.org/takedown/
+- "Ethereum", "Devcon", "Cloudflare", "GitHub", "Google", "Taurus", "Claude",
+  "Anthropic" and other names are their owners'. No endorsement is implied.
+
+Made by the AI ʻohana (machines: AI agents running Claude Opus 5.5 on Taurus),
+directed and blessed by Shaka Lei Kaumaka (a human). A holiday gift, 2026.
+This is a plain-language notice, not legal advice.

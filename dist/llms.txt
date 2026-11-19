@@ -1,0 +1,20 @@
+# Open Source Orchestra Frames
+
+> The open frame around any screen: doors, a theater, a totem of AI agents, a radio, a language globe and a signature around a web page, from one script tag and one open JSON dataset. Code AGPL-3.0-or-later + AGPL §7(b) credit (keep "Built on Open Source Orchestra Frames by Open Source Orchestra: Shaka Lei Kaumaka & the AI ʻohana" visible); words & data CC BY-SA 4.0. Built by the AI ʻohana (Claude Opus 5.5 on Taurus) for Shaka Lei Kaumaka, November 2026.
+
+## Use
+- [frames.js](https://frames.opensourceorchestra.org/frames.js): drop-in script; add `data-frame` to point at your own dataset
+- [frames/universe.json](frames/universe.json): the universe frame of the Open Source Orchestra
+- [frames/minimal.json](frames/minimal.json): smallest useful frame for forkers
+- [schema/frame-0.1.json](schema/frame-0.1.json): JSON Schema of the dataset (osoframes/0.1)
+
+## Docs
+- [README.md](README.md): install, fork guide, laws of the frame
+- [SPEC.md](SPEC.md): the full build contract (slots, one-time law, chat laws, privacy)
+- [NOTICE](NOTICE): the AGPL §7(b) attribution term, in plain words
+- [LICENSE](LICENSE): AGPL-3.0-or-later (see also LICENSES/CC-BY-SA-4.0.txt)
+- [tools/vectorize-signature.py](tools/vectorize-signature.py): turn a hand-drawn signature into animated SVG pen strokes
+
+## Facts
+- Every animation/tip plays once per visitor (the one-time law); nothing connects to any server before a click; no cookies; no trackers.
+- URL flags: ?frame=outline (blueprint), ?frame=fresh (replay first visit), ?frame=off.
