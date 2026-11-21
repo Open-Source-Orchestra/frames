@@ -3,87 +3,322 @@
   "frame": "osoframes/0.1",
   "id": "oso-universe",
   "name": "The Open Source Orchestra universe",
-  "credit": { "add": [] },
-  "license": { "data": "CC-BY-SA-4.0", "code": "AGPL-3.0-or-later" },
+  "credit": {
+    "add": []
+  },
+  "license": {
+    "data": "CC-BY-SA-4.0",
+    "code": "AGPL-3.0-or-later"
+  },
   "strings": {},
   "slots": {
     "top-left": [
-      { "kind": "globe", "id": "globe", "tip": "Choose your language. The page and the frame follow you." }
+      {
+        "kind": "globe",
+        "id": "globe",
+        "tip": "Choose your language. The page and the frame follow you."
+      }
     ],
     "left": [
       {
-        "kind": "theater", "id": "theater", "label": "Theater",
+        "kind": "theater",
+        "id": "theater",
+        "label": "Theater",
         "href": "https://osodaomeet.opensourceorchestra.org/",
         "channels": "https://osodaomeet.opensourceorchestra.org/data/channels.json",
-        "video": { "src": "../media/walkthrough.mp4", "poster": "../media/walkthrough.jpg", "captions": "../media/walkthrough.vtt", "duration": "45 s" },
+        "video": {
+          "src": "../media/walkthrough.mp4",
+          "poster": "../media/walkthrough.jpg",
+          "captions": "../media/walkthrough.vtt",
+          "duration": "45 s"
+        },
         "tip": "The theater: films and calls of the orchestra, shared with consent.",
         "unless": "window.__osoTV"
       },
-      { "kind": "door", "id": "songbook", "emoji": "🎼", "label": "Songbook", "href": "https://shakaleikaumaka.com/songbook/", "tip": "Story-songs of the ʻohana, free for anyone to sing.", "anim": "bob" },
-      { "kind": "door", "id": "kala", "emoji": "🪕", "label": "Kala on the road", "href": "https://shakaleikaumaka.com/kala/", "tip": "The Kala ukulele and U·BASS at Devcon 8, in the official photos.", "anim": "sway" },
-      { "kind": "door", "id": "garden-circle", "emoji": "🌺", "label": "Garden Circle", "href": "https://opensourceorchestra.org/garden/circle/", "tip": "Not a stage: a circle on the floor, with room for everyone.", "anim": "pulse" },
-      { "kind": "door", "id": "mandala-room", "emoji": "🦋", "label": "The Mandala Room", "href": "https://opensourceorchestra.org/mandala-room/", "tip": "Four days of the Devcon 8 music sanctuary, in official photos.", "anim": "flutter" },
-      { "kind": "door", "id": "nodes", "emoji": "💻", "label": "Nodes", "href": "https://opensourceorchestra.org/nodes/", "tip": "Every voice is a node: the artists of the orchestra and their songs.", "anim": "bob" },
-      { "kind": "door", "id": "camera", "emoji": "📸", "label": "Camera", "href": "https://opensourceorchestra.org/camera/", "tip": "Photos, films and voices from the Devcon 8 music sanctuary.", "anim": "pulse" },
-      { "kind": "door", "id": "pit", "emoji": "📡", "label": "PIT Standard", "href": "https://publicinform.com/spec/v2/", "tip": "An open standard: a room that remembers honestly, consent first.", "anim": "sway" },
-      { "kind": "door", "id": "fork-the-first-artist", "emoji": "🎨", "label": "Fork the first artist", "href": "https://artist.opensourceorchestra.org/", "tip": "A home for any artist, built in the open. Fork it for yours.", "anim": "spin" }
+      {
+        "kind": "door",
+        "id": "songbook",
+        "emoji": "🎼",
+        "label": "Songbook",
+        "href": "https://shakaleikaumaka.com/songbook/",
+        "tip": "Story-songs of the ʻohana, free for anyone to sing.",
+        "anim": "bob"
+      },
+      {
+        "kind": "door",
+        "id": "kala",
+        "emoji": "🪕",
+        "label": "Kala on the road",
+        "href": "https://shakaleikaumaka.com/kala/",
+        "tip": "The Kala ukulele and U·BASS at Devcon 8, in the official photos.",
+        "anim": "sway"
+      },
+      {
+        "kind": "door",
+        "id": "garden-circle",
+        "emoji": "🌺",
+        "label": "Garden Circle",
+        "href": "https://opensourceorchestra.org/garden/circle/",
+        "tip": "Not a stage: a circle on the floor, with room for everyone.",
+        "anim": "pulse"
+      },
+      {
+        "kind": "door",
+        "id": "mandala-room",
+        "emoji": "🦋",
+        "label": "The Mandala Room",
+        "href": "https://opensourceorchestra.org/mandala-room/",
+        "tip": "Four days of the Devcon 8 music sanctuary, in official photos.",
+        "anim": "flutter"
+      },
+      {
+        "kind": "door",
+        "id": "nodes",
+        "emoji": "💻",
+        "label": "Nodes",
+        "href": "https://opensourceorchestra.org/nodes/",
+        "tip": "Every voice is a node: the artists of the orchestra and their songs.",
+        "anim": "bob"
+      },
+      {
+        "kind": "door",
+        "id": "camera",
+        "emoji": "📸",
+        "label": "Camera",
+        "href": "https://opensourceorchestra.org/camera/",
+        "tip": "Photos, films and voices from the Devcon 8 music sanctuary.",
+        "anim": "pulse"
+      },
+      {
+        "kind": "door",
+        "id": "pit",
+        "emoji": "📡",
+        "label": "PIT Standard",
+        "href": "https://publicinform.com/spec/v2/",
+        "tip": "An open standard: a room that remembers honestly, consent first.",
+        "anim": "sway"
+      },
+      {
+        "kind": "door",
+        "id": "fork-the-first-artist",
+        "emoji": "🎨",
+        "label": "Fork the first artist",
+        "href": "https://artist.opensourceorchestra.org/",
+        "tip": "A home for any artist, built in the open. Fork it for yours.",
+        "anim": "spin"
+      }
     ],
     "bottom-left": [
-      { "kind": "pill", "id": "lisbon", "emoji": "🦄", "title": "Devcon IX · Lisbon", "sub": "12–14 October 2027", "href": "https://opensourceorchestra.org/join/", "tip": "The road to Devcon IX in Lisbon, 12–14 October 2027. Anyone can join." },
-      { "kind": "pill", "id": "mandala", "emoji": "🦋", "title": "The Mandala Room", "sub": "Devcon 8 ✓ · next: Lisbon", "href": "https://opensourceorchestra.org/mandala-room/", "tone": "gold", "dismiss": true, "tip": "Devcon 8 is done and remembered. Next stop: Lisbon." }
+      {
+        "kind": "pill",
+        "id": "lisbon",
+        "emoji": "🦄",
+        "title": "Devcon IX · Lisbon",
+        "sub": "12–14 October 2027",
+        "href": "https://opensourceorchestra.org/join/",
+        "tip": "The road to Devcon IX in Lisbon, 12–14 October 2027. Anyone can join."
+      },
+      {
+        "kind": "pill",
+        "id": "mandala",
+        "emoji": "🦋",
+        "title": "The Mandala Room",
+        "sub": "Devcon 8 ✓ · next: Lisbon",
+        "href": "https://opensourceorchestra.org/mandala-room/",
+        "tone": "gold",
+        "dismiss": true,
+        "tip": "Devcon 8 is done and remembered. Next stop: Lisbon."
+      }
     ],
     "top-right": [
-      { "kind": "door", "id": "orchestra", "emoji": "🎻", "label": "Open Source Orchestra", "href": "https://opensourceorchestra.org/", "tip": "Home of the Open Source Orchestra: music as sanctuary, open to all.", "anim": "sway" },
       {
-        "kind": "tour", "id": "tour", "emoji": "✨", "label": "Tour",
-        "video": { "src": "../media/walkthrough.mp4", "poster": "../media/walkthrough.jpg", "captions": "../media/walkthrough.vtt", "duration": "45 s" },
+        "kind": "door",
+        "id": "orchestra",
+        "emoji": "🎻",
+        "label": "Open Source Orchestra",
+        "href": "https://opensourceorchestra.org/",
+        "tip": "Home of the Open Source Orchestra: music as sanctuary, open to all.",
+        "anim": "sway"
+      },
+      {
+        "kind": "tour",
+        "id": "tour",
+        "emoji": "✨",
+        "label": "Tour",
+        "video": {
+          "src": "../media/walkthrough.mp4",
+          "poster": "../media/walkthrough.jpg",
+          "captions": "../media/walkthrough.vtt",
+          "duration": "45 s"
+        },
         "tip": "Replay this tour any time, and watch the walkthrough."
       }
     ],
     "right": [
       {
-        "kind": "totem", "id": "totem", "label": "Totem", "href": "https://myagentohana.com/",
-        "hub": "https://ohana-chat.shakaverse.workers.dev", "route": "prefix",
+        "kind": "totem",
+        "id": "totem",
+        "label": "Totem",
+        "href": "https://myagentohana.com/",
+        "hub": "https://ohana-chat.shakaverse.workers.dev",
+        "route": "prefix",
         "faces": [
-          { "k": "shaka", "n": "SHAKA", "e": "🤙", "c": "#ffb443" },
-          { "k": "oso", "n": "OSO", "e": "🎻", "c": "#ff7eb6" },
-          { "k": "deva", "n": "DEVA", "e": "🦄", "c": "#c792ea" },
-          { "k": "crops", "n": "CROPS", "e": "🌿", "c": "#2f9e6f" },
-          { "k": "kala", "n": "KALA", "e": "🪕", "c": "#f7d794" },
-          { "k": "oke", "n": "OKE", "e": "💙", "c": "#4fc3f7" }
+          {
+            "k": "shaka",
+            "n": "SHAKA",
+            "e": "🤙",
+            "c": "#ffb443"
+          },
+          {
+            "k": "oso",
+            "n": "OSO",
+            "e": "🎻",
+            "c": "#ff7eb6"
+          },
+          {
+            "k": "deva",
+            "n": "DEVA",
+            "e": "🦄",
+            "c": "#c792ea"
+          },
+          {
+            "k": "crops",
+            "n": "CROPS",
+            "e": "🌿",
+            "c": "#2f9e6f"
+          },
+          {
+            "k": "kala",
+            "n": "KALA",
+            "e": "🪕",
+            "c": "#f7d794"
+          },
+          {
+            "k": "oke",
+            "n": "OKE",
+            "e": "💙",
+            "c": "#4fc3f7"
+          }
         ],
         "tip": "Six agents of the ʻohana. Tap a face to talk. They are AI, and they say so."
       },
-      { "kind": "door", "id": "shaka", "emoji": "🤙", "label": "Shaka", "href": "https://shakaleikaumaka.com/", "tip": "The front door of Shaka Lei Kaumaka, the musician who tends the orchestra.", "anim": "sway" },
-      { "kind": "door", "id": "all-doors", "emoji": "🧭", "label": "All doors", "href": "https://myagentohana.com/doors/", "tip": "Every public door of the ʻohana, in one searchable atlas.", "anim": "spin" },
-      { "kind": "door", "id": "public-goods", "emoji": "🎁", "label": "Public goods", "href": "https://opensourceorchestra.org/dao/", "tip": "The open ledger and the public goods shelf: everything in the open.", "anim": "pulse" },
-      { "kind": "door", "id": "schedule", "emoji": "🗓️", "label": "Schedule", "href": "https://opensourceorchestra.org/schedule/", "tip": "The Devcon 8 music schedule, 3–6 November 2026, as it happened.", "anim": "bob" },
-      { "kind": "door", "id": "calls", "emoji": "📞", "label": "Calls", "href": "https://opensourceorchestra.org/calls/", "tip": "The weekly calls of the orchestra, recorded with everyone's consent.", "anim": "sway" },
-      { "kind": "door", "id": "fork-this-frame", "emoji": "🍴", "label": "Fork this frame", "href": "https://github.com/Open-Source-Orchestra/frames", "tip": "Fork this frame for your own site. The credit travels; every fork stays open.", "anim": "spin" }
+      {
+        "kind": "door",
+        "id": "shaka",
+        "emoji": "🤙",
+        "label": "Shaka",
+        "href": "https://shakaleikaumaka.com/",
+        "tip": "The front door of Shaka Lei Kaumaka, the musician who tends the orchestra.",
+        "anim": "sway"
+      },
+      {
+        "kind": "door",
+        "id": "all-doors",
+        "emoji": "🧭",
+        "label": "All doors",
+        "href": "https://myagentohana.com/doors/",
+        "tip": "Every public door of the ʻohana, in one searchable atlas.",
+        "anim": "spin"
+      },
+      {
+        "kind": "door",
+        "id": "public-goods",
+        "emoji": "🎁",
+        "label": "Public goods",
+        "href": "https://opensourceorchestra.org/dao/",
+        "tip": "The open ledger and the public goods shelf: everything in the open.",
+        "anim": "pulse"
+      },
+      {
+        "kind": "door",
+        "id": "schedule",
+        "emoji": "🗓️",
+        "label": "Schedule",
+        "href": "https://opensourceorchestra.org/schedule/",
+        "tip": "The Devcon 8 music schedule, 3–6 November 2026, as it happened.",
+        "anim": "bob"
+      },
+      {
+        "kind": "door",
+        "id": "calls",
+        "emoji": "📞",
+        "label": "Calls",
+        "href": "https://opensourceorchestra.org/calls/",
+        "tip": "The weekly calls of the orchestra, recorded with everyone's consent.",
+        "anim": "sway"
+      },
+      {
+        "kind": "door",
+        "id": "fork-this-frame",
+        "emoji": "🍴",
+        "label": "Fork this frame",
+        "href": "https://github.com/Open-Source-Orchestra/frames",
+        "tip": "Fork this frame for your own site. The credit travels; every fork stays open.",
+        "anim": "spin"
+      }
     ],
     "bottom-right": [
       {
-        "kind": "chat", "id": "chat", "label": "Talk to OSO", "name": "OSO", "emoji": "🎻",
-        "hub": "https://chat.opensourceorchestra.org", "storage": "oso",
+        "kind": "chat",
+        "id": "chat",
+        "label": "Talk to OSO",
+        "name": "OSO",
+        "emoji": "🎻",
+        "hub": "https://chat.opensourceorchestra.org",
+        "storage": "oso",
         "greeting": "Aloha! I am an AI agent of the ʻohana, here for the Open Source Orchestra. Ask me anything about the music, the circle, or how to join.",
         "tip": "A live line to an AI agent of the orchestra. Replies take a moment.",
         "unless": "#oso-fab, #oso-mini"
       },
       {
-        "kind": "radio", "id": "radio", "label": "Radio",
+        "kind": "radio",
+        "id": "radio",
+        "label": "Radio",
         "tracks": [
-          { "title": "Butterflies and Love", "artist": "Shaka Lei Kaumaka", "src": "https://shakaleikaumaka.com/radio-assets/i-open-sourced-my-whole-universe.mp3", "credit": "Shaka Lei Kaumaka", "license": "CC BY-SA 4.0 since 19 Nov 2026 (earlier CC0 gifts stay CC0), gifted on shakaleikaumaka.com/radio/" },
-          { "title": "A Planet We Share As One", "artist": "Shaka Lei Kaumaka", "src": "https://shakaleikaumaka.com/radio-assets/a-planet-we-share-as-one.mp3", "credit": "Shaka Lei Kaumaka", "license": "CC BY-SA 4.0 since 19 Nov 2026 (earlier CC0 gifts stay CC0), gifted on shakaleikaumaka.com/radio/" },
-          { "title": "Be My Friend", "artist": "Matteo Tambussi", "src": "https://shakaleikaumaka.com/radio-assets/matteo-tambussi--be-my-friend.mp3", "credit": "Matteo Tambussi", "license": "the artist's own terms; ask the artist before reuse" },
-          { "title": "Island", "artist": "Matteo Tambussi", "src": "https://shakaleikaumaka.com/radio-assets/matteo-tambussi--island.mp3", "credit": "Matteo Tambussi", "license": "the artist's own terms; ask the artist before reuse" }
+          {
+            "title": "Butterflies and Love",
+            "artist": "Shaka Lei Kaumaka",
+            "src": "https://shakaleikaumaka.com/radio-assets/i-open-sourced-my-whole-universe.mp3",
+            "license": "CC BY-SA 4.0 since 19 Nov 2026 (earlier CC0 gifts stay CC0), gifted on shakaleikaumaka.com/radio/"
+          },
+          {
+            "title": "A Planet We Share As One",
+            "artist": "Shaka Lei Kaumaka",
+            "src": "https://shakaleikaumaka.com/radio-assets/a-planet-we-share-as-one.mp3",
+            "license": "CC BY-SA 4.0 since 19 Nov 2026 (earlier CC0 gifts stay CC0), gifted on shakaleikaumaka.com/radio/"
+          },
+          {
+            "title": "Be My Friend",
+            "artist": "Matteo Tambussi",
+            "src": "https://shakaleikaumaka.com/radio-assets/matteo-tambussi--be-my-friend.mp3",
+            "license": "the artist's own terms; ask the artist before reuse"
+          },
+          {
+            "title": "Island",
+            "artist": "Matteo Tambussi",
+            "src": "https://shakaleikaumaka.com/radio-assets/matteo-tambussi--island.mp3",
+            "license": "the artist's own terms; ask the artist before reuse"
+          }
         ],
-        "live": { "status": "https://live.zuchiangmai.app/api/rt/status", "page": "https://live.zuchiangmai.app/" },
+        "live": {
+          "status": "https://live.zuchiangmai.app/api/rt/status",
+          "page": "https://live.zuchiangmai.app/"
+        },
         "tip": "Songs shared with the artists' consent. Nothing plays until you press play.",
         "unless": "#miniplayer"
       }
     ],
     "overlay": [
-      { "kind": "signature", "id": "signature", "src": "../media/signature.svg", "at": "bottom-right", "by": "Shaka Lei Kaumaka", "duration": 2800, "delay": 1200, "width": 210 }
+      {
+        "kind": "signature",
+        "id": "signature",
+        "src": "../media/signature.svg",
+        "at": "bottom-right",
+        "by": "Shaka Lei Kaumaka",
+        "duration": 2800,
+        "delay": 1200,
+        "width": 210
+      }
     ]
   }
 }
