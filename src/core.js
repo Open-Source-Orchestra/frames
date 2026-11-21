@@ -882,8 +882,8 @@ var FRAMES = (function (W) {
     var ct = clearTop('right', top0, size);
     root.style.setProperty('--osof-top-r', ct.y + 'px');
     if (mobile) { if (sheetFolded.text !== ct.blocked && !sheetFolded.user) foldSheet(ct.blocked, false); }
+    placeCredit(mobile);
     stackCorners(mobile);
-    keepOffText(mobile);
     if (!mobile) {
       var vh = W.innerHeight;
       var tl = union(extent('top-left'), cornerStuff('top-left')), tr = union(extent('top-right'), cornerStuff('top-right'));
@@ -891,6 +891,7 @@ var FRAMES = (function (W) {
       fitRail('left', (tl ? Math.max(tl.bottom, top0) : top0) + 14, (bl ? Math.min(bl.top, vh - 10) : vh - 10) - 14);
       fitRail('right', (tr ? Math.max(tr.bottom, top0) : top0) + 14, (br ? Math.min(br.top, vh - 10) : vh - 10) - 14);
     }
+    keepOffText(mobile);
     if (openDlg) place(openDlg);
     if (state.outline) drawOutline();
     if (tour.active && tour.cur) showStep(tour.cur, true);
@@ -910,17 +911,30 @@ var FRAMES = (function (W) {
       var b = r.wrap.getBoundingClientRect();
       if (b.width > 2 && rectHasText(b)) r.wrap.setAttribute('data-osof-tuck', '');
     });
+  }
+  // the credit mark (always visible, AGPL §7(b)) and the BUTTON LAW: words under it → on desktops it steps up the left edge to
+  // the first clear spot (the rail fits above it); with no clear spot, or on phones, it shrinks to its icons (🎻 · i · ⚙)
+  function placeCredit(mobile) {
+    var z = zones['bottom-left'];
+    z.style.bottom = '';
     if (!creditBox) return;
     creditBox.classList.remove('osof-credit-mini');
-    if (!mobile) return;
-    var c = creditBox.getBoundingClientRect();
-    if (c.width > 2 && rectHasText(c)) creditBox.classList.add('osof-credit-mini');
+    var c = creditBox.getBoundingClientRect(), vh = W.innerHeight;
+    if (c.width < 2 || !rectHasText(c)) return;
+    if (!mobile) {
+      var step = c.height + 10;
+      for (var k = 1; k <= 10; k++) {
+        var y = c.top - k * step;
+        if (y < vh * 0.45) break;
+        if (!rectHasText({ left: c.left, right: c.right, top: y, height: c.height })) { z.style.bottom = Math.round(vh - (y + c.height)) + 'px'; return; }
+      }
+    }
+    creditBox.classList.add('osof-credit-mini');
   }
   // phones: when the bottom-right pieces (chat, radio dock) reach across the bottom-left credit, the credit steps up above them
   function stackCorners(mobile) {
     var z = zones['bottom-left'];
-    if (!mobile) { z.style.bottom = ''; return; }
-    z.style.bottom = '';
+    if (!mobile || z.style.bottom) return;
     var br = extent('bottom-right'), bl = z.getBoundingClientRect();
     if (!br || bl.width < 2 || br.left > bl.right + 6 || br.top > bl.bottom || br.bottom < bl.top) return;
     var lift = Math.round(W.innerHeight - br.top + 8), y = W.innerHeight - lift - bl.height, S = Math.min(bl.height, 32);
