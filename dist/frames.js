@@ -905,9 +905,13 @@ var FRAMES = (function (W) {
   // BUTTON LAW at the bottom edge: a pill that would sit on the page's words tucks away for this layout (desktop); on phones the
   // credit mark shrinks to its icons (🎻 · i · ⚙) when words run under it — the credit stays visible, the words stay readable
   function rectHasText(r) {
-    var S = Math.max(16, Math.min(r.height, 32));
-    for (var x = r.left; x <= r.right - S + 1; x += S) if (textUnder(x, r.top, S, true)) return true;
-    return !!textUnder(Math.max(r.left, r.right - S), r.top, S, true);
+    // a grid of small probes over the whole rect (a kicker line under the bottom edge counts too)
+    var S = 12, h = r.height || 32, ys = [r.top + 2, r.top + h / 2 - S / 2, r.top + h - S - 2];
+    for (var i = 0; i < ys.length; i++) {
+      for (var x = r.left; x <= r.right - S + 1; x += 22) if (textUnder(x, ys[i], S, true)) return true;
+      if (textUnder(Math.max(r.left, r.right - S), ys[i], S, true)) return true;
+    }
+    return false;
   }
   function keepOffText(mobile) {
     recs.forEach(function (r) {
@@ -1533,6 +1537,7 @@ var FRAMES = (function (W) {
     }
     setTimeout(schedule, 300);
     setTimeout(recheck, 1500);
+    setTimeout(schedule, 3200);                                  // a page's late hero/entrance motion has settled by now
     state.ready = api.ready = true;
     root.setAttribute('data-osof-ready', '');
     emit('frame:ready', { id: frameId, items: recs.length, mobile: state.mobile, on: prefs.on, accent: data.accent || '', overlay: overlayInfo });
