@@ -208,7 +208,7 @@ var FRAMES = (function (W) {
   // child wins for id/name/description/emoji/accent/license.data; strings merge; credit.add concatenates (never removes);
   // "without": ["signature","pill"] drops every item of those kinds; each slot is either an array (replace)
   // or ops {remove:[id|"kind:x"], prepend:[…], append:[…], replace:[items by id], set:{id:{field:value}}}.
-  function mergeFrame(parent, child) {
+  function mergeFrame(parent, child, byId) {
     if (!isObj(child)) return copy(parent);
     if (!isObj(parent)) parent = { slots: {} };
     var out = copy(parent); delete out.extends;
@@ -226,6 +226,7 @@ var FRAMES = (function (W) {
       var list = Array.isArray(out.slots[sl]) ? out.slots[sl] : [];
       if (without.length) list = list.filter(function (it) { return !(isObj(it) && without.indexOf(str(it.kind)) >= 0); });
       var ops = isObj(child.slots) ? child.slots[sl] : undefined;
+      if (Array.isArray(ops) && byId) ops = { replace: ops };          // an overlay merges by piece id: same id → replaced, new id → appended
       if (Array.isArray(ops)) list = copy(ops);
       else if (isObj(ops)) {
         if (Array.isArray(ops.remove)) list = list.filter(function (it) { return !ops.remove.some(function (sel) { return isObj(it) && matches(it, sel); }); });
@@ -1418,7 +1419,41 @@ var FRAMES = (function (W) {
       return { data: mergeFrame(absolutize(res.data, res.url), d), url: url, parentURL: res.url };
     }, function (e) { info('could not load the parent frame ' + pu + ' (' + e.message + '); using the door dataset alone'); return { data: d, url: url }; });
   }
-  function loadData() {
+  // ARTIST FRAMES (22 Nov 2026): a third layer on top of the door's frame — a per-page or per-person overlay, same schema,
+  // merged by piece id. Sources, in order: data-frame-overlay="<url>" on the script tag (the site author's choice: any https URL)
+  // · ?frame-overlay=<url> in the address · window.__framesOverlay = "<url>" | {…inline dataset…} (set before frames.js runs).
+  // Address and window overlays must live on the page's own origin or on the frames host — a link can't dress our door in a stranger's frame.
+  function overlaySource() {
+    var attr = SCRIPT && SCRIPT.getAttribute('data-frame-overlay');
+    if (attr) { var au = resolveURL(attr, D.baseURI, true); return au ? { url: au, from: 'tag' } : null; }
+    var m = /[?&]frame-overlay=([^&#]*)/.exec((W.location && W.location.search) || '');
+    var q = ''; if (m) { try { q = decodeURIComponent(m[1]); } catch (e) { q = ''; } }
+    var win = W.__framesOverlay;
+    if (isObj(win)) return { data: win, url: D.baseURI, from: 'window' };
+    var cand = q || (typeof win === 'string' ? win : '');
+    if (!cand) return null;
+    var u = resolveURL(cand, D.baseURI, true);
+    if (!u) return null;
+    var ok = false;
+    try { var o = new URL(u).origin; ok = o === W.location.origin || (base && o === new URL(base).origin); } catch (e) {}
+    if (!ok) { info('frame overlay ignored: ' + u + ' is not on this page\'s origin or the frames host'); return null; }
+    return { url: u, from: q ? 'query' : 'window' };
+  }
+  function withOverlay(res) {
+    var src = overlaySource();
+    if (!src) return res;
+    var apply = function (d, url) {
+      if (!isObj(d)) { info('frame overlay is not a JSON object; ignored'); return res; }
+      return withParents(d, url, 0).then(function (ov) {        // an overlay may itself "extends" (resolved against its own URL)
+        var merged = mergeFrame(absolutize(res.data, res.url), ov.data, true);
+        return { data: merged, url: url, baseURL: res.url, overlay: { from: src.from, url: url } };
+      });
+    };
+    if (src.data) return apply(src.data, src.url);
+    return fetchJSON(src.url).then(function (d) { return apply(d, src.url); }, function (e) { info('frame overlay ' + src.url + ' failed (' + e.message + '); wearing the door frame alone'); return res; });
+  }
+  function loadData() { return loadBase().then(withOverlay); }
+  function loadBase() {
     var inline = D.getElementById('oso-frame');
     if (inline && /json/i.test(inline.getAttribute('type') || '')) {
       try { return withParents(JSON.parse(inline.textContent), D.baseURI, 0); } catch (e) { info('inline #oso-frame is not valid JSON; trying data-frame', e); }
@@ -1443,7 +1478,9 @@ var FRAMES = (function (W) {
       return fetchJSON(durl).then(function (d) { return withParents(d, durl, 0); });
     }).catch(function (e) { info('door frame lookup failed (' + (e && e.message) + ') — wearing the fallback'); return main; });
   }
-  function start(raw, url) {
+  var overlayInfo = null;
+  function start(raw, url, overlay) {
+    overlayInfo = overlay || null;
     data = deepFreeze(normalize(raw));
     dataURL = url;
     frameId = data.id;
@@ -1484,7 +1521,7 @@ var FRAMES = (function (W) {
     setTimeout(recheck, 1500);
     state.ready = api.ready = true;
     root.setAttribute('data-osof-ready', '');
-    emit('frame:ready', { id: frameId, items: recs.length, mobile: state.mobile, on: prefs.on, accent: data.accent || '' });
+    emit('frame:ready', { id: frameId, items: recs.length, mobile: state.mobile, on: prefs.on, accent: data.accent || '', overlay: overlayInfo });
   }
   // late arrivals: a page widget that appears after us (unless), spots, the lang.js button
   function recheck() {
@@ -1522,7 +1559,7 @@ var FRAMES = (function (W) {
       LS = probeStorage(W);
       base = scriptBase();
       whenBody(function () {
-        loadData().then(function (res) { start(res.data, res.url); }).catch(function (e) { info('the frame stays away: ' + (e && e.message ? e.message : e)); });
+        loadData().then(function (res) { start(res.data, res.url, res.overlay); }).catch(function (e) { info('the frame stays away: ' + (e && e.message ? e.message : e)); });
       });
     },
     open: function (id) {
@@ -1563,6 +1600,7 @@ var FRAMES = (function (W) {
     _: { makeOnce: makeOnce, makeStore: makeStore, resolveURL: resolveURL, fitColumn: fitColumn, normalize: normalize, parseFlags: parseFlags, slug: slug, creditLine: creditLine, fmt: fmt, durWord: durWord, mergeFrame: mergeFrame, absolutize: absolutize, doorHost: doorHost, CREDIT: CREDIT, VERSION: VERSION, GROUPS: GROUPS }
   };
   Object.defineProperty(api, 'data', { enumerable: true, get: function () { return data; } });
+  Object.defineProperty(api, 'overlay', { enumerable: true, get: function () { return overlayInfo; } });
   defineTour();
   if (W) W.OSOFrames = api;
   return api;
