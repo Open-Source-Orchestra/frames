@@ -8,6 +8,7 @@ node build.mjs --check || { echo "✗ build/syntax gate failed"; exit 1; }
 rm -rf dist && mkdir -p dist
 cp -r frames.js frames schema media index.html llms.txt LICENSE NOTICE LICENSES dist/ 2>/dev/null
 [ -d builder ] && cp -r builder dist/
+[ -d trademark ] && cp -r trademark dist/
 [ -f frames.min.js ] && cp frames.min.js dist/
 [ -f 404.html ] && cp 404.html dist/
 [ -f robots.txt ] && cp robots.txt dist/

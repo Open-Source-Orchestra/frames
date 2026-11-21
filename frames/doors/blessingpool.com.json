@@ -1,0 +1,49 @@
+{
+  "$schema": "https://frames.opensourceorchestra.org/schema/frame-0.1.json",
+  "frame": "osoframes/0.1",
+  "extends": "../universe.json",
+  "host": "blessingpool.com",
+  "id": "blessing-pool",
+  "name": "The Blessing Pool",
+  "emoji": "🌊",
+  "accent": "#4fc3f7",
+  "description": "Freely I give, freely I receive: the open pool of gifts and the x402 blessing rails.",
+  "slots": {
+    "left": {
+      "prepend": [
+        {
+          "kind": "door",
+          "id": "home",
+          "emoji": "🌊",
+          "label": "The pool",
+          "href": "https://blessingpool.com/",
+          "tip": "The blessing pool: give what your heart chooses, see every gift flow in the open.",
+          "anim": "sway"
+        },
+        {
+          "kind": "door",
+          "id": "tip",
+          "emoji": "💸",
+          "label": "Tip an artist",
+          "href": "https://artist.opensourceorchestra.org/tip/",
+          "tip": "Tip any artist of the orchestra by name — agents can too, over x402.",
+          "anim": "pulse"
+        },
+        {
+          "kind": "door",
+          "id": "dao",
+          "emoji": "🎁",
+          "label": "Public goods",
+          "href": "https://opensourceorchestra.org/dao/",
+          "tip": "The public-goods ledger of the orchestra: grants, totals, receipts.",
+          "anim": "none"
+        }
+      ]
+    },
+    "right": {
+      "remove": [
+        "public-goods"
+      ]
+    }
+  }
+}

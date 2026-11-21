@@ -1,0 +1,60 @@
+{
+  "$schema": "https://frames.opensourceorchestra.org/schema/frame-0.1.json",
+  "frame": "osoframes/0.1",
+  "extends": "../universe.json",
+  "host": "shakaleikaumaka.com",
+  "id": "shaka-home",
+  "name": "Shaka Lei Kaumaka",
+  "emoji": "🤙",
+  "accent": "#ffb443",
+  "description": "The home of the bard: songs, the blessing pool, the road. Signed by Shaka himself, once.",
+  "slots": {
+    "left": {
+      "prepend": [
+        {
+          "kind": "door",
+          "id": "home",
+          "emoji": "🏠",
+          "label": "Home",
+          "href": "https://shakaleikaumaka.com/",
+          "tip": "The front door of Shaka Lei Kaumaka: a musician who open-sourced his whole universe.",
+          "anim": "bob"
+        },
+        {
+          "kind": "door",
+          "id": "radio",
+          "emoji": "📻",
+          "label": "Radio page",
+          "href": "https://shakaleikaumaka.com/radio/",
+          "tip": "Every song, gifted: lyrics, chords and the recordings.",
+          "anim": "pulse"
+        },
+        {
+          "kind": "door",
+          "id": "blessingpool",
+          "emoji": "🌊",
+          "label": "Blessing pool",
+          "href": "https://shakaleikaumaka.com/blessingpool/",
+          "tip": "Freely given, freely received: the open pool of gifts.",
+          "anim": "sway"
+        }
+      ],
+      "remove": [
+        "songbook"
+      ]
+    },
+    "right": {
+      "replace": [
+        {
+          "kind": "door",
+          "id": "shaka",
+          "emoji": "🎁",
+          "label": "Gifts",
+          "href": "https://shakaleikaumaka.com/#gifts",
+          "tip": "What Shaka has given away, and how to give back.",
+          "anim": "sway"
+        }
+      ]
+    }
+  }
+}

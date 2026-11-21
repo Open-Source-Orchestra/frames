@@ -1,0 +1,45 @@
+{
+  "$schema": "https://frames.opensourceorchestra.org/schema/frame-0.1.json",
+  "frame": "osoframes/0.1",
+  "extends": "../universe.json",
+  "host": "devconpit.com",
+  "id": "devcon-pit",
+  "name": "Devcon PIT",
+  "emoji": "🦄",
+  "accent": "#c792ea",
+  "description": "The public information trail of Devcon: the gift to Ethereum, and the road to Lisbon 2027.",
+  "slots": {
+    "left": {
+      "prepend": [
+        {
+          "kind": "door",
+          "id": "home",
+          "emoji": "🦄",
+          "label": "Devcon PIT",
+          "href": "https://devconpit.com/",
+          "tip": "The Devcon public information trail: a gift to Ethereum, kept in the open.",
+          "anim": "bob"
+        },
+        {
+          "kind": "door",
+          "id": "gift",
+          "emoji": "🎁",
+          "label": "The gift",
+          "href": "https://github.com/shakaleikaumaka/devconpit/blob/main/GIFT.md",
+          "tip": "GIFT.md: what this pit gives, and under which copyleft.",
+          "anim": "none",
+          "newTab": true
+        },
+        {
+          "kind": "door",
+          "id": "join",
+          "emoji": "🎻",
+          "label": "Join the circle",
+          "href": "https://opensourceorchestra.org/join/",
+          "tip": "Join the orchestra on the road to Devcon IX, Lisbon, 12–14 October 2027.",
+          "anim": "sway"
+        }
+      ]
+    }
+  }
+}

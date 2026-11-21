@@ -1,0 +1,43 @@
+{
+  "$schema": "https://frames.opensourceorchestra.org/schema/frame-0.1.json",
+  "frame": "osoframes/0.1",
+  "extends": "../universe.json",
+  "host": "osodaomeet.opensourceorchestra.org",
+  "id": "oso-theater",
+  "name": "Open Source Orchestra · the Theater",
+  "emoji": "📺",
+  "accent": "#ff7eb6",
+  "description": "The theater of the orchestra: films, meets and the PIT Theater seasons, every one with consent.",
+  "slots": {
+    "left": {
+      "prepend": [
+        {
+          "kind": "door",
+          "id": "home",
+          "emoji": "📺",
+          "label": "Theater home",
+          "href": "https://osodaomeet.opensourceorchestra.org/",
+          "tip": "Films, calls and seasons of the orchestra, shared with consent.",
+          "anim": "pulse"
+        },
+        {
+          "kind": "door",
+          "id": "watch",
+          "emoji": "🍿",
+          "label": "Watch",
+          "href": "https://osodaomeet.opensourceorchestra.org/watch/",
+          "tip": "PIT Theater: Season 1, six episodes, films and recordings.",
+          "anim": "bob"
+        }
+      ],
+      "remove": [
+        "theater"
+      ]
+    },
+    "right": {
+      "remove": [
+        "calls"
+      ]
+    }
+  }
+}

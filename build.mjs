@@ -67,9 +67,88 @@ if (CHECK_ONLY) {
   ok('wrote frames.js');
 }
 
+// gate 2b · every dataset validates against schema/frame-0.1.json (a small built-in validator: the subset the schema uses),
+// door frames (frames/doors/<host>.json) are also merged onto their parent with the SAME code the browser runs
+// (src/core.js → FRAMES._.mergeFrame) and the merged frame validates too. frames/doors/index.json (the gallery) is rebuilt.
+import { createContext, runInContext } from 'node:vm';
+const schema = JSON.parse(read('schema/frame-0.1.json'));
+function validate(root, value, sch, path, errs, depth = 0) {
+  if (depth > 40 || !sch || typeof sch !== 'object') return;
+  if (sch.$ref) { const m = /^#\/\$defs\/([\w-]+)$/.exec(sch.$ref); if (!m || !root.$defs[m[1]]) { errs.push(`${path}: unknown $ref ${sch.$ref}`); return; } return validate(root, value, root.$defs[m[1]], path, errs, depth + 1); }
+  const type = Array.isArray(value) ? 'array' : value === null ? 'null' : typeof value;
+  if (sch.type && sch.type !== type && !(sch.type === 'integer' && Number.isInteger(value))) { errs.push(`${path}: expected ${sch.type}, got ${type}`); return; }
+  if (sch.const !== undefined && JSON.stringify(value) !== JSON.stringify(sch.const)) errs.push(`${path}: must be ${JSON.stringify(sch.const)}`);
+  if (sch.enum && !sch.enum.some((e) => JSON.stringify(e) === JSON.stringify(value))) errs.push(`${path}: must be one of ${sch.enum.join('|')}`);
+  if (type === 'string') {
+    if (sch.minLength != null && value.length < sch.minLength) errs.push(`${path}: shorter than ${sch.minLength}`);
+    if (sch.maxLength != null && value.length > sch.maxLength) errs.push(`${path}: longer than ${sch.maxLength}`);
+    if (sch.pattern && !new RegExp(sch.pattern, 'u').test(value)) errs.push(`${path}: does not match ${sch.pattern}`);
+  }
+  if (type === 'number') {
+    if (sch.minimum != null && value < sch.minimum) errs.push(`${path}: below ${sch.minimum}`);
+    if (sch.maximum != null && value > sch.maximum) errs.push(`${path}: above ${sch.maximum}`);
+  }
+  if (type === 'array') {
+    if (sch.minItems != null && value.length < sch.minItems) errs.push(`${path}: fewer than ${sch.minItems} items`);
+    if (sch.maxItems != null && value.length > sch.maxItems) errs.push(`${path}: more than ${sch.maxItems} items`);
+    if (sch.items) value.forEach((v, i) => validate(root, v, sch.items, `${path}[${i}]`, errs, depth + 1));
+  }
+  if (type === 'object') {
+    for (const k of sch.required || []) if (!(k in value)) errs.push(`${path}: missing "${k}"`);
+    for (const k of Object.keys(value)) {
+      if (sch.properties && k in sch.properties) validate(root, value[k], sch.properties[k], `${path}.${k}`, errs, depth + 1);
+      else if (sch.additionalProperties === false) errs.push(`${path}: unknown field "${k}"`);
+      else if (sch.additionalProperties && typeof sch.additionalProperties === 'object') validate(root, value[k], sch.additionalProperties, `${path}.${k}`, errs, depth + 1);
+    }
+  }
+  if (sch.allOf) for (const sub of sch.allOf) validate(root, value, sub, path, errs, depth + 1);
+  if (sch.anyOf) { const ok = sch.anyOf.some((sub) => { const e = []; validate(root, value, sub, path, e, depth + 1); return !e.length; }); if (!ok) errs.push(`${path}: matches none of the allowed shapes`); }
+  if (sch.oneOf) { const n = sch.oneOf.filter((sub) => { const e = []; validate(root, value, sub, path, e, depth + 1); return !e.length; }).length; if (n !== 1) errs.push(`${path}: must match exactly one shape (matched ${n})`); }
+  if (sch.if) { const e = []; validate(root, value, sch.if, path, e, depth + 1); if (!e.length && sch.then) validate(root, value, sch.then, path, errs, depth + 1); if (e.length && sch.else) validate(root, value, sch.else, path, errs, depth + 1); }
+}
+function check(obj, label) { const errs = []; validate(schema, obj, schema, label, errs); return errs; }
+// the browser's own merge, run here in node (core.js is a plain IIFE; with no window it still returns the api)
+const vmCtx = createContext({ console });
+runInContext(core + '\n;FRAMES', vmCtx);
+const FR = runInContext('FRAMES', vmCtx);
+const mergeFrame = FR && FR._ && FR._.mergeFrame;
+if (typeof mergeFrame !== 'function') fail('core.js does not expose FRAMES._.mergeFrame');
+const dsFiles = (existsSync(join(ROOT, 'frames')) ? readdirSync(join(ROOT, 'frames')) : []).filter((f) => f.endsWith('.json')).map((f) => 'frames/' + f);
+const doorFiles = existsSync(join(ROOT, 'frames/doors')) ? readdirSync(join(ROOT, 'frames/doors')).filter((f) => f.endsWith('.json') && f !== 'index.json').map((f) => 'frames/doors/' + f) : [];
+let dsBad = 0;
+const loadJSON = (p) => { try { return JSON.parse(read(p)); } catch (e) { fail(`${p}: not valid JSON (${e.message})`); dsBad++; return null; } };
+for (const p of dsFiles) { const d = loadJSON(p); if (!d) continue; const e = check(d, p); if (e.length) { dsBad++; fail(`${p} fails the schema:\n    ` + e.slice(0, 8).join('\n    ')); } if (d.extends) { dsBad++; fail(`${p}: a base dataset must not use "extends"`); } }
+const gallery = [];
+for (const p of doorFiles) {
+  const d = loadJSON(p); if (!d) continue;
+  const host = p.slice('frames/doors/'.length, -5);
+  let e = check(d, p);
+  if (!/^[a-z0-9][a-z0-9.-]*[a-z0-9]$/.test(host)) e.push(`${p}: the file name must be the lower-case host (frames/doors/<host>.json)`);
+  if (d.host && d.host !== host) e.push(`${p}: "host" is ${d.host} but the file is for ${host}`);
+  if (!d.extends) e.push(`${p}: a door frame must "extends" a base dataset (../universe.json)`);
+  let merged = null;
+  if (d.extends && typeof d.extends === 'string') {
+    const parentPath = join('frames/doors', d.extends).replace(/\\/g, '/');
+    if (!existsSync(join(ROOT, parentPath))) e.push(`${p}: extends ${d.extends} → ${parentPath} does not exist`);
+    else if (mergeFrame) { const parent = loadJSON(parentPath); if (parent) { merged = mergeFrame(parent, d); e = e.concat(check(merged, p + ' (merged)').map((x) => x)); if (merged.id === parent.id) e.push(`${p}: give the door its own "id" (now equal to the parent's "${parent.id}")`); } }
+  }
+  if (e.length) { dsBad++; fail(`${p} fails:\n    ` + e.slice(0, 10).join('\n    ')); continue; }
+  const items = merged ? Object.values(merged.slots).reduce((n, l) => n + l.length, 0) : 0;
+  const doors = merged ? Object.values(merged.slots).reduce((n, l) => n + l.filter((it) => it.kind === 'door').length, 0) : 0;
+  gallery.push({ host, file: p.replace(/^frames\/doors\//, ''), id: merged ? merged.id : d.id, name: merged ? merged.name : d.name, emoji: (merged && merged.emoji) || d.emoji || '🎻', accent: (merged && merged.accent) || '', extends: d.extends, items, doors, signature: merged ? merged.slots.overlay.some((it) => it.kind === 'signature') : false, url: 'https://' + host + '/' });
+}
+if (!dsBad) ok(`${dsFiles.length} dataset(s) + ${doorFiles.length} door frame(s) validate against schema/frame-0.1.json (door frames also merged)`);
+if (doorFiles.length) {
+  gallery.sort((a, b) => a.host.localeCompare(b.host));
+  const idx = JSON.stringify({ frame: 'osoframes/0.1', built: 'by build.mjs — do not edit; add a frames/doors/<host>.json instead', license: 'CC-BY-SA-4.0', credit: 'Built on Open Source Orchestra Frames by Open Source Orchestra: Shaka Lei Kaumaka & the AI ʻohana (https://opensourceorchestra.org)', count: gallery.length, doors: gallery }, null, 1) + '\n';
+  const idxPath = join(ROOT, 'frames/doors/index.json');
+  if (CHECK_ONLY) { if (existsSync(idxPath) && readFileSync(idxPath, 'utf8') === idx) ok('frames/doors/index.json is up to date'); else fail('frames/doors/index.json is stale — run: node build.mjs'); }
+  else if (!dsBad) { writeFileSync(idxPath, idx); ok(`wrote frames/doors/index.json (${gallery.length} door frames)`); }
+}
+
 // gate 3 · no secrets anywhere we ship (SPEC §9)
 const SECRET = /(ghp_[A-Za-z0-9]{20,}|github_pat_[A-Za-z0-9_]{20,}|sk-[A-Za-z0-9]{20,}|AKIA[0-9A-Z]{16}|-----BEGIN [A-Z ]*PRIVATE KEY-----|xox[abpr]-[A-Za-z0-9-]{10,}|AIza[0-9A-Za-z_-]{30,})/;
-const shipped = ['frames.js', ...(existsSync(join(ROOT, 'frames')) ? readdirSync(join(ROOT, 'frames')) : []).filter((f) => f.endsWith('.json')).map((f) => 'frames/' + f)];
+const shipped = ['frames.js', ...dsFiles, ...doorFiles];
 const leaks = [bundle, ...shipped.filter((p) => existsSync(join(ROOT, p))).map(read)].filter((s) => SECRET.test(s));
 if (leaks.length) fail('something that looks like a secret is in the bundle or a dataset'); else ok('no secrets in the bundle or datasets');
 

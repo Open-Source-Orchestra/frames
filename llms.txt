@@ -6,6 +6,9 @@
 - [frames.js](https://frames.opensourceorchestra.org/frames.js): drop-in script; add `data-frame` to point at your own dataset
 - [frames/universe.json](frames/universe.json): the universe frame of the Open Source Orchestra
 - [frames/minimal.json](frames/minimal.json): smallest useful frame for forkers
+- [frames/doors/](frames/doors/README.md): per-door frames (v0.1.1) — `data-door="auto"` picks `frames/doors/<host>.json`, a small override that extends the universe (accent, first doors); index: [frames/doors/index.json](frames/doors/index.json)
+- [docs/DOORS.md](docs/DOORS.md): make your door's frame in 5 minutes
+- [trademark/](trademark/): the frame is the mark — what it means, the credit, the gallery of door frames (no legal trademark claimed)
 - [schema/frame-0.1.json](schema/frame-0.1.json): JSON Schema of the dataset (osoframes/0.1)
 
 ## Docs
@@ -17,4 +20,6 @@
 
 ## Facts
 - Every animation/tip plays once per visitor (the one-time law); nothing connects to any server before a click; no cookies; no trackers.
-- URL flags: ?frame=outline (blueprint), ?frame=fresh (replay first visit), ?frame=off.
+- URL flags: ?frame=outline (blueprint), ?frame=fresh (replay first visit), ?frame=off (one page view).
+- ⚙ control panel (v0.1.1, in the credit mark): frame on/off + one switch per piece, remembered in that browser only (localStorage osof:settings:v1); off leaves one small 🎻 dot that brings it back.
+- BUTTON LAW: nothing of the frame sits on text — the 🎻 steps aside or folds to a dot; edge-to-edge text folds the rails into the sheet; every floating button has a tiny ✕ or ⚙.
