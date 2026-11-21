@@ -35,7 +35,7 @@ One tag for **every page of every door** — the frame picks the door's own smal
 
 ## Make your door's frame (5 minutes)
 
-`frames/doors/<your.host>.json` extends the universe with your accent and your first doors — see [`docs/DOORS.md`](docs/DOORS.md). The gallery of door frames: <https://frames.opensourceorchestra.org/trademark/> — *the frame is the mark*; anyone may wear it with the credit.
+`frames/doors/<your.host>.json` extends the universe with your accent and your first doors — see [`docs/DOORS.md`](docs/DOORS.md). The gallery of door frames: <https://frames.opensourceorchestra.org/trademark/> — *the frame is the mark*; anyone may wear it with the credit. A page or a person can add a third layer (an **artist frame**): `data-frame-overlay`, `?frame-overlay=`, or `window.__framesOverlay` — see [`docs/ARTIST-FRAMES.md`](docs/ARTIST-FRAMES.md).
 
 ## Fork it (15 minutes)
 

@@ -18,6 +18,9 @@ const PAGE = (title, body) => `<!doctype html><html lang="en"><head><meta charse
 <script src="/frames.js" data-door="auto" defer></script></body></html>`;
 const WIDE = PAGE('wide text', Array.from({ length: 40 }, (_, i) => `<p>Paragraph ${i + 1}: this ordinary page runs its text from the very left edge to the very right edge of the window, so a frame that keeps its law must not sit on these words. ${'More words. '.repeat(12)}</p>`).join(''));
 const NARROW = PAGE('narrow text', `<div style="max-width:560px;margin:0 auto">` + Array.from({ length: 30 }, (_, i) => `<p>Centred paragraph ${i + 1}. ${'Words in the middle. '.repeat(8)}</p>`).join('') + '</div>');
+const OVERLAY = { frame: 'osoframes/0.1', id: 'ben-artist', name: 'Ben · artist frame', accent: '#2f9e6f', credit: { add: ['Ben'] },
+  slots: { left: [{ kind: 'door', id: 'home', emoji: '🎸', label: 'Ben', href: '/?who=ben', tip: 'Ben, the first beta artist.' }, { kind: 'door', id: 'ben-tip', emoji: '💸', label: 'Tip Ben', href: 'https://artist.opensourceorchestra.org/tip/?artist=ben', tip: 'Tip Ben over x402.' }],
+           'bottom-right': { remove: ['radio'] } } };
 const HERO = PAGE('hero then text', `<div style="height:280px"></div><div style="max-width:560px;margin:0 auto">` + Array.from({ length: 30 }, (_, i) => `<p>Paragraph ${i + 1}. ${'Words below a quiet hero. '.repeat(8)}</p>`).join('') + '</div>');
 
 async function loadPlaywright() {
@@ -38,6 +41,8 @@ function serve() {
         if (u.pathname === '/wide.html') return rsp.writeHead(200, { 'content-type': TYPES['.html'] }).end(WIDE);
         if (u.pathname === '/narrow.html') return rsp.writeHead(200, { 'content-type': TYPES['.html'] }).end(NARROW);
         if (u.pathname === '/hero.html') return rsp.writeHead(200, { 'content-type': TYPES['.html'] }).end(HERO);
+        if (u.pathname === '/overlay.json') return rsp.writeHead(200, { 'content-type': TYPES['.json'] }).end(JSON.stringify(OVERLAY));
+        if (u.pathname === '/attr.html') return rsp.writeHead(200, { 'content-type': TYPES['.html'] }).end(NARROW.replace('data-door="auto"', 'data-door="auto" data-frame-overlay="/overlay.json"'));
         if (u.pathname.startsWith('/__hub')) { rsp.writeHead(500).end('{}'); return; }
         const p = join(ROOT, decodeURIComponent(u.pathname));
         const body = await readFile(p);
@@ -170,6 +175,32 @@ const errsOf = (p) => { const e = []; p.on('pageerror', (x) => e.push('PE:' + St
   r = await p.evaluate(() => { const sb = document.querySelector('#oso-frames .osof-sheetbtn'); return { folded: sb.classList.contains('osof-fold'), ls: localStorage.getItem('osof:fold:sheet'), sheetOpen: !!document.querySelector('#osof-dlg-sheet:not([hidden])') }; });
   ok(!r.folded && r.ls === null && !r.sheetOpen, 'tapping the dot unfolds (no sheet opens on that tap)');
   ok(!errs.length, 'no errors on the phone' + (errs.length ? ' → ' + errs.join(' | ') : ''));
+  await ctx.close();
+}
+// 6 · ARTIST FRAMES: an overlay on top of the door frame — by address (same origin), by tag attribute; a stranger's origin is ignored
+{
+  const ctx = await ctxFor('publicinform.com', { width: 1280, height: 800 });
+  const p = await ctx.newPage(); const errs = errsOf(p);
+  await p.goto('http://publicinform.com/narrow.html?frame-overlay=/overlay.json', { waitUntil: 'load' });
+  await p.waitForSelector('#oso-frames[data-osof-ready]', { state: 'attached' });
+  let r = await p.evaluate(() => { const d = OSOFrames.data; const home = d.slots.left.find((i) => i.id === 'home'); return { id: d.id, accent: d.accent, home: home && home.emoji + home.label, tip: !!d.slots.left.find((i) => i.id === 'ben-tip'), spec: !!d.slots.left.find((i) => i.id === 'spec'), radio: d.slots['bottom-right'].some((i) => i.kind === 'radio'), credit: OSOFrames._.creditLine(d), overlay: OSOFrames.overlay && OSOFrames.overlay.from, hrefAbs: home && home.href }; });
+  ok(r.id === 'ben-artist' && r.accent === '#2f9e6f' && r.overlay === 'query', `?frame-overlay= layers on the door frame (id ${r.id}, accent ${r.accent}, from ${r.overlay})`);
+  ok(r.home === '🎸Ben' && r.tip && r.spec && !r.radio, `merged by piece id: home replaced, ben-tip appended, the door's spec kept, radio removed`);
+  ok(/with Ben/.test(r.credit), `credit.add joins the ʻohana line (${r.credit.slice(-30)})`);
+  await p.goto('http://publicinform.com/narrow.html?frame-overlay=https://evil.example/x.json', { waitUntil: 'load' });
+  await p.waitForSelector('#oso-frames[data-osof-ready]', { state: 'attached' });
+  r = await p.evaluate(() => ({ id: OSOFrames.data.id, overlay: OSOFrames.overlay }));
+  ok(r.id === 'pit-protocol' && !r.overlay, 'a stranger\'s origin in ?frame-overlay= is ignored (door frame alone)');
+  await p.goto('http://publicinform.com/attr.html', { waitUntil: 'load' });
+  await p.waitForSelector('#oso-frames[data-osof-ready]', { state: 'attached' });
+  r = await p.evaluate(() => ({ id: OSOFrames.data.id, from: OSOFrames.overlay && OSOFrames.overlay.from }));
+  ok(r.id === 'ben-artist' && r.from === 'tag', 'data-frame-overlay on the tag works too');
+  await p.goto('http://publicinform.com/narrow.html', { waitUntil: 'commit' });
+  await p.evaluate(() => { window.__framesOverlay = { frame: 'osoframes/0.1', id: 'inline-artist', slots: { right: [{ kind: 'door', id: 'all-doors', emoji: '🧭', label: 'Doors', href: 'https://myagentohana.com/doors/', tip: 'All doors.' }] } }; });
+  await p.waitForSelector('#oso-frames[data-osof-ready]', { state: 'attached' });
+  r = await p.evaluate(() => ({ id: OSOFrames.data.id, from: OSOFrames.overlay && OSOFrames.overlay.from }));
+  ok(r.id === 'inline-artist' && r.from === 'window', 'window.__framesOverlay (inline object) works');
+  ok(!errs.filter((e) => !/evil\.example/.test(e)).length, 'no errors on the overlay flow' + (errs.length ? ' → ' + errs.join(' | ') : ''));
   await ctx.close();
 }
 await b.close(); srv.close();
