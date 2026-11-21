@@ -1573,6 +1573,7 @@ var FRAMES = (function (W) {
     setTimeout(schedule, 300);
     setTimeout(recheck, 1500);
     setTimeout(schedule, 3200);                                  // a page's late hero/entrance motion has settled by now
+    setTimeout(schedule, 6000);                                  // …and a header that grows when its fonts arrive
     state.ready = api.ready = true;
     root.setAttribute('data-osof-ready', '');
     emit('frame:ready', { id: frameId, items: recs.length, mobile: state.mobile, on: prefs.on, accent: data.accent || '', overlay: overlayInfo });
