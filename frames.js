@@ -805,7 +805,8 @@ var FRAMES = (function (W) {
   function ours(a) { return (root && root.contains(a)) || a.id === 'olelo' || a.id === 'oso-frames'; }
   function textUnder(x, y, size, textOnly) {
     if (!D.elementsFromPoint) return null;
-    var vw = W.innerWidth, vh = W.innerHeight, pts = [[x + size / 2, y + size / 2], [x + 3, y + 3], [x + size - 3, y + size - 3], [x + size - 3, y + 3], [x + 3, y + size - 3]];
+    var vw = W.innerWidth, vh = W.innerHeight, pts = [], gx = [x + 2, x + size / 2, x + size - 2], gy = [y + 2, y + size / 2, y + size - 2];
+    for (var gi = 0; gi < 3; gi++) for (var gj = 0; gj < 3; gj++) pts.push([gx[gi], gy[gj]]);        // a 3×3 grid: a sliver of a link row under one edge counts
     for (var k = 0; k < pts.length; k++) {
       if (pts[k][0] < 0 || pts[k][1] < 0 || pts[k][0] >= vw || pts[k][1] >= vh) continue;
       var els = D.elementsFromPoint(pts[k][0], pts[k][1]);
