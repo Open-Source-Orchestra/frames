@@ -24,6 +24,8 @@ await page.route('**/*', (route) => {
   const r = route.request(), u = r.url();
   const hub = /workers\.dev|chat\.opensourceorchestra\.org|\/api\/chat|\/poll|\/send|\/redeem/.test(u);
   if (r.method() !== 'GET' || hub) { blocked.push(r.method() + ' ' + u); return route.abort(); }
+  // stay on the framed page: a door fallback (the totem's own door when no drawer answers) must not navigate the recording away
+  if (r.isNavigationRequest() && r.frame() === page.mainFrame() && u !== URL_) { blocked.push('NAV ' + u); return route.abort('aborted'); }
   return route.continue();
 });
 const errors = []; page.on('pageerror', (e) => errors.push(String(e)));
@@ -51,9 +53,21 @@ await caption('Welcome to the Open Source Orchestra universe ✨', 2.2);
 await caption('On your first visit, the steward signs the page — once', 3.4);
 await caption('Then every button around the edge says what it does — once, then rests', 14);
 await caption('', 0.4);
-if (await clickByName(/^theater/i)) { await caption('📺 The theater: films and recordings, each with credit and consent', 4.2); await esc(); }
-if (await clickByName(/talk to shaka|shaka/i)) { await caption('🗿 The totem: six AI agents of the ʻohana — tap a face to talk (they are machines, and say so)', 4.6); await esc(); }
-if (await clickByName(/talk to oso/i)) { await caption('💬 A live line to an agent — it connects only when you open it', 3.6); await esc(); }
+if (await clickByName(/^theater/i)) {
+  // tune to the first real recording (a published film with its poster) rather than the walkthrough slot we are filming right now
+  const ch = page.locator('#oso-frames .osof-th-ch').nth(1);                     // the list fills after the channels.json fetch
+  await ch.waitFor({ state: 'visible', timeout: 6000 }).then(() => ch.click({ timeout: 3000 })).catch(() => {});
+  await caption('📺 The theater: films and recordings, each with credit and consent', 4.6); await esc();
+}
+{ // the totem: hover a face (its name card shows); a click would fall through to the totem's own door when no drawer answers
+  const face = page.locator('#oso-frames .osof-tt-face').nth(1);
+  if (await face.count()) { await face.hover({ timeout: 3000 }).catch(() => {}); await caption('🗿 The totem: six AI agents of the ʻohana — tap a face to talk (they are machines, and say so)', 4.6); await page.mouse.move(640, 360); }
+}
+{ // the frame's own gold FAB (not a page widget that may share the label) → the drawer; hubs are aborted by the route above
+  const fab = page.locator('#oso-frames .osof-fab').first();
+  if (await fab.count()) { await fab.click({ timeout: 3000 }).catch(() => {}); await page.waitForTimeout(600); }
+  await caption('💬 A live line to an agent — it connects only when you open it', 3.6); await esc();
+}
 await caption('📻 The radio plays consented songs — nothing loads until you press play', 3.4);
 await page.evaluate(() => window.OSOFrames && window.OSOFrames.outline && window.OSOFrames.outline(true));
 await caption('✏️ The frame is one open dataset: every button is one line of data', 4.4);
