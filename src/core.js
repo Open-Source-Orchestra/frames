@@ -899,9 +899,11 @@ var FRAMES = (function (W) {
     z.style.bottom = '';
     var br = extent('bottom-right'), bl = z.getBoundingClientRect();
     if (!br || bl.width < 2 || br.left > bl.right + 6 || br.top > bl.bottom || br.bottom < bl.top) return;
-    var lift = Math.round(W.innerHeight - br.top + 8), y = W.innerHeight - lift - bl.height;
-    // BUTTON LAW: step up only onto a clear spot; if words live there, stay put (the credit keeps its corner)
-    if (y < 60 || textUnder(bl.left, y, Math.min(bl.height, 32), true)) return;
+    var lift = Math.round(W.innerHeight - br.top + 8), y = W.innerHeight - lift - bl.height, S = Math.min(bl.height, 32);
+    // BUTTON LAW: step up only onto a clear spot (probed across the credit's whole width); if words live there, stay put
+    if (y < 60) return;
+    for (var x = bl.left; x <= bl.right - S + 1; x += S) if (textUnder(x, y, S, true)) return;
+    if (textUnder(bl.right - S, y, S, true)) return;
     z.style.bottom = lift + 'px';
   }
   function fitRail(side, top, bottom) {
