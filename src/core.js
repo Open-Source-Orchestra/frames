@@ -882,6 +882,7 @@ var FRAMES = (function (W) {
     root.style.setProperty('--osof-top-r', ct.y + 'px');
     if (mobile) { if (sheetFolded.text !== ct.blocked && !sheetFolded.user) foldSheet(ct.blocked, false); }
     stackCorners(mobile);
+    keepOffText(mobile);
     if (!mobile) {
       var vh = W.innerHeight;
       var tl = union(extent('top-left'), cornerStuff('top-left')), tr = union(extent('top-right'), cornerStuff('top-right'));
@@ -892,6 +893,27 @@ var FRAMES = (function (W) {
     if (openDlg) place(openDlg);
     if (state.outline) drawOutline();
     if (tour.active && tour.cur) showStep(tour.cur, true);
+  }
+  // BUTTON LAW at the bottom edge: a pill that would sit on the page's words tucks away for this layout (desktop); on phones the
+  // credit mark shrinks to its icons (🎻 · i · ⚙) when words run under it — the credit stays visible, the words stay readable
+  function rectHasText(r) {
+    var S = Math.max(16, Math.min(r.height, 32));
+    for (var x = r.left; x <= r.right - S + 1; x += S) if (textUnder(x, r.top, S, true)) return true;
+    return !!textUnder(Math.max(r.left, r.right - S), r.top, S, true);
+  }
+  function keepOffText(mobile) {
+    recs.forEach(function (r) {
+      if (r.kind !== 'pill' || !r.wrap) return;
+      if (mobile || !live(r)) { r.wrap.removeAttribute('data-osof-tuck'); return; }
+      r.wrap.removeAttribute('data-osof-tuck');
+      var b = r.wrap.getBoundingClientRect();
+      if (b.width > 2 && rectHasText(b)) r.wrap.setAttribute('data-osof-tuck', '');
+    });
+    if (!creditBox) return;
+    creditBox.classList.remove('osof-credit-mini');
+    if (!mobile) return;
+    var c = creditBox.getBoundingClientRect();
+    if (c.width > 2 && rectHasText(c)) creditBox.classList.add('osof-credit-mini');
   }
   // phones: when the bottom-right pieces (chat, radio dock) reach across the bottom-left credit, the credit steps up above them
   function stackCorners(mobile) {
@@ -1339,6 +1361,11 @@ var FRAMES = (function (W) {
       F + ' .osof-link{color:#fbe2a0;text-decoration:underline;text-underline-offset:.16em;cursor:pointer;font:inherit}',
       F + ' .osof-settings .osof-small{margin-top:10px}',
       F + ' [data-osof-hid]{display:none!important}',
+      F + ' [data-osof-tuck]{display:none!important}',
+      F + ' .osof-credit-mini{padding-left:6px}',
+      F + ' .osof-credit-mini .osof-credit-a{padding:0;font-size:0;gap:0}',
+      F + ' .osof-credit-mini .osof-credit-a span[aria-hidden]{font-size:15px}',
+      F + ' .osof-credit-mini .osof-credit-a::after{inset:-7px -2px -7px -6px}',
       F + '[data-osof-nosig] .osof-sig{display:none!important}',
       F + '[data-osof-off] .osof-slot{display:none!important}',
       F + ' .osof-dot{position:fixed;z-index:' + Z.frame + ';width:18px;height:18px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:rgba(20,18,45,.86);border:1px solid rgba(251,226,160,.55);font:9px/1 ' + EMOJI + ';opacity:.5;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.3);transition:opacity .2s ease,transform .2s ease}',
