@@ -793,6 +793,11 @@ var FRAMES = (function (W) {
   }
   // BUTTON LAW (19 Nov 2026): a floating button never covers text. What sits under a square at (x,y,size)?
   // → the rect of a text block (> 20 characters) or of a small fixed/sticky control of the page; null when clear.
+  function ownTextLen(a) {                                       // characters in the element's OWN text nodes (any tag)
+    var n = 0, c = a.childNodes;
+    for (var i = 0; i < c.length; i++) if (c[i].nodeType === 3) n += (c[i].nodeValue || '').replace(/\s+/g, ' ').trim().length;
+    return n;
+  }
   function ours(a) { return (root && root.contains(a)) || a.id === 'olelo' || a.id === 'olang' || a.id === 'oso-frames'; }
   function textUnder(x, y, size, textOnly) {
     if (!D.elementsFromPoint) return null;
@@ -807,8 +812,8 @@ var FRAMES = (function (W) {
           if (ours(a)) break;
           var cs = W.getComputedStyle(a);
           if (cs.visibility === 'hidden' || +cs.opacity < 0.05) break;
-          var tl = TEXT_TAGS[a.tagName] ? (a.innerText || '').replace(/\s+/g, ' ').trim().length : 0;
-          if (tl > 2) {                                            // words are words: a 16-char link ("THE STORY BEGINS") counts
+          var tl = TEXT_TAGS[a.tagName] ? (a.innerText || '').replace(/\s+/g, ' ').trim().length : ownTextLen(a);
+          if (tl > 2) {                                            // words are words: a 16-char link, a <div class=kick> kicker — any tag
             var tr = a.getBoundingClientRect();
             if (tr.width * tr.height > 200 && tr.width * tr.height < vw * vh * 0.45) return tr;
           }
