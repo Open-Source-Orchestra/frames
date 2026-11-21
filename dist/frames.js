@@ -841,6 +841,13 @@ var FRAMES = (function (W) {
     if (y > W.innerHeight * 0.4 || textUnder(x, y, size)) { y = y0; blocked = true; }
     return { y: y, blocked: blocked };
   }
+  // a folded 🎻 (20px dot) looks for a clear spot down the right edge: the first y with nothing under it, else the top corner
+  function dotSpot(x, y0) {
+    var vh = W.innerHeight, tries = [y0, 8, 30, 52], y;
+    for (y = 96; y < vh * 0.6; y += 44) tries.push(y);
+    for (var i = 0; i < tries.length; i++) if (!textUnder(x, tries[i], 20)) return tries[i];
+    return 8;
+  }
   // the page's own fixed widgets near a corner (an old 🎻 corner, a chat FAB, a mini player): rails keep clear of them
   function cornerStuff(slot) {
     var vw = W.innerWidth, vh = W.innerHeight, e = null, seen = [];
@@ -894,7 +901,10 @@ var FRAMES = (function (W) {
     var size = narrow ? 44 : size0, top0 = narrow ? 52 : top00;
     var ct = clearTop('right', top0, size);
     root.style.setProperty('--osof-top-r', ct.y + 'px');
-    if (mobile) { if (sheetFolded.text !== ct.blocked && !sheetFolded.user) foldSheet(ct.blocked, false); }
+    if (mobile) {
+      if (sheetFolded.text !== ct.blocked && !sheetFolded.user) foldSheet(ct.blocked, false);
+      if (sheetFolded.text || sheetFolded.user) root.style.setProperty('--osof-top-r', dotSpot(W.innerWidth - 8 - 20, ct.y) + 'px');   // the dot, too, sits on no words
+    }
     placeCredit(mobile);
     stackCorners(mobile);
     if (!mobile) {
