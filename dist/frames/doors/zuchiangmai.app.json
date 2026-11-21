@@ -1,0 +1,44 @@
+{
+  "$schema": "https://frames.opensourceorchestra.org/schema/frame-0.1.json",
+  "frame": "osoframes/0.1",
+  "extends": "../universe.json",
+  "host": "zuchiangmai.app",
+  "id": "zu-chiangmai",
+  "name": "Zu Chiang Mai · companion",
+  "emoji": "🌴",
+  "accent": "#2f9e6f",
+  "description": "An unofficial companion to Zu Chiang Mai: the agenda, the public information trail, the music.",
+  "slots": {
+    "left": {
+      "prepend": [
+        {
+          "kind": "door",
+          "id": "home",
+          "emoji": "🌴",
+          "label": "Agenda",
+          "href": "https://zuchiangmai.app/",
+          "tip": "The daily agenda of Zu Chiang Mai, refreshed each morning (an unofficial companion).",
+          "anim": "sway"
+        },
+        {
+          "kind": "door",
+          "id": "pit",
+          "emoji": "📡",
+          "label": "The PIT",
+          "href": "https://zuchiangmai.app/pit/",
+          "tip": "The public information trail for Chiang Mai: what, where, when.",
+          "anim": "none"
+        },
+        {
+          "kind": "door",
+          "id": "live",
+          "emoji": "🔴",
+          "label": "LIVE PIT",
+          "href": "https://live.zuchiangmai.app/",
+          "tip": "Live radio from the pit, when the orchestra is on air.",
+          "anim": "pulse"
+        }
+      ]
+    }
+  }
+}

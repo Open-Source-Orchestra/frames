@@ -1,0 +1,56 @@
+{
+  "$schema": "https://frames.opensourceorchestra.org/schema/frame-0.1.json",
+  "frame": "osoframes/0.1",
+  "extends": "../universe.json",
+  "host": "publicinform.com",
+  "id": "pit-protocol",
+  "name": "Public Inform · the PIT Standard",
+  "emoji": "📡",
+  "accent": "#7fe0ff",
+  "description": "The PIT Standard: public information trails for events, open to any venue.",
+  "slots": {
+    "left": {
+      "prepend": [
+        {
+          "kind": "door",
+          "id": "home",
+          "emoji": "🏠",
+          "label": "Public Inform",
+          "href": "https://publicinform.com/",
+          "tip": "The PIT Standard: one open protocol so every event can inform its public.",
+          "anim": "bob"
+        },
+        {
+          "kind": "door",
+          "id": "spec",
+          "emoji": "📜",
+          "label": "Spec v2",
+          "href": "https://publicinform.com/spec/v2/",
+          "tip": "The specification, version 2: plain words and a schema.",
+          "anim": "none"
+        },
+        {
+          "kind": "door",
+          "id": "pits",
+          "emoji": "🕳️",
+          "label": "All PITs",
+          "href": "https://publicinform.com/pits/",
+          "tip": "Every public information trail we know of, in one list.",
+          "anim": "pulse"
+        },
+        {
+          "kind": "door",
+          "id": "whitepaper",
+          "emoji": "📄",
+          "label": "Whitepaper",
+          "href": "https://publicinform.com/whitepaper/",
+          "tip": "Why a venue should publish its trail — the whitepaper.",
+          "anim": "none"
+        }
+      ],
+      "remove": [
+        "pit"
+      ]
+    }
+  }
+}

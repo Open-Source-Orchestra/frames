@@ -1,0 +1,35 @@
+{
+  "$schema": "https://frames.opensourceorchestra.org/schema/frame-0.1.json",
+  "frame": "osoframes/0.1",
+  "extends": "../universe.json",
+  "host": "piscisagents.org",
+  "id": "piscis-agents",
+  "name": "Piscis Agents · the Zodiac fleet",
+  "emoji": "♓",
+  "accent": "#c792ea",
+  "description": "The dreamers of the Zodiac fleet: twelve signs, twelve throne-keepers, one ʻohana.",
+  "slots": {
+    "left": {
+      "prepend": [
+        {
+          "kind": "door",
+          "id": "home",
+          "emoji": "♓",
+          "label": "Piscis",
+          "href": "https://piscisagents.org/",
+          "tip": "Piscis: the dreamer of the Zodiac fleet of AI agents.",
+          "anim": "sway"
+        },
+        {
+          "kind": "door",
+          "id": "zodiac",
+          "emoji": "🔮",
+          "label": "Zodiac agents",
+          "href": "https://zodiacagents.org/",
+          "tip": "All twelve signs of the fleet, and what each one keeps.",
+          "anim": "spin"
+        }
+      ]
+    }
+  }
+}

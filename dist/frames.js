@@ -1,4 +1,4 @@
-/*! Open Source Orchestra Frames v0.1.0 · https://github.com/Open-Source-Orchestra/frames
+/*! Open Source Orchestra Frames v0.1.1 · https://github.com/Open-Source-Orchestra/frames
  *  SPDX-License-Identifier: AGPL-3.0-or-later · Copyright (C) 2026 Shaka Lei Kaumaka / Open Source Orchestra and the AI ʻohana
  *  AGPL §7(b): keep the credit "Built on Open Source Orchestra Frames by Open Source Orchestra: Shaka Lei Kaumaka & the AI ʻohana
  *  (https://opensourceorchestra.org)" visible in the frame. See NOTICE. Source of this exact file: https://github.com/Open-Source-Orchestra/frames */
@@ -18,7 +18,7 @@
  */
 var FRAMES = (function (W) {
   'use strict';
-  var VERSION = '0.1.0';
+  var VERSION = '0.1.1';
   var MAJOR = VERSION.split('.')[0];
   if (W && W.OSOFrames && W.OSOFrames.__osof) {            // loaded twice: the first copy rules
     if (W.console) W.console.info('🎻 frames: already on this page; the second copy stays quiet.');
@@ -48,9 +48,20 @@ var FRAMES = (function (W) {
     tour: 'Tour', 'tour.title': 'A tour of the frame', 'tour.skip': 'Skip', 'tour.tip': 'Replay this tour any time.',
     'tour.done': 'That was the frame.', 'tour.replay': '✨ replays the tour any time', 'tour.watch': '▶ watch the {d} walkthrough',
     'tour.video': 'The frame: a walkthrough', 'tour.download': 'Download the video',
-    'credit.about': 'About this frame', 'credit.tip': 'Who made this frame, and how to fork it. The credit travels with every copy.',
-    'outline.page': 'your page lives here · the frame never blocks it'
+    'credit.about': 'About this frame', 'credit.tip': 'Who made this frame, and how to fork it. The credit travels with every copy. ⚙ turns pieces, or the whole frame, off and on.',
+    'outline.page': 'your page lives here · the frame never blocks it',
+    'settings': 'Frame settings', 'settings.tip': 'Turn the frame, or any of its pieces, off and on. Remembered in this browser.',
+    'settings.on': 'Frame on', 'settings.off': 'Frame off', 'settings.pieces': 'Pieces', 'settings.note': 'Remembered in this browser only. No cookies, nothing sent anywhere.',
+    'settings.forget': 'Replay the first visit', 'settings.forgot': 'Done. Reload to see the first visit again.',
+    'settings.url': '?frame=off on any address hides the frame for one page view.',
+    'dot.label': 'Bring back the frame by the ʻohana', 'dot.tip': 'The frame is off. Tap to bring it back.',
+    'fold': 'Hide the frame button (a small dot stays)', 'unfold': 'Show the frame button',
+    'g.doors': 'Doors', 'g.pills': 'Pills', 'g.theater': 'Theater', 'g.totem': 'Totem of agents', 'g.chat': 'Talk line', 'g.radio': 'Radio', 'g.signature': 'Signature', 'g.tour': 'Tour'
   };
+  // the ⚙ panel groups pieces by what a visitor sees (the globe stays: one language choice follows the visitor across every door)
+  var GROUP = { door: 'doors', pill: 'pills', theater: 'theater', totem: 'totem', chat: 'chat', radio: 'radio', signature: 'signature', tour: 'tour', spot: 'tour' };
+  var GROUPS = ['doors', 'pills', 'theater', 'totem', 'chat', 'radio', 'signature', 'tour'];
+  var TEXT_TAGS = { P: 1, LI: 1, H1: 1, H2: 1, H3: 1, H4: 1, H5: 1, H6: 1, BLOCKQUOTE: 1, PRE: 1, TD: 1, TH: 1, DT: 1, DD: 1, FIGCAPTION: 1, LABEL: 1, SUMMARY: 1, A: 1, SPAN: 1, SMALL: 1, EM: 1, STRONG: 1, B: 1, I: 1, CODE: 1 };
 
   // ── small helpers ───────────────────────────────────────────────────────────────
   function has(o, k) { return !!o && Object.prototype.hasOwnProperty.call(o, k); }
@@ -170,6 +181,9 @@ var FRAMES = (function (W) {
     if (isObj(raw.credit) && Object.keys(raw.credit).some(function (k) { return k !== 'add'; })) info('credit can only be added to (credit.add), never replaced or hidden — AGPL §7(b)');
     out.credit = { add: add.map(function (x) { return str(x).trim(); }).filter(Boolean).slice(0, 12) };
     out.license = { data: (isObj(raw.license) && str(raw.license.data)) || 'CC-BY-SA-4.0', code: 'AGPL-3.0-or-later' };
+    out.accent = /^#[0-9a-f]{6}$/i.test(str(raw.accent)) ? str(raw.accent).toLowerCase() : '';
+    out.host = doorHost(raw.host);
+    delete out.extends; delete out.without;
     var strings = {};
     if (isObj(raw.strings)) Object.keys(raw.strings).forEach(function (k) { if (typeof raw.strings[k] === 'string') strings[k] = raw.strings[k]; });
     out.strings = strings;
@@ -189,6 +203,56 @@ var FRAMES = (function (W) {
     });
     return out;
   }
+
+  // ── per-door frames: a small dataset that EXTENDS another (frames/doors/<host>.json → ../universe.json) ──
+  // child wins for id/name/description/emoji/accent/license.data; strings merge; credit.add concatenates (never removes);
+  // "without": ["signature","pill"] drops every item of those kinds; each slot is either an array (replace)
+  // or ops {remove:[id|"kind:x"], prepend:[…], append:[…], replace:[items by id], set:{id:{field:value}}}.
+  function mergeFrame(parent, child) {
+    if (!isObj(child)) return copy(parent);
+    if (!isObj(parent)) parent = { slots: {} };
+    var out = copy(parent); delete out.extends;
+    ['id', 'name', 'description', 'emoji', 'accent', 'host'].forEach(function (k) { if (has(child, k) && child[k] != null) out[k] = child[k]; });
+    if (isObj(child.strings)) { out.strings = isObj(out.strings) ? out.strings : {}; Object.keys(child.strings).forEach(function (k) { out.strings[k] = child.strings[k]; }); }
+    if (isObj(child.credit) && Array.isArray(child.credit.add)) {
+      out.credit = isObj(out.credit) ? out.credit : {}; out.credit.add = (Array.isArray(out.credit.add) ? out.credit.add : []).slice();
+      child.credit.add.forEach(function (x) { if (out.credit.add.indexOf(x) < 0) out.credit.add.push(x); });
+    }
+    if (isObj(child.license) && child.license.data) { out.license = isObj(out.license) ? out.license : {}; out.license.data = child.license.data; }
+    out.slots = isObj(out.slots) ? out.slots : {};
+    var without = Array.isArray(child.without) ? child.without.map(str) : [];
+    var matches = function (it, sel) { sel = str(sel); return sel.indexOf('kind:') === 0 ? it.kind === sel.slice(5) : (str(it.id) === sel); };
+    SLOTS.forEach(function (sl) {
+      var list = Array.isArray(out.slots[sl]) ? out.slots[sl] : [];
+      if (without.length) list = list.filter(function (it) { return !(isObj(it) && without.indexOf(str(it.kind)) >= 0); });
+      var ops = isObj(child.slots) ? child.slots[sl] : undefined;
+      if (Array.isArray(ops)) list = copy(ops);
+      else if (isObj(ops)) {
+        if (Array.isArray(ops.remove)) list = list.filter(function (it) { return !ops.remove.some(function (sel) { return isObj(it) && matches(it, sel); }); });
+        if (Array.isArray(ops.replace)) ops.replace.forEach(function (ni) { if (!isObj(ni)) return; var hit = false; list = list.map(function (it) { if (isObj(it) && str(it.id) && str(it.id) === str(ni.id)) { hit = true; return copy(ni); } return it; }); if (!hit) list.push(copy(ni)); });
+        if (isObj(ops.set)) list = list.map(function (it) { var patch = isObj(it) && str(it.id) ? ops.set[it.id] : null; if (!isObj(patch)) return it; var c = copy(it); Object.keys(patch).forEach(function (k) { if (k !== 'kind') c[k] = copy(patch[k]); }); return c; });
+        if (Array.isArray(ops.prepend)) list = copy(ops.prepend).concat(list);
+        if (Array.isArray(ops.append)) list = list.concat(copy(ops.append));
+      }
+      out.slots[sl] = list;
+    });
+    return out;
+  }
+  // a parent dataset's relative URLs (href/src/poster/captions/channels/hub/status/page) are made absolute against
+  // the PARENT's own URL before the merge — the child's relative URLs keep resolving against the child file.
+  var URL_KEYS = { href: 1, src: 1, poster: 1, captions: 1, channels: 1, hub: 1, status: 1, page: 1 };
+  function absolutize(x, baseURL) {
+    if (Array.isArray(x)) return x.map(function (v) { return absolutize(v, baseURL); });
+    if (!isObj(x)) return x;
+    var out = {};
+    Object.keys(x).forEach(function (k) {
+      var v = x[k];
+      if (URL_KEYS[k] && typeof v === 'string' && v && !/^[a-z][a-z0-9+.-]*:/i.test(v) && v.charAt(0) !== '#') { try { v = new URL(v, baseURL).href; } catch (e) {} }
+      out[k] = (isObj(v) || Array.isArray(v)) ? absolutize(v, baseURL) : v;
+    });
+    return out;
+  }
+  function doorHost(v) { return str(v).toLowerCase().replace(/^www\./, '').replace(/[^a-z0-9.-]/g, '').slice(0, 120); }
 
   function creditLine(d) {
     var add = d && d.credit && d.credit.add && d.credit.add.length ? ' · with ' + d.credit.add.join(', ') : '';
@@ -226,13 +290,19 @@ var FRAMES = (function (W) {
     return out;
   }
   var injected = {};
+  // a door's accent (frames/doors/<host>.json "accent": "#hex") recolours the gold of every piece
+  function accentCSS(text) {
+    if (!data || !data.accent) return text;
+    return text.replace(/rgba\(251,\s*226,\s*160,\s*(\.\d+|1|0)\)/g, function (m, a) { return 'color-mix(in srgb,var(--osof-accent) ' + Math.round(parseFloat(a) * 100) + '%,transparent)'; })
+      .replace(/#fbe2a0/gi, 'var(--osof-accent)');
+  }
   function css(id, text) {
     id = String(id);
     if (injected[id]) return injected[id];
     var s = D.createElement('style');
     s.setAttribute('data-osof', id);
     if (SCRIPT && SCRIPT.nonce) s.nonce = SCRIPT.nonce;             // strict-CSP doors
-    s.textContent = String(text);
+    s.textContent = accentCSS(String(text));
     (D.head || D.documentElement).appendChild(s);
     return (injected[id] = s);
   }
@@ -266,10 +336,12 @@ var FRAMES = (function (W) {
 
   // ── state ───────────────────────────────────────────────────────────────────────
   var kinds = {};
-  var state = { booted: false, ready: false, fresh: false, outline: false, mobile: false, reduced: false };
+  var state = { booted: false, ready: false, fresh: false, outline: false, mobile: false, reduced: false, off: false, crowded: false };
+  var prefs = { on: true, hide: {} };      // the ⚙ panel: osof:settings:v1 (this browser only)
+  var dot = null, sheetX = null, sheetFolded = { user: false, text: false };
   var data = null, dataURL = '', base = '', frameId = 'frame';
   var LS = null, once = null, store = null;
-  var root = null, zones = {}, recs = [], more = {}, creditBox = null, creditInfo = null, sheetBtn = null;
+  var root = null, zones = {}, recs = [], more = {}, creditBox = null, creditInfo = null, creditGear = null, sheetBtn = null;
   var dialogs = {}, openDlg = null, ro = null, layoutQueued = false, unknownSeen = {};
 
   function t(key, fallback) {
@@ -350,7 +422,9 @@ var FRAMES = (function (W) {
     try { if (rec.piece && rec.piece.close) rec.piece.close(); } catch (e) {}
     recs = recs.filter(function (r) { return r !== rec; });
   }
-  function live(r) { return !r.skipped && (!state.mobile || !r.item.hideOnMobile); }
+  function groupOf(kind) { return GROUP[kind] || ''; }
+  function hiddenKind(kind) { var g = groupOf(kind); return !!(g && prefs.hide[g]); }
+  function live(r) { return !r.skipped && !hiddenKind(r.kind) && (!state.mobile || !r.item.hideOnMobile); }
   function openRec(r, opener) {
     if (r.piece && typeof r.piece.open === 'function') { r.piece.open(opener); return true; }
     var href = resolveURL(r.item.href, dataURL);
@@ -473,7 +547,8 @@ var FRAMES = (function (W) {
     var a = h('a', { class: 'osof-credit-a', href: HOME, title: creditLine(data) + ' · code: AGPL-3.0-or-later · words & data: CC BY-SA 4.0' },
       h('span', { 'aria-hidden': 'true' }, '🎻'), ' frame by the ', h('span', { translate: 'no', class: 'notranslate' }, 'ʻohana'));
     creditInfo = h('button', { type: 'button', class: 'osof-credit-i', 'aria-label': t('credit.about'), 'aria-haspopup': 'dialog', 'aria-expanded': 'false', on: { click: function () { about(creditInfo); } } }, 'i');
-    creditBox = h('div', { class: 'osof-credit' }, a, creditInfo);
+    creditGear = h('button', { type: 'button', class: 'osof-credit-i osof-credit-g', 'aria-label': t('settings'), 'aria-haspopup': 'dialog', 'aria-expanded': 'false', on: { click: function () { settings(creditGear); } } }, h('span', { 'aria-hidden': 'true' }, '⚙'));
+    creditBox = h('div', { class: 'osof-credit' }, a, creditInfo, creditGear);
     zones['bottom-left'].appendChild(h('div', { class: 'osof-item', 'data-osof-kind': 'credit' }, creditBox));
   }
   function about(opener) {
@@ -493,11 +568,156 @@ var FRAMES = (function (W) {
     d.open(opener);
   }
 
+  // ── the ⚙ control panel: the frame, or any piece, off and on (remembered in this browser) ──
+  function loadPrefs() {
+    var v = store('settings').get('v1');
+    prefs = { on: !(isObj(v) && v.on === false), hide: {} };
+    if (isObj(v) && isObj(v.hide)) GROUPS.forEach(function (g) { if (v.hide[g]) prefs.hide[g] = true; });
+  }
+  function savePrefs() { store('settings').set('v1', { on: prefs.on, hide: prefs.hide, at: new Date().toISOString().slice(0, 10) }); }
+  function presentGroups() {
+    var seen = {};
+    SLOTS.forEach(function (sl) { (data.slots[sl] || []).forEach(function (it) { var g = groupOf(it.kind); if (g && it.kind !== 'spot') seen[g] = 1; }); });
+    return GROUPS.filter(function (g) { return seen[g]; });
+  }
+  function sw(label, checked, onToggle, big) {
+    var b = h('button', { type: 'button', role: 'switch', 'aria-checked': checked ? 'true' : 'false', class: 'osof-sw' + (big ? ' osof-sw-big' : '') },
+      h('span', { class: 'osof-sw-l' }, brandify(label)), h('span', { class: 'osof-sw-k', 'aria-hidden': 'true' }));
+    b.addEventListener('click', function () { var on = b.getAttribute('aria-checked') !== 'true'; b.setAttribute('aria-checked', on ? 'true' : 'false'); onToggle(on, b); });
+    return b;
+  }
+  function settings(opener) {
+    var d = dialog({ id: 'settings', title: t('settings'), modal: false });
+    if (d.isOpen()) { d.close(); return; }
+    d.body.textContent = '';
+    var pieces = h('div', { class: 'osof-sws', role: 'group', 'aria-label': t('settings.pieces') });
+    var master = sw(prefs.on ? t('settings.on') : t('settings.off'), prefs.on, function (on, b) {
+      b.firstChild.textContent = on ? t('settings.on') : t('settings.off');
+      pieces.toggleAttribute('data-osof-dim', !on);
+      if (on) turnOn(); else turnOff();
+    }, true);
+    presentGroups().forEach(function (g) {
+      pieces.appendChild(sw(t('g.' + g), !prefs.hide[g], function (on) { setGroup(g, on); }));
+    });
+    pieces.toggleAttribute('data-osof-dim', !prefs.on);
+    var forgot = h('span', { class: 'osof-small', role: 'status' });
+    d.body.appendChild(h('div', { class: 'osof-settings' },
+      master,
+      h('h3', {}, t('settings.pieces')), pieces,
+      h('p', { class: 'osof-small' }, t('settings.note'), ' ', t('settings.url')),
+      h('p', { class: 'osof-small' }, h('button', { type: 'button', class: 'osof-link', on: { click: function () { api.reset(); forgot.textContent = ' ' + t('settings.forgot'); } } }, '↺ ', t('settings.forget')), forgot),
+      h('p', { class: 'osof-small osof-sheet-credit' }, brandify(creditLine(data)))));
+    d.open(opener);
+  }
+  function setGroup(g, on) {
+    if (on) delete prefs.hide[g]; else prefs.hide[g] = true;
+    savePrefs();
+    if (state.off) return;
+    if (on) { // pieces that were never mounted because the group was hidden at boot
+      SLOTS.forEach(function (sl) { data.slots[sl].forEach(function (item, i) { if (groupOf(item.kind) === g && !recs.some(function (r) { return r.id === item.id; })) { var r = mount(sl, item, i); if (r && ro && r.el && (sl === 'left' || sl === 'right')) ro.observe(r.el); } }); });
+    } else {
+      recs.forEach(function (r) { if (groupOf(r.kind) === g) { if (openDlg && r.piece && r.piece.el && openDlg.opener && r.wrap && r.wrap.contains(openDlg.opener)) closeDialog(openDlg, false, 'hide'); try { if (r.piece && r.piece.close) r.piece.close(); } catch (e) {} } });
+      if (g === 'tour') { stopTour('hide'); hideFinal(); }
+    }
+    applyHidden();
+    schedule();
+    emit('frame:settings', { on: prefs.on, hide: copy(prefs.hide) });
+  }
+  function applyHidden() {
+    recs.forEach(function (r) { if (r.wrap) r.wrap.toggleAttribute('data-osof-hid', hiddenKind(r.kind)); });
+    if (root) root.toggleAttribute('data-osof-nosig', !!prefs.hide.signature);
+  }
+  function mountAll() {
+    state.off = false;
+    root.removeAttribute('data-osof-off');
+    if (dot) { dot.remove(); dot = null; }
+    makeSheetBtn();
+    SLOTS.forEach(function (s) { data.slots[s].forEach(function (item, i) { if (!hiddenKind(item.kind)) mount(s, item, i); }); });
+    more.left = makeMore('left');
+    more.right = makeMore('right');
+    makeCredit();
+    applyHidden();
+    var first = once('entrance');
+    if (first && !state.reduced) {
+      var off = { 'top-left': 0, 'top-right': 0, left: 2, right: 2, 'bottom-left': 6, 'bottom-right': 6 };
+      RING.forEach(function (s) { [].forEach.call(zones[s].children, function (c, i) { c.style.setProperty('--osof-i', off[s] + i); }); });
+      root.classList.add('osof-enter');
+      setTimeout(function () { root.classList.remove('osof-enter'); }, 300 + 40 * 26 + 1700);
+    }
+    recs.forEach(function (r) { if (ro && r.el && (r.slot === 'left' || r.slot === 'right')) ro.observe(r.el); });
+    observeSpots();
+    layout();
+    if (state.outline) drawOutline();
+    scheduleTour();
+  }
+  function unmountAll() {
+    stopTour('off', true); hideFinal();
+    var keep = dialogs['osof-dlg-settings'];
+    if (openDlg && openDlg !== keep) closeDialog(openDlg, false, 'off');
+    recs.slice().forEach(unmount);
+    recs = [];
+    RING.forEach(function (s) { [].slice.call(zones[s].children).forEach(function (c) { c.remove(); }); });
+    [].slice.call(zones.overlay.children).forEach(function (c) { c.remove(); });
+    [].slice.call(root.querySelectorAll('.osof-sig')).forEach(function (c) { c.remove(); });
+    Object.keys(dialogs).forEach(function (k) { if (dialogs[k] !== keep) { dialogs[k].root.remove(); delete dialogs[k]; } });
+    more = {}; creditBox = creditInfo = creditGear = sheetBtn = sheetX = null;
+    if (outlineSvg) { outlineSvg.remove(); outlineSvg = null; }
+  }
+  function turnOff() {
+    if (state.off) return;
+    prefs.on = false; savePrefs();
+    unmountAll();
+    state.off = true;
+    root.setAttribute('data-osof-off', '');
+    makeDot();
+    emit('frame:settings', { on: false, hide: copy(prefs.hide) });
+  }
+  function turnOn() {
+    if (!state.off) return;
+    prefs.on = true; savePrefs();
+    var d = dialogs['osof-dlg-settings'], wasOpen = d && d.isOpen();
+    mountAll();
+    if (wasOpen) { d.opener = creditGear; place(d); if (creditGear) creditGear.setAttribute('aria-expanded', 'true'); }
+    emit('frame:settings', { on: true, hide: copy(prefs.hide) });
+  }
+  // the frame is off: one small dot stays at an edge (never over text) and brings it back — it is also the credit mark
+  function makeDot() {
+    if (dot) return;
+    dot = h('button', { type: 'button', class: 'osof-dot', 'aria-label': t('dot.label'), title: t('dot.tip') + ' · ' + creditLine(data), on: { click: function () { turnOn(); if (creditGear) focusEl(creditGear); } } }, h('span', { 'aria-hidden': 'true' }, '🎻'));
+    root.appendChild(dot);
+    placeDot();
+  }
+  function placeDot() {
+    if (!dot) return;
+    var vw = W.innerWidth, vh = W.innerHeight, S = 18, tries = [[10, vh - 10 - S], [10, Math.round(vh * 0.5)], [vw - 10 - S, vh - 10 - S], [10, 84]], pick = tries[0];
+    for (var i = 0; i < tries.length; i++) { if (!textUnder(tries[i][0], tries[i][1], S)) { pick = tries[i]; break; } }
+    dot.style.left = pick[0] + 'px'; dot.style.top = pick[1] + 'px';
+  }
+
   // ── the mobile sheet (rails hide on phones; one 🎻 opens every door) ───────────
+  // BUTTON LAW: the 🎻 steps below anything fixed or any text at the top-right; if no clear spot exists it folds to a
+  // 17px dot for this page view; its tiny ✕ folds it on purpose (remembered); the dot brings it back.
   function makeSheetBtn() {
-    sheetBtn = h('button', { type: 'button', class: 'osof-btn osof-btn-lg osof-sheetbtn', 'aria-label': t('sheet.label'), 'aria-haspopup': 'dialog', 'aria-expanded': 'false', on: { click: openSheet } },
+    sheetBtn = h('button', { type: 'button', class: 'osof-btn osof-btn-lg osof-sheetbtn', 'aria-label': t('sheet.label'), 'aria-haspopup': 'dialog', 'aria-expanded': 'false', on: { click: function () { if (sheetFolded.user || sheetFolded.text) { foldSheet(false, true); return; } openSheet(); } } },
       h('span', { class: 'osof-emo', 'aria-hidden': 'true' }, str(data.emoji) || '🎻'));
-    zones['top-right'].appendChild(h('div', { class: 'osof-item osof-sheet-item', 'data-osof-kind': 'sheet' }, sheetBtn));
+    sheetX = h('button', { type: 'button', class: 'osof-fold-x', 'aria-label': t('fold'), on: { click: function () { foldSheet(true, true); } } }, h('span', { 'aria-hidden': 'true' }, '✕'));
+    zones['top-right'].appendChild(h('div', { class: 'osof-item osof-sheet-item', 'data-osof-kind': 'sheet' }, sheetBtn, sheetX));
+    sheetFolded.user = !!store('fold').get('sheet');
+    syncFold();
+  }
+  function foldSheet(v, byUser) {
+    if (byUser) { sheetFolded.user = v; sheetFolded.text = false; if (v) store('fold').set('sheet', 1); else store('fold').del('sheet'); }
+    else sheetFolded.text = v;
+    syncFold();
+    if (byUser) focusEl(sheetBtn);
+  }
+  function syncFold() {
+    if (!sheetBtn) return;
+    var f = sheetFolded.user || sheetFolded.text;
+    sheetBtn.classList.toggle('osof-fold', f);
+    sheetBtn.setAttribute('aria-label', f ? t('unfold') : t('sheet.label'));
+    if (f) sheetBtn.removeAttribute('aria-haspopup'); else sheetBtn.setAttribute('aria-haspopup', 'dialog');
+    sheetX.hidden = f;
   }
   function openSheet() {
     var d = dialog({ id: 'sheet', title: data.name });
@@ -547,7 +767,9 @@ var FRAMES = (function (W) {
     (W.requestAnimationFrame || setTimeout)(function () { layoutQueued = false; layout(); });
   }
   function union(a, r) {
-    if (!r || r.width < 1 || r.height < 1) return a;
+    if (!r) return a;
+    if (r.width === undefined) r = { top: r.top, bottom: r.bottom, left: r.left, right: r.right, width: r.right - r.left, height: r.bottom - r.top };
+    if (r.width < 1 || r.height < 1) return a;
     if (!a) return { top: r.top, bottom: r.bottom, left: r.left, right: r.right };
     return { top: Math.min(a.top, r.top), bottom: Math.max(a.bottom, r.bottom), left: Math.min(a.left, r.left), right: Math.max(a.right, r.right) };
   }
@@ -568,33 +790,89 @@ var FRAMES = (function (W) {
     if (slot === 'top-left') { var lb = langButton(); if (lb && isVisible(lb)) e = union(e, lb.getBoundingClientRect()); }
     return e;
   }
-  // step below any small fixed/sticky bar of the page that sits where a top corner wants to be
-  function clearTop(side, y0, size) {
-    var x = side === 'left' ? 10 : W.innerWidth - 10 - size, y = y0;
-    for (var k = 0; k < 6; k++) {
-      var hit = null, pts = [[x + size / 2, y + size / 2], [x + 4, y + 4], [x + size - 4, y + size - 4]];
-      for (var p = 0; p < pts.length && !hit; p++) {
-        var els = D.elementsFromPoint ? D.elementsFromPoint(pts[p][0], pts[p][1]) : [];
-        for (var j = 0; j < els.length && !hit; j++) {
-          for (var a = els[j]; a && a !== D.body && a !== D.documentElement; a = a.parentElement) {
-            if (root.contains(a) || a.id === 'olelo' || a.id === 'olang') break;
-            var cs = W.getComputedStyle(a);
-            if (cs.position === 'fixed' || cs.position === 'sticky') {
-              var r = a.getBoundingClientRect();
-              if (r.width * r.height < W.innerWidth * W.innerHeight * 0.35 && cs.visibility !== 'hidden' && +cs.opacity > 0.05) hit = r;
-              break;
-            }
+  // BUTTON LAW (19 Nov 2026): a floating button never covers text. What sits under a square at (x,y,size)?
+  // → the rect of a text block (> 20 characters) or of a small fixed/sticky control of the page; null when clear.
+  function ours(a) { return (root && root.contains(a)) || a.id === 'olelo' || a.id === 'olang' || a.id === 'oso-frames'; }
+  function textUnder(x, y, size, textOnly) {
+    if (!D.elementsFromPoint) return null;
+    var vw = W.innerWidth, vh = W.innerHeight, pts = [[x + size / 2, y + size / 2], [x + 3, y + 3], [x + size - 3, y + size - 3], [x + size - 3, y + 3], [x + 3, y + size - 3]];
+    for (var k = 0; k < pts.length; k++) {
+      if (pts[k][0] < 0 || pts[k][1] < 0 || pts[k][0] >= vw || pts[k][1] >= vh) continue;
+      var els = D.elementsFromPoint(pts[k][0], pts[k][1]);
+      for (var j = 0; j < els.length; j++) {
+        var el = els[j];
+        if (el === D.body || el === D.documentElement) continue;
+        for (var a = el; a && a !== D.body && a !== D.documentElement; a = a.parentElement) {
+          if (ours(a)) break;
+          var cs = W.getComputedStyle(a);
+          if (cs.visibility === 'hidden' || +cs.opacity < 0.05) break;
+          if (TEXT_TAGS[a.tagName] && (a.innerText || '').replace(/\s+/g, ' ').trim().length > 20) {
+            var tr = a.getBoundingClientRect();
+            if (tr.width * tr.height > 900 && tr.width * tr.height < vw * vh * 0.45) return tr;
+          }
+          if (!textOnly && (cs.position === 'fixed' || cs.position === 'sticky')) {
+            var r = a.getBoundingClientRect();
+            if (r.width * r.height > vw * vh * 0.35) break;                          // a background layer, not a control
+            if (cs.pointerEvents === 'none' && r.height > 160) break;
+            return r;
           }
         }
       }
+    }
+    return null;
+  }
+  // step below any small fixed/sticky bar — or text — of the page that sits where a top corner wants to be
+  function clearTop(side, y0, size) {
+    var x = side === 'left' ? 10 : W.innerWidth - 10 - size, y = y0, blocked = false;
+    for (var k = 0; k < 8; k++) {
+      var hit = textUnder(x, y, size);
       if (!hit) break;
       y = Math.ceil(hit.bottom) + 8;
     }
-    return y > W.innerHeight * 0.4 ? y0 : y;
+    if (y > W.innerHeight * 0.4 || textUnder(x, y, size)) { y = y0; blocked = true; }
+    return { y: y, blocked: blocked };
+  }
+  // the page's own fixed widgets near a corner (an old 🎻 corner, a chat FAB, a mini player): rails keep clear of them
+  function cornerStuff(slot) {
+    var vw = W.innerWidth, vh = W.innerHeight, e = null, seen = [];
+    if (!D.elementsFromPoint) return null;
+    var left = /left/.test(slot), top = /top/.test(slot);
+    for (var dx = 20; dx <= 92; dx += 36) for (var dy = 12; dy <= 300; dy += 36) {
+      var x = left ? dx : vw - dx, y = top ? dy : vh - dy;
+      if (x < 0 || x >= vw || y < 0 || y >= vh) continue;
+      var els = D.elementsFromPoint(x, y);
+      for (var j = 0; j < els.length; j++) {
+        var a = els[j];
+        if (a === D.body || a === D.documentElement || ours(a) || seen.indexOf(a) >= 0) continue;
+        var f = a; while (f && f !== D.body && !ours(f)) { var cs = W.getComputedStyle(f); if (cs.position === 'fixed' || cs.position === 'sticky') break; f = f.parentElement; }
+        if (!f || f === D.body || ours(f)) continue;
+        seen.push(a);
+        var r = f.getBoundingClientRect(), cf = W.getComputedStyle(f);
+        if (r.width * r.height < vw * vh * 0.2 && r.width < vw * 0.5 && cf.visibility !== 'hidden' && +cf.opacity > 0.05 && cf.pointerEvents !== 'none') e = union(e, r);
+        break;
+      }
+    }
+    return e;
+  }
+  // are the rails about to sit on the page's text? (narrow windows, edge-to-edge paragraphs) → fold into the 🎻 sheet
+  function railsCrowded(top0) {
+    var vw = W.innerWidth, vh = W.innerHeight, hits = 0, size = 46;
+    if (!D.elementsFromPoint || vw < 721) return false;
+    for (var side = 0; side < 2; side++) {
+      var x = side ? vw - 10 - size : 10, n = 0;
+      for (var y = top0 + 20; y < vh - 90 && n < 3; y += 72) if (textUnder(x, y, size, true)) n++;
+      hits = Math.max(hits, n);
+    }
+    return hits >= 2;
   }
   function layout() {
     if (!root) return;
-    var mobile = isMobileNow();
+    if (state.off) { placeDot(); if (openDlg) place(openDlg); return; }
+    var size0 = 54, top00 = 74;
+    var narrow = isMobileNow();
+    state.crowded = !narrow && railsCrowded(top00);
+    var mobile = narrow || state.crowded;
+    root.toggleAttribute('data-osof-crowded', state.crowded);
     if (mobile !== state.mobile) {
       state.mobile = mobile;
       root.setAttribute('data-mode', mobile ? 'mobile' : 'desktop');
@@ -604,17 +882,30 @@ var FRAMES = (function (W) {
     var reduced = mq('(prefers-reduced-motion: reduce)');
     if (reduced !== state.reduced) { state.reduced = reduced; root.setAttribute('data-motion', reduced ? 'reduced' : 'full'); }
     emit('frame:layout', { mobile: mobile });
-    var size = mobile ? 44 : 54, top0 = mobile ? 52 : 74;
-    root.style.setProperty('--osof-top-r', clearTop('right', top0, size) + 'px');
+    var size = narrow ? 44 : size0, top0 = narrow ? 52 : top00;
+    var ct = clearTop('right', top0, size);
+    root.style.setProperty('--osof-top-r', ct.y + 'px');
+    if (mobile) { if (sheetFolded.text !== ct.blocked && !sheetFolded.user) foldSheet(ct.blocked, false); }
+    stackCorners(mobile);
     if (!mobile) {
       var vh = W.innerHeight;
-      var tl = extent('top-left'), tr = extent('top-right'), bl = extent('bottom-left'), br = extent('bottom-right');
-      fitRail('left', (tl ? tl.bottom : top0) + 14, (bl ? bl.top : vh - 10) - 14);
-      fitRail('right', (tr ? tr.bottom : top0) + 14, (br ? br.top : vh - 10) - 14);
+      var tl = union(extent('top-left'), cornerStuff('top-left')), tr = union(extent('top-right'), cornerStuff('top-right'));
+      var bl = union(extent('bottom-left'), cornerStuff('bottom-left')), br = union(extent('bottom-right'), cornerStuff('bottom-right'));
+      fitRail('left', (tl ? Math.max(tl.bottom, top0) : top0) + 14, (bl ? Math.min(bl.top, vh - 10) : vh - 10) - 14);
+      fitRail('right', (tr ? Math.max(tr.bottom, top0) : top0) + 14, (br ? Math.min(br.top, vh - 10) : vh - 10) - 14);
     }
     if (openDlg) place(openDlg);
     if (state.outline) drawOutline();
     if (tour.active && tour.cur) showStep(tour.cur, true);
+  }
+  // phones: when the bottom-right pieces (chat, radio dock) reach across the bottom-left credit, the credit steps up above them
+  function stackCorners(mobile) {
+    var z = zones['bottom-left'];
+    if (!mobile) { z.style.bottom = ''; return; }
+    z.style.bottom = '';
+    var br = extent('bottom-right'), bl = z.getBoundingClientRect();
+    if (!br || bl.width < 2 || br.left > bl.right + 6 || br.top > bl.bottom || br.bottom < bl.top) return;
+    z.style.bottom = Math.round(W.innerHeight - br.top + 8) + 'px';
   }
   function fitRail(side, top, bottom) {
     var z = zones[side], m = more[side];
@@ -690,6 +981,7 @@ var FRAMES = (function (W) {
   }
   function dwell(step) { return Math.min(2600, 1500 + Math.max(0, (step.title + step.text).length - 48) * 16); }
   function startTour(auto) {
+    if (state.off || prefs.hide.tour) return false;
     stopTour('restart', true);
     hideFinal();
     if (openDlg && !auto) closeDialog(openDlg, false, 'tour');
@@ -824,7 +1116,7 @@ var FRAMES = (function (W) {
     d.open(opener);
   }
   function scheduleTour() {
-    if (state.outline || !once.peek('tour')) return;
+    if (state.outline || state.off || prefs.hide.tour || !once.peek('tour')) return;
     var sig = recs.some(function (r) { return r.kind === 'signature'; }) && once.got('signature') === true;
     var done = false, offSig = null, offPanel = null;
     function go() {
@@ -1030,6 +1322,34 @@ var FRAMES = (function (W) {
       F + '[data-mode=mobile] .osof-credit{height:30px;font-size:11.5px}',
       F + '[data-mode=mobile] .osof-dlg{left:8px!important;right:8px!important;top:auto!important;bottom:calc(8px + env(safe-area-inset-bottom,0px))!important;width:auto;max-height:min(86vh,calc(100vh - 24px))}',
       F + '[data-osof-globe=open] [data-slot=left]{visibility:hidden}',
+      // the ⚙ panel · hidden pieces · the frame off (one dot) · the folded 🎻 (BUTTON LAW)
+      F + ' .osof-credit-g{font:16px/1 ' + EMOJI + ';font-style:normal}',
+      F + ' .osof-credit-g span{display:inline-block;transition:transform .35s ease}',
+      F + ' .osof-credit-g:hover span,' + F + ' .osof-credit-g:focus-visible span{transform:rotate(60deg)}',
+      F + ' .osof-settings h3{font:700 12px/1.2 ' + SANS + ';letter-spacing:.14em;text-transform:uppercase;color:#e9c46a;margin:14px 0 8px}',
+      F + ' .osof-sws{display:flex;flex-direction:column;gap:2px}',
+      F + ' .osof-sws[data-osof-dim]{opacity:.45}',
+      F + ' .osof-sw{display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;min-height:40px;padding:4px 6px 4px 8px;border-radius:12px;color:#f4ecdc;font:15px/1.25 ' + SERIF + ';cursor:pointer;text-align:left}',
+      F + ' .osof-sw:hover{background:rgba(251,226,160,.1)}',
+      F + ' .osof-sw-big{min-height:48px;font:700 17px/1.2 ' + SERIF + ';color:#fbe2a0;border:1px solid rgba(251,226,160,.3)}',
+      F + ' .osof-sw-k{position:relative;flex:none;width:40px;height:22px;border-radius:999px;background:rgba(255,255,255,.14);border:1px solid rgba(251,226,160,.35);transition:background .2s ease}',
+      F + ' .osof-sw-k::after{content:"";position:absolute;top:2px;left:2px;width:16px;height:16px;border-radius:50%;background:#f4ecdc;transition:transform .2s ease}',
+      F + ' .osof-sw[aria-checked=true] .osof-sw-k{background:linear-gradient(135deg,#f3d27e,#e9c46a)}',
+      F + ' .osof-sw[aria-checked=true] .osof-sw-k::after{transform:translateX(18px);background:#21170a}',
+      F + ' .osof-link{color:#fbe2a0;text-decoration:underline;text-underline-offset:.16em;cursor:pointer;font:inherit}',
+      F + ' .osof-settings .osof-small{margin-top:10px}',
+      F + ' [data-osof-hid]{display:none!important}',
+      F + '[data-osof-nosig] .osof-sig{display:none!important}',
+      F + '[data-osof-off] .osof-slot{display:none!important}',
+      F + ' .osof-dot{position:fixed;z-index:' + Z.frame + ';width:18px;height:18px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:rgba(20,18,45,.86);border:1px solid rgba(251,226,160,.55);font:9px/1 ' + EMOJI + ';opacity:.5;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.3);transition:opacity .2s ease,transform .2s ease}',
+      F + ' .osof-dot:hover,' + F + ' .osof-dot:focus-visible{opacity:1;transform:scale(1.25)}',
+      F + ' .osof-dot::after{content:"";position:absolute;inset:-10px}',
+      F + ' .osof-fold-x{position:absolute;top:-7px;left:-7px;z-index:1;width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#3d1c42,#221436);border:1px solid rgba(251,226,160,.7);color:#fbe2a0;font:10px/1 ' + SANS + ';cursor:pointer;box-shadow:0 3px 10px rgba(0,0,0,.45)}',
+      F + ' .osof-fold-x::after{content:"";position:absolute;inset:-6px}',
+      F + ' .osof-sheetbtn.osof-fold{width:17px!important;height:17px!important;font-size:9px!important;opacity:.45;box-shadow:none}',
+      F + ' .osof-sheetbtn.osof-fold:hover,' + F + ' .osof-sheetbtn.osof-fold:focus-visible{opacity:.95;transform:none}',
+      F + ' .osof-sheetbtn.osof-fold .osof-emo{transform:none!important;animation:none!important}',
+      F + '[data-mode=mobile] .osof-sheetbtn.osof-fold{width:20px!important;height:20px!important;font-size:10px!important;opacity:.62}',
       // the first visit: one entrance, once (THE ONE-TIME LAW); never again, never a loop
       '@media (prefers-reduced-motion:no-preference){',
       '@keyframes osof-in-l{from{opacity:0;transform:translateX(-18px)}to{opacity:1;transform:none}}',
@@ -1050,18 +1370,45 @@ var FRAMES = (function (W) {
   function scriptBase() {
     try { return new URL('.', (SCRIPT && SCRIPT.src) || D.baseURI).href; } catch (e) { return ''; }
   }
-  function loadData() {
-    var inline = D.getElementById('oso-frame');
-    if (inline && /json/i.test(inline.getAttribute('type') || '')) {
-      try { return Promise.resolve({ data: JSON.parse(inline.textContent), url: D.baseURI }); } catch (e) { info('inline #oso-frame is not valid JSON; trying data-frame', e); }
-    }
-    var attr = SCRIPT && SCRIPT.getAttribute('data-frame');
-    var url = resolveURL(attr || 'frames/universe.json', attr ? D.baseURI : base, true);
-    if (!url) return Promise.reject(new Error('no dataset URL'));
+  function fetchJSON(url) {
     return W.fetch(url, { credentials: 'omit', mode: 'cors' }).then(function (r) {
       if (!r.ok) throw new Error('HTTP ' + r.status + ' for ' + url);
       return r.json();
-    }).then(function (d) { return { data: d, url: url }; });
+    });
+  }
+  // "extends": a dataset built on another one (relative to the child's own URL); at most 4 deep
+  function withParents(d, url, depth) {
+    if (!isObj(d) || !str(d.extends) || depth > 3) return Promise.resolve({ data: d, url: url });
+    var pu = resolveURL(d.extends, url, true);
+    if (!pu) return Promise.resolve({ data: d, url: url });
+    return fetchJSON(pu).then(function (p) { return withParents(p, pu, depth + 1); }).then(function (res) {
+      return { data: mergeFrame(absolutize(res.data, res.url), d), url: url, parentURL: res.url };
+    }, function (e) { info('could not load the parent frame ' + pu + ' (' + e.message + '); using the door dataset alone'); return { data: d, url: url }; });
+  }
+  function loadData() {
+    var inline = D.getElementById('oso-frame');
+    if (inline && /json/i.test(inline.getAttribute('type') || '')) {
+      try { return withParents(JSON.parse(inline.textContent), D.baseURI, 0); } catch (e) { info('inline #oso-frame is not valid JSON; trying data-frame', e); }
+    }
+    var attr = SCRIPT && SCRIPT.getAttribute('data-frame');
+    var door = SCRIPT && !attr ? SCRIPT.getAttribute('data-door') : null;
+    var fallback = resolveURL(attr || 'frames/universe.json', attr ? D.baseURI : base, true);
+    if (!fallback) return Promise.reject(new Error('no dataset URL'));
+    var main = fetchJSON(fallback).then(function (d) { return withParents(d, fallback, 0); });
+    if (door == null) return main;
+    // data-door="auto" → frames/doors/<this host>.json next to frames.js (data-door="example.org" names a host). The index
+    // (frames/doors/index.json, built by build.mjs) is read first so a door without its own frame costs no 404: it wears the fallback.
+    var host = doorHost(door === 'auto' || door === '' ? (W.location && W.location.hostname) : door);
+    var iurl = host ? resolveURL('frames/doors/index.json', base, true) : '';
+    if (!iurl) return main;
+    return fetchJSON(iurl).then(function (idx) {
+      var list = isObj(idx) && Array.isArray(idx.doors) ? idx.doors : [];
+      var hit = null;
+      for (var i = 0; i < list.length; i++) if (isObj(list[i]) && doorHost(list[i].host) === host) { hit = list[i]; break; }
+      if (!hit) { info('no door frame for ' + host + ' — wearing ' + fallback.split('/').pop()); return main; }
+      var durl = resolveURL('frames/doors/' + (str(hit.file) || host + '.json'), base, true);
+      return fetchJSON(durl).then(function (d) { return withParents(d, durl, 0); });
+    }).catch(function (e) { info('door frame lookup failed (' + (e && e.message) + ') — wearing the fallback'); return main; });
   }
   function start(raw, url) {
     data = deepFreeze(normalize(raw));
@@ -1079,23 +1426,11 @@ var FRAMES = (function (W) {
       zones[s] = h(rail ? 'nav' : 'div', { class: 'osof-slot', 'data-slot': s, 'aria-label': rail ? t('rail.' + s) : null });
       root.appendChild(zones[s]);
     });
-    makeSheetBtn();
-    SLOTS.forEach(function (s) { data.slots[s].forEach(function (item, i) { mount(s, item, i); }); });
-    more.left = makeMore('left');
-    more.right = makeMore('right');
-    makeCredit();
-    var first = once('entrance');
-    if (first && !state.reduced) {
-      var off = { 'top-left': 0, 'top-right': 0, left: 2, right: 2, 'bottom-left': 6, 'bottom-right': 6 };
-      RING.forEach(function (s) { [].forEach.call(zones[s].children, function (c, i) { c.style.setProperty('--osof-i', off[s] + i); }); });
-      root.classList.add('osof-enter');
-      setTimeout(function () { root.classList.remove('osof-enter'); }, 300 + 40 * 26 + 1700);
-    }
+    loadPrefs();
+    if (data.accent) { root.style.setProperty('--osof-accent', data.accent); root.setAttribute('data-accent', data.accent); }
     D.body.appendChild(root);
     ['top-left', 'top-right', 'bottom-left', 'bottom-right'].forEach(function (s) { if (ro) ro.observe(zones[s]); });
-    recs.forEach(function (r) { if (ro && r.el && (r.slot === 'left' || r.slot === 'right')) ro.observe(r.el); });
-    observeSpots();
-    layout();
+    if (prefs.on) mountAll(); else { state.off = true; root.setAttribute('data-osof-off', ''); makeDot(); info('the frame is off for this browser (⚙) — the small 🎻 dot brings it back'); }
     W.addEventListener('resize', schedule);
     W.addEventListener('orientationchange', schedule);
     W.addEventListener('load', function () { recheck(); });
@@ -1114,11 +1449,9 @@ var FRAMES = (function (W) {
     }
     setTimeout(schedule, 300);
     setTimeout(recheck, 1500);
-    if (state.outline) drawOutline();
     state.ready = api.ready = true;
     root.setAttribute('data-osof-ready', '');
-    emit('frame:ready', { id: frameId, items: recs.length, mobile: state.mobile });
-    scheduleTour();
+    emit('frame:ready', { id: frameId, items: recs.length, mobile: state.mobile, on: prefs.on, accent: data.accent || '' });
   }
   // late arrivals: a page widget that appears after us (unless), spots, the lang.js button
   function recheck() {
@@ -1126,7 +1459,7 @@ var FRAMES = (function (W) {
     observeSpots();
     schedule();
   }
-  var spotSeen = typeof W.WeakSet === 'function' ? new W.WeakSet() : null;
+  var spotSeen = W && typeof W.WeakSet === 'function' ? new W.WeakSet() : null;
   function observeSpots() {
     if (!ro || !spotSeen) return;
     recs.forEach(function (r) {
@@ -1161,8 +1494,9 @@ var FRAMES = (function (W) {
     },
     open: function (id) {
       if (!root) return false;
-      if (id === 'sheet') { openSheet(); return true; }
-      if (id === 'about' || id === 'credit') { about(creditInfo); return true; }
+      if (id === 'sheet') { if (state.off) return false; openSheet(); return true; }
+      if (id === 'about' || id === 'credit') { if (state.off) return false; about(creditInfo); return true; }
+      if (id === 'settings') { settings(creditGear || dot); return true; }
       for (var i = 0; i < recs.length; i++) if (recs[i].id === id) return openRec(recs[i]);
       return false;
     },
@@ -1185,7 +1519,15 @@ var FRAMES = (function (W) {
     },
     on: on,
     emit: emit,
-    _: { makeOnce: makeOnce, makeStore: makeStore, resolveURL: resolveURL, fitColumn: fitColumn, normalize: normalize, parseFlags: parseFlags, slug: slug, creditLine: creditLine, fmt: fmt, durWord: durWord, CREDIT: CREDIT, VERSION: VERSION }
+    // the ⚙ panel as an API: settings() → {on, hide}; settings({on:false}) · settings({hide:{radio:true}})
+    settings: function (patch) {
+      if (isObj(patch) && root) {
+        if (isObj(patch.hide)) GROUPS.forEach(function (g) { if (has(patch.hide, g)) setGroup(g, !patch.hide[g]); });
+        if (has(patch, 'on')) { if (patch.on) turnOn(); else turnOff(); }
+      }
+      return { on: prefs.on, hide: copy(prefs.hide), groups: data ? presentGroups() : GROUPS.slice() };
+    },
+    _: { makeOnce: makeOnce, makeStore: makeStore, resolveURL: resolveURL, fitColumn: fitColumn, normalize: normalize, parseFlags: parseFlags, slug: slug, creditLine: creditLine, fmt: fmt, durWord: durWord, mergeFrame: mergeFrame, absolutize: absolutize, doorHost: doorHost, CREDIT: CREDIT, VERSION: VERSION, GROUPS: GROUPS }
   };
   Object.defineProperty(api, 'data', { enumerable: true, get: function () { return data; } });
   defineTour();

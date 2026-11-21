@@ -23,8 +23,19 @@ That gives your page the universe frame of the Open Source Orchestra. Point at y
 <script src="https://frames.opensourceorchestra.org/frames.js" data-frame="/my-frame.json" defer></script>
 ```
 
-- `?frame=outline` — see the frame's blueprint · `?frame=fresh` — replay the first visit · `?frame=off` — hide it
-- Datasets: [`frames/universe.json`](frames/universe.json) · [`frames/minimal.json`](frames/minimal.json) · schema: [`schema/frame-0.1.json`](schema/frame-0.1.json)
+One tag for **every page of every door** — the frame picks the door's own small dataset by host name (v0.1.1):
+
+```html
+<script src="https://frames.opensourceorchestra.org/frames.js" data-door="auto" defer></script>
+```
+
+- `?frame=outline` — see the frame's blueprint · `?frame=fresh` — replay the first visit · `?frame=off` — hide it for one page view
+- **⚙** in the credit mark (bottom-left): the frame, or any piece, off and on — remembered in that browser only. Off leaves one small 🎻 dot that brings it back.
+- Datasets: [`frames/universe.json`](frames/universe.json) · [`frames/minimal.json`](frames/minimal.json) · per-door: [`frames/doors/`](frames/doors/) · schema: [`schema/frame-0.1.json`](schema/frame-0.1.json)
+
+## Make your door's frame (5 minutes)
+
+`frames/doors/<your.host>.json` extends the universe with your accent and your first doors — see [`docs/DOORS.md`](docs/DOORS.md). The gallery of door frames: <https://frames.opensourceorchestra.org/trademark/> — *the frame is the mark*; anyone may wear it with the credit.
 
 ## Fork it (15 minutes)
 
@@ -51,17 +62,19 @@ That gives your page the universe frame of the Open Source Orchestra. Point at y
 - **Once, then still.** Every animation and tip plays one time per visitor. No loops.
 - **Nothing connects until you act.** No chat, audio, video or translation before a click. No cookies, no trackers.
 - **Machines say they are machines.** **Consent before people.** **Keyboard, screen readers, reduced motion and small screens are first-class.**
+- **A floating button never covers text** (BUTTON LAW, 19 Nov 2026) — the frame steps aside, folds to a dot, or folds its rails into the 🎻 sheet rather than sit on a word; and it always has a tiny ✕ or ⚙ to go away.
 
 ## Develop
 
 ```bash
 node build.mjs          # src/core.js + src/pieces/*.js → frames.js (with gates)
-node build.mjs --check  # syntax + dataset + secrets gates only
+node build.mjs --check  # syntax + every dataset and door frame against the schema + secrets gates
+node tests/e2e-settings.mjs   # v0.1.1 e2e: ⚙ panel, data-door, accent, BUTTON LAW (local server only)
 node tests/serve.mjs    # local dev server; open tests/dev.html?frame=fresh
 ./deploy.sh --dry       # build dist/ (Worker static site) without deploying
 ```
 
-`SPEC.md` is the full contract; `docs/` holds the dataset spec and the fork guide.
+`SPEC.md` is the full contract; `docs/` holds the dataset spec (`FRAME-SPEC.md`) and the per-door guide (`DOORS.md`).
 
 ## The guarantee
 

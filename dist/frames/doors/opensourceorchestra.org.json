@@ -1,0 +1,11 @@
+{
+  "$schema": "https://frames.opensourceorchestra.org/schema/frame-0.1.json",
+  "frame": "osoframes/0.1",
+  "extends": "../oso.json",
+  "host": "opensourceorchestra.org",
+  "id": "oso-flagship-door",
+  "name": "Open Source Orchestra",
+  "emoji": "🎻",
+  "description": "The flagship door frame: every page of opensourceorchestra.org wears the same frame as the home (frames/oso.json).",
+  "slots": {}
+}
