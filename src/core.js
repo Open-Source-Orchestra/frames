@@ -792,7 +792,9 @@ var FRAMES = (function (W) {
     for (var i = 0; i < c.length; i++) if (c[i].nodeType === 3) n += (c[i].nodeValue || '').replace(/\s+/g, ' ').trim().length;
     return n;
   }
-  function ours(a) { return (root && root.contains(a)) || a.id === 'olelo' || a.id === 'olang' || a.id === 'oso-frames'; }
+  // ours = the frame itself and the ʻŌlelo host (#olelo). The LEGACY 🌐 corner (#olang) is page content: its label bar
+  // ("every language — on a Planet We Share As One") is words the 🎻 must not sit on (blessingpool.com at 390px).
+  function ours(a) { return (root && root.contains(a)) || a.id === 'olelo' || a.id === 'oso-frames'; }
   function textUnder(x, y, size, textOnly) {
     if (!D.elementsFromPoint) return null;
     var vw = W.innerWidth, vh = W.innerHeight, pts = [[x + size / 2, y + size / 2], [x + 3, y + 3], [x + size - 3, y + size - 3], [x + size - 3, y + 3], [x + 3, y + size - 3]];
