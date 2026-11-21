@@ -801,9 +801,9 @@ var FRAMES = (function (W) {
           var cs = W.getComputedStyle(a);
           if (cs.visibility === 'hidden' || +cs.opacity < 0.05) break;
           var tl = TEXT_TAGS[a.tagName] ? (a.innerText || '').replace(/\s+/g, ' ').trim().length : 0;
-          if (tl > 20 || (tl > 2 && /^(H[1-6]|P|LI|BLOCKQUOTE|FIGCAPTION|DT|DD|PRE)$/.test(a.tagName))) {   // a short heading is text too ("The story begins")
+          if (tl > 2) {                                            // words are words: a 16-char link ("THE STORY BEGINS") counts
             var tr = a.getBoundingClientRect();
-            if (tr.width * tr.height > 900 && tr.width * tr.height < vw * vh * 0.45) return tr;
+            if (tr.width * tr.height > 200 && tr.width * tr.height < vw * vh * 0.45) return tr;
           }
           if (!textOnly && (cs.position === 'fixed' || cs.position === 'sticky')) {
             var r = a.getBoundingClientRect();
