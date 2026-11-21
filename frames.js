@@ -888,9 +888,10 @@ var FRAMES = (function (W) {
     if (state.off) { placeDot(); if (openDlg) place(openDlg); return; }
     var size0 = 54, top00 = 74;
     var narrow = isMobileNow();
-    // a page that renders zoomed-out on a phone (no device-width viewport; visualViewport.scale ≪ 1): its words are tiny and
+    // a page that renders zoomed-out on a phone (a column wider than the screen: the layout viewport outgrows the visual one): its words are tiny and
     // everywhere — the frame folds into the 🎻 sheet and keeps the credit inside it rather than sit on the words
-    state.zoomedOut = !!(W.visualViewport && W.visualViewport.scale < 0.6 && mq('(pointer: coarse)'));
+    var vv = W.visualViewport;
+    state.zoomedOut = mq('(pointer: coarse)') && !!((vv && vv.width > 0 && vv.width < W.innerWidth * 0.8) || (W.screen && W.screen.width > 0 && W.innerWidth > W.screen.width * 1.3));
     state.crowded = !narrow && (state.zoomedOut || railsCrowded(top00));
     var mobile = narrow || state.crowded;
     root.toggleAttribute('data-osof-crowded', state.crowded);
