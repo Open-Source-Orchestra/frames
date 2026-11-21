@@ -1,0 +1,69 @@
+{
+  "$schema": "https://frames.opensourceorchestra.org/schema/frame-0.1.json",
+  "frame": "osoframes/0.1",
+  "extends": "../universe.json",
+  "host": "artist.opensourceorchestra.org",
+  "id": "fork-the-first-artist",
+  "name": "Fork the First Artist · the Full Circle",
+  "emoji": "🎨",
+  "accent": "#b48cff",
+  "description": "Every artist of the garden in one circle on the floor: a name they own, a steward agent, a tip jar that pays them straight. Each artist may wear their own overlay here (artists/<slug>/frame.json).",
+  "slots": {
+    "left": {
+      "prepend": [
+        {
+          "kind": "door",
+          "id": "circle",
+          "emoji": "🎨",
+          "label": "The Full Circle",
+          "href": "https://artist.opensourceorchestra.org/",
+          "tip": "Every artist of the Devcon 8 Music Sanctuary in one circle on the floor — add anyone, add everyone.",
+          "anim": "bob"
+        },
+        {
+          "kind": "door",
+          "id": "tip-artist",
+          "emoji": "💸",
+          "label": "Tip an artist",
+          "href": "https://artist.opensourceorchestra.org/tip/",
+          "tip": "Straight into the artist's own wallet: 96.31 % to them, 3.69 % to their steward's compute, no platform fee.",
+          "anim": "pulse"
+        },
+        {
+          "kind": "door",
+          "id": "trust",
+          "emoji": "📜",
+          "label": "Trust ledger",
+          "href": "https://artist.opensourceorchestra.org/trust/",
+          "tip": "Who invited whom, who consented, who approved — the public ledger on Arkiv.",
+          "anim": "none"
+        },
+        {
+          "kind": "door",
+          "id": "artist-list",
+          "emoji": "📋",
+          "label": "Plain list",
+          "href": "https://artist.opensourceorchestra.org/list/",
+          "tip": "Every artist as a simple list — no 3D needed.",
+          "anim": "none"
+        }
+      ],
+      "remove": [
+        "fork-the-first-artist"
+      ]
+    },
+    "right": {
+      "prepend": [
+        {
+          "kind": "door",
+          "id": "make-your-frame",
+          "emoji": "🖼️",
+          "label": "Make your frame",
+          "href": "https://artist.opensourceorchestra.org/artists/",
+          "tip": "Artists: your own ʻohana frame in five minutes — your buttons, your agent, your radio, your files.",
+          "anim": "sway"
+        }
+      ]
+    }
+  }
+}

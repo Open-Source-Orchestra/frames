@@ -3,8 +3,21 @@
  "built": "by build.mjs — do not edit; add a frames/doors/<host>.json instead",
  "license": "CC-BY-SA-4.0",
  "credit": "Built on Open Source Orchestra Frames by Open Source Orchestra: Shaka Lei Kaumaka & the AI ʻohana (https://opensourceorchestra.org)",
- "count": 9,
+ "count": 10,
  "doors": [
+  {
+   "host": "artist.opensourceorchestra.org",
+   "file": "artist.opensourceorchestra.org.json",
+   "id": "fork-the-first-artist",
+   "name": "Fork the First Artist · the Full Circle",
+   "emoji": "🎨",
+   "accent": "#b48cff",
+   "extends": "../universe.json",
+   "items": 28,
+   "doors": 19,
+   "signature": true,
+   "url": "https://artist.opensourceorchestra.org/"
+  },
   {
    "host": "blessingpool.com",
    "file": "blessingpool.com.json",
