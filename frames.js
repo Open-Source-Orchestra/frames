@@ -702,7 +702,9 @@ var FRAMES = (function (W) {
     sheetBtn = h('button', { type: 'button', class: 'osof-btn osof-btn-lg osof-sheetbtn', 'aria-label': t('sheet.label'), 'aria-haspopup': 'dialog', 'aria-expanded': 'false', on: { click: function () { if (sheetFolded.user || sheetFolded.text) { foldSheet(false, true); return; } openSheet(); } } },
       h('span', { class: 'osof-emo', 'aria-hidden': 'true' }, str(data.emoji) || '🎻'));
     sheetX = h('button', { type: 'button', class: 'osof-fold-x', 'aria-label': t('fold'), on: { click: function () { foldSheet(true, true); } } }, h('span', { 'aria-hidden': 'true' }, '✕'));
-    zones['top-right'].appendChild(h('div', { class: 'osof-item osof-sheet-item', 'data-osof-kind': 'sheet' }, sheetBtn, sheetX));
+    sheetBtn.title = creditLine(data);
+    sheetBtn.setAttribute('aria-describedby', 'osof-sheet-credit');
+    zones['top-right'].appendChild(h('div', { class: 'osof-item osof-sheet-item', 'data-osof-kind': 'sheet' }, sheetBtn, sheetX, h('span', { id: 'osof-sheet-credit', hidden: true }, creditLine(data))));
     sheetFolded.user = !!store('fold').get('sheet');
     syncFold();
   }
@@ -944,19 +946,28 @@ var FRAMES = (function (W) {
   function placeCredit(mobile) {
     var z = zones['bottom-left'];
     z.style.bottom = '';
+    root.removeAttribute('data-osof-credit-folded');
     if (!creditBox) return;
     creditBox.classList.remove('osof-credit-mini');
     var c = creditBox.getBoundingClientRect(), vh = W.innerHeight;
     if (c.width < 2 || !rectHasText(c)) return;
-    if (!mobile) {
-      var step = c.height + 10;
-      for (var k = 1; k <= 10; k++) {
-        var y = c.top - k * step;
-        if (y < vh * 0.45) break;
-        if (!rectHasText({ left: c.left, right: c.right, top: y, height: c.height })) { z.style.bottom = Math.round(vh - (y + c.height)) + 'px'; return; }
-      }
+    var step = c.height + 10, k, y;
+    for (k = 1; k <= 10; k++) {                                  // step up the left edge to the first clear spot
+      y = c.top - k * step;
+      if (y < vh * 0.45) break;
+      if (!rectHasText({ left: c.left, right: c.right, top: y, height: c.height })) { z.style.bottom = Math.round(vh - (y + c.height)) + 'px'; return; }
     }
-    creditBox.classList.add('osof-credit-mini');
+    creditBox.classList.add('osof-credit-mini');                  // icons only (🎻 · i · ⚙)
+    var m = creditBox.getBoundingClientRect();
+    if (!rectHasText(m)) return;
+    for (k = 1; k <= 10; k++) {
+      y = m.top - k * (m.height + 10);
+      if (y < vh * 0.45) break;
+      if (!rectHasText({ left: m.left, right: m.right, top: y, height: m.height })) { z.style.bottom = Math.round(vh - (y + m.height)) + 'px'; return; }
+    }
+    // phones: no clear spot at all (a words panel fills the screen) → the credit folds INTO the 🎻 sheet button, which carries
+    // the credit line (title + description) and whose sheet shows it in full — AGPL §7(b) stays visible, the words stay readable
+    if (mobile && sheetBtn) { root.setAttribute('data-osof-credit-folded', ''); creditBox.classList.remove('osof-credit-mini'); }
   }
   // phones: when the bottom-right pieces (chat, radio dock) reach across the bottom-left credit, the credit steps up above them
   function stackCorners(mobile) {
@@ -1404,6 +1415,7 @@ var FRAMES = (function (W) {
       F + ' .osof-settings .osof-small{margin-top:10px}',
       F + ' [data-osof-hid]{display:none!important}',
       F + ' [data-osof-tuck]{display:none!important}',
+      F + '[data-osof-credit-folded] [data-osof-kind=credit]{display:none!important}',
       F + ' .osof-credit-mini{padding-left:6px}',
       F + ' .osof-credit-mini .osof-credit-a{padding:0;font-size:0;gap:0}',
       F + ' .osof-credit-mini .osof-credit-a span[aria-hidden]{font-size:15px}',
