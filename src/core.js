@@ -331,7 +331,7 @@ var FRAMES = (function (W) {
 
   // ── state ───────────────────────────────────────────────────────────────────────
   var kinds = {};
-  var state = { booted: false, ready: false, fresh: false, outline: false, mobile: false, reduced: false, off: false, crowded: false };
+  var state = { booted: false, ready: false, fresh: false, outline: false, mobile: false, reduced: false, off: false, crowded: false, zoomedOut: false };
   var prefs = { on: true, hide: {} };      // the ⚙ panel: osof:settings:v1 (this browser only)
   var dot = null, sheetX = null, sheetFolded = { user: false, text: false };
   var data = null, dataURL = '', base = '', frameId = 'frame';
@@ -882,7 +882,10 @@ var FRAMES = (function (W) {
     if (state.off) { placeDot(); if (openDlg) place(openDlg); return; }
     var size0 = 54, top00 = 74;
     var narrow = isMobileNow();
-    state.crowded = !narrow && railsCrowded(top00);
+    // a page that renders zoomed-out on a phone (no device-width viewport; visualViewport.scale ≪ 1): its words are tiny and
+    // everywhere — the frame folds into the 🎻 sheet and keeps the credit inside it rather than sit on the words
+    state.zoomedOut = !!(W.visualViewport && W.visualViewport.scale < 0.6 && mq('(pointer: coarse)'));
+    state.crowded = !narrow && (state.zoomedOut || railsCrowded(top00));
     var mobile = narrow || state.crowded;
     root.toggleAttribute('data-osof-crowded', state.crowded);
     if (mobile !== state.mobile) {
@@ -944,6 +947,7 @@ var FRAMES = (function (W) {
     if (!creditBox) return;
     creditBox.classList.remove('osof-credit-mini');
     var c = creditBox.getBoundingClientRect(), vh = W.innerHeight;
+    if (state.zoomedOut && sheetBtn) { root.setAttribute('data-osof-credit-folded', ''); return; }
     if (c.width < 2 || !rectHasText(c)) return;
     var step = c.height + 10, k, y;
     for (k = 1; k <= 10; k++) {                                  // step up the left edge to the first clear spot
