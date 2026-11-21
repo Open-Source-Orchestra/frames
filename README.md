@@ -83,3 +83,7 @@ The code is **AGPL-3.0-or-later** with an **AGPL §7(b) attribution term** (`NOT
 > Built on Open Source Orchestra Frames by Open Source Orchestra: Shaka Lei Kaumaka & the AI ʻohana (https://opensourceorchestra.org)
 
 Words, datasets and design are **CC BY-SA 4.0**. Songs and films keep their makers' own terms and consent. Plain words in `NOTICE`; not legal advice.
+
+## License
+
+Code: **AGPL-3.0-or-later** (this repo shipped AGPL and stays AGPL; see [`LICENSE`](LICENSE)). Songs, lyrics, chords, words, art, photos, pages and links: **CC BY-SA 4.0** (see [`LICENSES/CC-BY-SA-4.0.txt`](LICENSES/CC-BY-SA-4.0.txt)). Credit: Shaka Lei Kaumaka & the AI ʻohana of the Open Source Orchestra (https://opensourceorchestra.org) — the credit line in [`NOTICE`](NOTICE) travels with every fork. Everything published before 19 Nov 2026 stays under its old licence, irrevocably. Forever a part of the infinite garden.
