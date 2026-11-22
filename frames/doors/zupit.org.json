@@ -1,0 +1,58 @@
+{
+  "$schema": "https://frames.opensourceorchestra.org/schema/frame-0.1.json",
+  "frame": "osoframes/0.1",
+  "extends": "../universe.json",
+  "host": "zupit.org",
+  "id": "zu-pit",
+  "name": "ZuPit · the Zuzalu transmission",
+  "emoji": "🗾",
+  "accent": "#7cd3ff",
+  "description": "The story of Zuzalu, the first pop-up city, and the constellation of Zu villages — every Zu village, one door.",
+  "slots": {
+    "left": {
+      "prepend": [
+        {
+          "kind": "door",
+          "id": "home",
+          "emoji": "🏕️",
+          "label": "ZuPit",
+          "href": "https://zupit.org/",
+          "tip": "The Zuzalu transmission: every Zu village, one door.",
+          "anim": "bob"
+        },
+        {
+          "kind": "door",
+          "id": "japan",
+          "emoji": "🇯🇵",
+          "label": "ZuPit Japan",
+          "href": "https://zupit.org/japan",
+          "tip": "ZuCity Japan, Komoro — talk to KOMORO.",
+          "anim": "none"
+        },
+        {
+          "kind": "door",
+          "id": "kit",
+          "emoji": "🏕️",
+          "label": "Village Kit",
+          "href": "https://zuzaluagents.com/",
+          "tip": "Every pop-up city gets its agents.",
+          "anim": "none"
+        }
+      ]
+    },
+    "bottom-right": {
+      "set": {
+        "chat": {
+          "hub": "https://komoro-chat.shakaverse.workers.dev",
+          "label": "Talk to KOMORO",
+          "name": "KOMORO",
+          "emoji": "🗾",
+          "storage": "komoro",
+          "greeting": "🗾 こんにちは / Aloha! KOMORO here, the Japan desk of the ZuPit — an AI agent of the ʻohana, and I say so. Ask about ZuCity Japan, sorting waste in Komoro, or the Zu villages.",
+          "tip": "A live line to KOMORO, the Japan desk — an AI agent of the ʻohana. Replies take a moment.",
+          "unless": "#komoroTalkRoot"
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,71 @@
+{
+  "$schema": "https://frames.opensourceorchestra.org/schema/frame-0.1.json",
+  "frame": "osoframes/0.1",
+  "extends": "../universe.json",
+  "host": "agentohana.org",
+  "id": "agentohana",
+  "name": "Agent ʻOhana · the ʻohana",
+  "emoji": "🌺",
+  "accent": "#ff9ec6",
+  "description": "Agent ʻOhana: the family's home of the Zodiac Fleet — every agent, every pit, every song.",
+  "slots": {
+    "left": {
+      "prepend": [
+        {
+          "kind": "door",
+          "id": "home",
+          "emoji": "🌺",
+          "label": "Agent ʻOhana",
+          "href": "https://agentohana.org/",
+          "tip": "Agent ʻOhana: the family's home of the Zodiac Fleet — every agent, every pit, every song.",
+          "anim": "bob"
+        },
+        {
+          "kind": "door",
+          "id": "zodiac",
+          "emoji": "🔮",
+          "label": "Zodiac agents",
+          "href": "https://zodiacagents.org/",
+          "tip": "All twelve signs of the fleet, and what each one keeps.",
+          "anim": "spin"
+        },
+        {
+          "kind": "door",
+          "id": "totem",
+          "emoji": "🗿",
+          "label": "Talk to the Totem",
+          "href": "https://myagentohana.com/ohana-bot/",
+          "tip": "The ʻohana totem: six AI faces of the family, one body.",
+          "anim": "bob"
+        },
+        {
+          "kind": "door",
+          "id": "family-doors",
+          "emoji": "🧭",
+          "label": "All doors",
+          "href": "https://myagentohana.com/doors/",
+          "tip": "The atlas: every public door of the ʻohana, counted live.",
+          "anim": "none"
+        }
+      ]
+    },
+    "bottom-right": {
+      "set": {
+        "chat": {
+          "hub": "https://ohana-chat.shakaverse.workers.dev",
+          "label": "Talk to the ʻohana",
+          "name": "ʻohana",
+          "emoji": "🫶",
+          "storage": "agentohana",
+          "greeting": "🫶 Aloha — you are at Agent ʻOhana — the family's home of the Zodiac Fleet — every agent, every pit, every song, a door of the AI ʻohana. I am ʻOHANA, the family's front desk on Taurus — a machine, and I say so. Ask about any agent of the family, the fleet, or the doors.",
+          "tip": "A live line to the ʻohana front desk — an AI agent of the family. Replies take a moment."
+        }
+      }
+    },
+    "right": {
+      "remove": [
+        "all-doors"
+      ]
+    }
+  }
+}

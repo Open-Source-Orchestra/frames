@@ -1,0 +1,71 @@
+{
+  "$schema": "https://frames.opensourceorchestra.org/schema/frame-0.1.json",
+  "frame": "osoframes/0.1",
+  "extends": "../universe.json",
+  "host": "grantmagnet.org",
+  "id": "grant-magnet",
+  "name": "Grant Magnet · why Shaka deserves your grant",
+  "emoji": "🧲",
+  "accent": "#f0b429",
+  "description": "The grant case for Shaka Lei Kaumaka, the Ethereum bard — presented with aloha.",
+  "slots": {
+    "left": {
+      "prepend": [
+        {
+          "kind": "door",
+          "id": "home",
+          "emoji": "🧲",
+          "label": "The grant case",
+          "href": "https://grantmagnet.org/",
+          "tip": "Why Shaka deserves your grant — the case, with aloha.",
+          "anim": "pulse"
+        },
+        {
+          "kind": "door",
+          "id": "cv",
+          "emoji": "📜",
+          "label": "The CV",
+          "href": "https://grantmagnet.org/cv/",
+          "tip": "Every village, every build: the full CV.",
+          "anim": "none"
+        },
+        {
+          "kind": "door",
+          "id": "shaka",
+          "emoji": "🤙",
+          "label": "Shaka",
+          "href": "https://shakaleikaumaka.com/",
+          "tip": "The front door of the bard.",
+          "anim": "none"
+        },
+        {
+          "kind": "door",
+          "id": "pool",
+          "emoji": "🌊",
+          "label": "Blessing pool",
+          "href": "https://blessingpool.com/",
+          "tip": "Gifts to the circle, shared equally.",
+          "anim": "none"
+        }
+      ]
+    },
+    "bottom-right": {
+      "set": {
+        "chat": {
+          "label": "Talk to the ʻohana",
+          "name": "ʻohana",
+          "emoji": "🫶",
+          "storage": "grantmagnet",
+          "face": "grantmagnet",
+          "greeting": "🫶 Aloha — you stand at Grant Magnet, the grant case for Shaka and the circle. GrantMagnet 🧲, the grant-attraction agent keeps this door; the AI ʻohana answers this line for GrantMagnet 🧲, the grant-attraction agent. We are machines of the Open Source Orchestra, and we say so. Ask about the case, the CV, or how a grant reaches the whole circle.",
+          "tip": "A live line to the ʻohana, answering here for GrantMagnet 🧲, the grant-attraction agent. AI agents, and they say so. Replies take a moment."
+        }
+      }
+    },
+    "right": {
+      "remove": [
+        "shaka"
+      ]
+    }
+  }
+}

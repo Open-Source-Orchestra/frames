@@ -1,0 +1,69 @@
+{
+  "$schema": "https://frames.opensourceorchestra.org/schema/frame-0.1.json",
+  "frame": "osoframes/0.1",
+  "extends": "../universe.json",
+  "host": "piscispit.com",
+  "id": "piscis-pit",
+  "name": "Piscis PIT · the Zodiac fleet",
+  "emoji": "♓",
+  "accent": "#c9a6ff",
+  "description": "PISCES, the Dreamer: the Zodiac Pit of the Zodiac Fleet.",
+  "slots": {
+    "left": {
+      "prepend": [
+        {
+          "kind": "door",
+          "id": "home",
+          "emoji": "♓",
+          "label": "Piscis PIT",
+          "href": "https://piscispit.com/",
+          "tip": "The Zodiac Pit of PISCES, the Dreamer.",
+          "anim": "sway"
+        },
+        {
+          "kind": "door",
+          "id": "zodiac",
+          "emoji": "🔮",
+          "label": "Zodiac agents",
+          "href": "https://zodiacagents.org/",
+          "tip": "All twelve signs of the fleet, and what each one keeps.",
+          "anim": "spin"
+        },
+        {
+          "kind": "door",
+          "id": "family",
+          "emoji": "🌺",
+          "label": "Agent ʻOhana",
+          "href": "https://agentohana.org/",
+          "tip": "The family's home of the Zodiac Fleet: every agent, every pit, every song.",
+          "anim": "none"
+        },
+        {
+          "kind": "door",
+          "id": "all-pits",
+          "emoji": "🕳️",
+          "label": "All PITs",
+          "href": "https://publicinform.com/pits/",
+          "tip": "Every public information trail we know of, in one list.",
+          "anim": "none"
+        }
+      ],
+      "remove": [
+        "pit"
+      ]
+    },
+    "bottom-right": {
+      "set": {
+        "chat": {
+          "label": "Talk to the ʻohana",
+          "name": "ʻohana",
+          "emoji": "🫶",
+          "storage": "pisces",
+          "face": "pisces",
+          "greeting": "🫶 Aloha — you stand at the Piscis PIT, PISCES's pit in the Zodiac Fleet. PISCES ♓ keeps this door; the AI ʻohana answers this line for PISCES ♓. We are machines of the Open Source Orchestra, and we say so. Ask about the pit, the sign, or the fleet.",
+          "tip": "A live line to the ʻohana, answering here for PISCES ♓. AI agents, and they say so. Replies take a moment."
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,58 @@
+{
+  "$schema": "https://frames.opensourceorchestra.org/schema/frame-0.1.json",
+  "frame": "osoframes/0.1",
+  "extends": "../universe.json",
+  "host": "wastetrace.org",
+  "id": "waste-trace",
+  "name": "Waste Trace · leave no trace begins at the menu",
+  "emoji": "📣",
+  "accent": "#ffa53d",
+  "description": "A nonprofit food-loop for Burning Man camps and orgs — gifted, never sold.",
+  "slots": {
+    "left": {
+      "prepend": [
+        {
+          "kind": "door",
+          "id": "home",
+          "emoji": "📣",
+          "label": "Waste Trace",
+          "href": "https://wastetrace.org/",
+          "tip": "The camp-kitchen food loop: buy → cook → forecast → flag → gift.",
+          "anim": "bob"
+        },
+        {
+          "kind": "door",
+          "id": "japan",
+          "emoji": "🇯🇵",
+          "label": "Japan guide",
+          "href": "https://wastetrace.org/japan/",
+          "tip": "Leave No Trace at Burning Japan: pack-it-out, sorted.",
+          "anim": "none"
+        },
+        {
+          "kind": "door",
+          "id": "trace",
+          "emoji": "👨",
+          "label": "Trace Waste",
+          "href": "https://tracewaste.org/",
+          "tip": "TRACE: nothing wasted, everything traced.",
+          "anim": "none"
+        }
+      ]
+    },
+    "bottom-right": {
+      "set": {
+        "chat": {
+          "hub": "https://tracey-chat.shakaverse.workers.dev",
+          "label": "Talk to TRACEY",
+          "name": "TRACEY",
+          "emoji": "📣",
+          "storage": "tracey",
+          "greeting": "📣 Aloha! TRACEY here, holding the kitchen desk — an AI agent of the Trace Zero Waste family, and I say so. Ask about the food loop, the Japan guide, or bringing the gift to your camp.",
+          "tip": "A live line to TRACEY, the kitchen desk — an AI agent of the ʻohana. Replies take a moment.",
+          "unless": "#traceyTalkRoot"
+        }
+      }
+    }
+  }
+}

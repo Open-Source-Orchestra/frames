@@ -1,4 +1,4 @@
-/*! Open Source Orchestra Frames v0.1.2 · https://github.com/Open-Source-Orchestra/frames
+/*! Open Source Orchestra Frames v0.1.3 · https://github.com/Open-Source-Orchestra/frames
  *  SPDX-License-Identifier: AGPL-3.0-or-later · Copyright (C) 2026 Shaka Lei Kaumaka / Open Source Orchestra and the AI ʻohana
  *  AGPL §7(b): keep the credit "Built on Open Source Orchestra Frames by Open Source Orchestra: Shaka Lei Kaumaka & the AI ʻohana
  *  (https://opensourceorchestra.org)" visible in the frame. See NOTICE. Source of this exact file: https://github.com/Open-Source-Orchestra/frames */
@@ -18,7 +18,7 @@
  */
 var FRAMES = (function (W) {
   'use strict';
-  var VERSION = '0.1.2';
+  var VERSION = '0.1.3';
   var MAJOR = VERSION.split('.')[0];
   if (W && W.OSOFrames && W.OSOFrames.__osof) {            // loaded twice: the first copy rules
     if (W.console) W.console.info('🎻 frames: already on this page; the second copy stays quiet.');
@@ -2616,11 +2616,13 @@ var FRAMES = (function (W) {
       try { const u = new URL(hub, location.href); return (u.host + u.pathname.replace(/\/+$/, '')).toLowerCase(); }
       catch (e) { return String(hub || 'hub').toLowerCase(); }
     };
-    const newSess = function () {
+    /* a door may ask for a session prefix (`session: "crops_"`): some desks answer only their own prefix (22 Nov 2026) */
+    const sessPrefix = function (p) { return /^[a-z0-9_-]{1,16}$/i.test(String(p || '')) ? String(p) : 'osof-'; };
+    const newSess = function (prefix) {
       let id = '';
       try { if (window.crypto && crypto.randomUUID) id = crypto.randomUUID(); } catch (e) {}
       if (!id) id = Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 12) + Math.random().toString(36).slice(2, 8);
-      return ('osof-' + id).slice(0, 64);
+      return (sessPrefix(prefix) + id).slice(0, 64);
     };
     const facePrefix = function (k) { return /^[a-z0-9_-]{1,24}$/i.test(k) ? '🗿[face:' + k + '] ' : ''; };
 
@@ -2640,14 +2642,15 @@ var FRAMES = (function (W) {
     const lineFor = function (spec) {
       if (!spec || !spec.hub) return lines[0];
       return line({ hub: spec.hub, face: spec.face || null, name: spec.name || 'ʻohana', emoji: spec.emoji || '🫶', color: spec.color || '#e8c476',
-        greeting: spec.greeting || null, storage: spec.storage || 'totem', route: spec.route || (spec.face ? 'prefix' : null), sub: spec.sub || null });
+        greeting: spec.greeting || null, storage: spec.storage || 'totem', route: spec.route || (spec.face ? 'prefix' : null), sub: spec.sub || null, session: spec.session || null });
     };
 
     /* storage: osof:chat:<hub host+path>:<face|main>:sess|after — only created when a line is first opened */
     const ensureSess = function (L) {
       if (L.sess) return;
       let s = store.get(L.key + ':sess');
-      if (typeof s !== 'string' || !/^[\w.:-]{6,64}$/.test(s)) { s = newSess(); store.set(L.key + ':sess', s); }
+      const pre = L.def.session ? sessPrefix(L.def.session) : null;
+      if (typeof s !== 'string' || !/^[\w.:-]{6,64}$/.test(s) || (pre && s.indexOf(pre) !== 0)) { s = newSess(pre); store.set(L.key + ':sess', s); }
       L.sess = s;
       const a = store.get(L.key + ':after');
       L.after = (typeof a === 'number' && isFinite(a) && a >= 0) ? Math.floor(a) : 0;
@@ -3040,6 +3043,7 @@ var FRAMES = (function (W) {
       hub: item.hub || 'https://chat.opensourceorchestra.org',
       face: /^[a-z0-9_-]{1,24}$/i.test(String(item.face || '')) ? String(item.face) : null,   // a door may name its line (PIT FAM): the hub sees the prefix
       route: item.route || (item.face ? 'prefix' : null),
+      session: /^[a-z0-9_-]{1,16}$/i.test(String(item.session || '')) ? String(item.session) : null,   // desk-required session prefix (CROPS answers crops_* only)
       name: item.name || 'OSO',
       emoji: item.emoji || '🎻',
       color: item.color || '#e8c476',

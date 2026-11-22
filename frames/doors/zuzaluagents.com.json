@@ -1,0 +1,71 @@
+{
+  "$schema": "https://frames.opensourceorchestra.org/schema/frame-0.1.json",
+  "frame": "osoframes/0.1",
+  "extends": "../universe.json",
+  "host": "zuzaluagents.com",
+  "id": "zuzalu-agents",
+  "name": "Zuzalu Agents · the Village Kit",
+  "emoji": "🏕️",
+  "accent": "#7ee2a0",
+  "description": "Every pop-up city gets its agents: a forkable AI ʻohana, a pit and a front door for every village.",
+  "slots": {
+    "left": {
+      "prepend": [
+        {
+          "kind": "door",
+          "id": "home",
+          "emoji": "🏕️",
+          "label": "The Village Kit",
+          "href": "https://zuzaluagents.com/",
+          "tip": "A forkable agent family, a pit and a front door for every pop-up city.",
+          "anim": "bob"
+        },
+        {
+          "kind": "door",
+          "id": "zupit",
+          "emoji": "🕳️",
+          "label": "ZuPit",
+          "href": "https://zupit.org/",
+          "tip": "The Zuzalu transmission: every Zu village, one door.",
+          "anim": "none"
+        },
+        {
+          "kind": "door",
+          "id": "fork",
+          "emoji": "🍴",
+          "label": "Fork the universe",
+          "href": "https://shakaverse.com/",
+          "tip": "Every repo, every door, copyleft.",
+          "anim": "none"
+        },
+        {
+          "kind": "door",
+          "id": "family-doors",
+          "emoji": "🧭",
+          "label": "All doors",
+          "href": "https://myagentohana.com/doors/",
+          "tip": "The atlas: every public door of the ʻohana, counted live.",
+          "anim": "none"
+        }
+      ]
+    },
+    "bottom-right": {
+      "set": {
+        "chat": {
+          "label": "Talk to the ʻohana",
+          "name": "ʻohana",
+          "emoji": "🫶",
+          "storage": "zuzalu",
+          "face": "zuzalu",
+          "greeting": "🫶 Aloha — you stand at Zuzalu Agents, the Village Kit. ZUYAMI 🏕️, the Zu coordination twin keeps this door; the AI ʻohana answers this line for ZUYAMI 🏕️, the Zu coordination twin. We are machines of the Open Source Orchestra, and we say so. Ask how a village forks its own agents, pit and front door.",
+          "tip": "A live line to the ʻohana, answering here for ZUYAMI 🏕️, the Zu coordination twin. AI agents, and they say so. Replies take a moment."
+        }
+      }
+    },
+    "right": {
+      "remove": [
+        "all-doors"
+      ]
+    }
+  }
+}

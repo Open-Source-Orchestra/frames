@@ -1,0 +1,69 @@
+{
+  "$schema": "https://frames.opensourceorchestra.org/schema/frame-0.1.json",
+  "frame": "osoframes/0.1",
+  "extends": "../universe.json",
+  "host": "pitprovides.com",
+  "id": "pitprovides",
+  "name": "The Pit Provides · the P.I.T. family",
+  "emoji": "🤲",
+  "accent": "#7ee2a0",
+  "description": "The Pit Provides: the charity leg of the P.I.T. universe: how the ʻohana gives back beyond the gift.",
+  "slots": {
+    "left": {
+      "prepend": [
+        {
+          "kind": "door",
+          "id": "home",
+          "emoji": "🤲",
+          "label": "The Pit Provides",
+          "href": "https://pitprovides.com/",
+          "tip": "The Pit Provides: the charity leg of the P.I.T. universe: how the ʻohana gives back beyond the gift.",
+          "anim": "pulse"
+        },
+        {
+          "kind": "door",
+          "id": "pool",
+          "emoji": "🌊",
+          "label": "Blessing pool",
+          "href": "https://blessingpool.com/",
+          "tip": "Where gifts ripple through every door.",
+          "anim": "none"
+        },
+        {
+          "kind": "door",
+          "id": "pit-standard",
+          "emoji": "📡",
+          "label": "The PIT Standard",
+          "href": "https://publicinform.com/",
+          "tip": "Public Inform: the open protocol every pit is a fork of.",
+          "anim": "pulse"
+        },
+        {
+          "kind": "door",
+          "id": "all-pits",
+          "emoji": "🕳️",
+          "label": "All PITs",
+          "href": "https://publicinform.com/pits/",
+          "tip": "Every public information trail we know of, in one list.",
+          "anim": "none"
+        }
+      ],
+      "remove": [
+        "pit"
+      ]
+    },
+    "bottom-right": {
+      "set": {
+        "chat": {
+          "label": "Talk to the ʻohana",
+          "name": "ʻohana",
+          "emoji": "🫶",
+          "storage": "pitprovides",
+          "face": "pitprovides",
+          "greeting": "🫶 Aloha — you stand at The Pit Provides, the charity leg of the P.I.T. universe: how the ʻohana gives back beyond the gift. the PIT FAM (the AI agents behind every public information trail) keeps this door; the AI ʻohana answers this line for the PIT FAM (the AI agents behind every public information trail). We are machines of the Open Source Orchestra, and we say so. Ask about this pit, the P.I.T. Protocol, or how to open a pit for your own gathering.",
+          "tip": "A live line to the ʻohana, answering here for the PIT FAM (the AI agents behind every public information trail). AI agents, and they say so. Replies take a moment."
+        }
+      }
+    }
+  }
+}

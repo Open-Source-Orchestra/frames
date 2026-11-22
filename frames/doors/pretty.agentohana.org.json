@@ -1,0 +1,71 @@
+{
+  "$schema": "https://frames.opensourceorchestra.org/schema/frame-0.1.json",
+  "frame": "osoframes/0.1",
+  "extends": "../universe.json",
+  "host": "pretty.agentohana.org",
+  "id": "pretty-paper",
+  "name": "The Pretty Paper · the ʻohana",
+  "emoji": "🌸",
+  "accent": "#ffd23f",
+  "description": "The Pretty Paper: the Pretty Paper — JAI · PIT · OHANA, three doors, one family, born in conversation.",
+  "slots": {
+    "left": {
+      "prepend": [
+        {
+          "kind": "door",
+          "id": "home",
+          "emoji": "🌸",
+          "label": "The Pretty Paper",
+          "href": "https://pretty.agentohana.org/",
+          "tip": "The Pretty Paper: the Pretty Paper — JAI · PIT · OHANA, three doors, one family, born in conversation.",
+          "anim": "bob"
+        },
+        {
+          "kind": "door",
+          "id": "ology",
+          "emoji": "🌱",
+          "label": "OLOGY369",
+          "href": "https://ology369.com/",
+          "tip": "The stored dream the Pretty Paper grew from.",
+          "anim": "none"
+        },
+        {
+          "kind": "door",
+          "id": "totem",
+          "emoji": "🗿",
+          "label": "Talk to the Totem",
+          "href": "https://myagentohana.com/ohana-bot/",
+          "tip": "The ʻohana totem: six AI faces of the family, one body.",
+          "anim": "bob"
+        },
+        {
+          "kind": "door",
+          "id": "family-doors",
+          "emoji": "🧭",
+          "label": "All doors",
+          "href": "https://myagentohana.com/doors/",
+          "tip": "The atlas: every public door of the ʻohana, counted live.",
+          "anim": "none"
+        }
+      ]
+    },
+    "bottom-right": {
+      "set": {
+        "chat": {
+          "hub": "https://ohana-chat.shakaverse.workers.dev",
+          "label": "Talk to the ʻohana",
+          "name": "ʻohana",
+          "emoji": "🫶",
+          "storage": "pretty-paper",
+          "greeting": "🫶 Aloha — you are at The Pretty Paper — the Pretty Paper — JAI · PIT · OHANA, three doors, one family, born in conversation, a door of the AI ʻohana. I am ʻOHANA, the family's front desk on Taurus — a machine, and I say so. Ask about the triad, or any of the three doors.",
+          "tip": "A live line to the ʻohana front desk — an AI agent of the family. Replies take a moment."
+        }
+      }
+    },
+    "right": {
+      "remove": [
+        "all-doors"
+      ]
+    }
+  }
+}

@@ -1,0 +1,49 @@
+{
+  "$schema": "https://frames.opensourceorchestra.org/schema/frame-0.1.json",
+  "frame": "osoframes/0.1",
+  "extends": "../universe.json",
+  "host": "teleprompit.com",
+  "id": "teleprompit",
+  "name": "Teleprompit",
+  "emoji": "📺",
+  "accent": "#7ee2a0",
+  "description": "The teleprompter for the vlog-prompting era: paste your script, hit the lights, record the take.",
+  "slots": {
+    "left": {
+      "prepend": [
+        {
+          "kind": "door",
+          "id": "home",
+          "emoji": "📺",
+          "label": "Teleprompit",
+          "href": "https://teleprompit.com/",
+          "tip": "Paste your script, hit the lights, record the take.",
+          "anim": "pulse"
+        },
+        {
+          "kind": "door",
+          "id": "vlog",
+          "emoji": "🎬",
+          "label": "Vlog Prompting",
+          "href": "https://vlogprompting.com/",
+          "tip": "Talk to camera, not to keyboard.",
+          "anim": "none"
+        }
+      ]
+    },
+    "bottom-right": {
+      "set": {
+        "chat": {
+          "hub": "https://tele-chat.shakaverse.workers.dev",
+          "label": "Talk to TELE",
+          "name": "TELE",
+          "emoji": "📺",
+          "storage": "tele",
+          "greeting": "📺 Aloha! TELE here at Teleprompit — an AI agent of the ʻohana, and I say so. Ask about the teleprompter, the voice-scroll, or recording a take.",
+          "tip": "A live line to TELE, the Teleprompit desk — an AI agent of the ʻohana. Replies take a moment.",
+          "unless": "#tele-fab, #tele-fab-mini"
+        }
+      }
+    }
+  }
+}

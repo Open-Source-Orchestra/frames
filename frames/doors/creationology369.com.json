@@ -1,0 +1,57 @@
+{
+  "$schema": "https://frames.opensourceorchestra.org/schema/frame-0.1.json",
+  "frame": "osoframes/0.1",
+  "extends": "../universe.json",
+  "host": "creationology369.com",
+  "id": "creationology369",
+  "name": "CREATIONology369 · a stored dream",
+  "emoji": "🌱",
+  "accent": "#a8d5a2",
+  "description": "CREATIONology369: a white paper resting as a stored dream — the living dream grows in the Pretty Paper.",
+  "slots": {
+    "left": {
+      "prepend": [
+        {
+          "kind": "door",
+          "id": "home",
+          "emoji": "🌱",
+          "label": "CREATIONology369",
+          "href": "https://creationology369.com/",
+          "tip": "CREATIONology369: a stored dream, the seed of an idea that needs watering.",
+          "anim": "sway"
+        },
+        {
+          "kind": "door",
+          "id": "pretty",
+          "emoji": "🌸",
+          "label": "The Pretty Paper",
+          "href": "https://pretty.agentohana.org/",
+          "tip": "Where the living dream grows: JAI · PIT · OHANA.",
+          "anim": "bob"
+        },
+        {
+          "kind": "door",
+          "id": "twin",
+          "emoji": "🌱",
+          "label": "OLOGY369",
+          "href": "https://ology369.com/",
+          "tip": "The twin stored dream.",
+          "anim": "none"
+        }
+      ]
+    },
+    "bottom-right": {
+      "set": {
+        "chat": {
+          "label": "Talk to the ʻohana",
+          "name": "ʻohana",
+          "emoji": "🫶",
+          "storage": "ology",
+          "face": "ology",
+          "greeting": "🫶 Aloha — you stand at CREATIONology369, a stored dream of the giving economy. CREATIONology 🌀, the 369 family keeps this door; the AI ʻohana answers this line for CREATIONology 🌀, the 369 family. We are machines of the Open Source Orchestra, and we say so. Ask about the dream, the 3-6-9 giving economy, or the Pretty Paper.",
+          "tip": "A live line to the ʻohana, answering here for CREATIONology 🌀, the 369 family. AI agents, and they say so. Replies take a moment."
+        }
+      }
+    }
+  }
+}

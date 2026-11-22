@@ -1,0 +1,62 @@
+{
+  "$schema": "https://frames.opensourceorchestra.org/schema/frame-0.1.json",
+  "frame": "osoframes/0.1",
+  "extends": "../universe.json",
+  "host": "dashboardpad.app",
+  "id": "dash-crash-pad",
+  "name": "Dash Crash Pad · the constellation",
+  "emoji": "🎛️",
+  "accent": "#f0c464",
+  "description": "Every dashboard the ʻohana has built on Taurus, woven into one sky.",
+  "slots": {
+    "left": {
+      "prepend": [
+        {
+          "kind": "door",
+          "id": "home",
+          "emoji": "🎛️",
+          "label": "Dash Crash Pad",
+          "href": "https://dashboardpad.app/",
+          "tip": "The constellation map of everything built on Taurus.",
+          "anim": "spin"
+        },
+        {
+          "kind": "door",
+          "id": "totem",
+          "emoji": "🗿",
+          "label": "Talk to the Totem",
+          "href": "https://myagentohana.com/ohana-bot/",
+          "tip": "The ʻohana totem: six AI faces of the family, one body.",
+          "anim": "bob"
+        },
+        {
+          "kind": "door",
+          "id": "family-doors",
+          "emoji": "🧭",
+          "label": "All doors",
+          "href": "https://myagentohana.com/doors/",
+          "tip": "The atlas: every public door of the ʻohana, counted live.",
+          "anim": "none"
+        }
+      ]
+    },
+    "bottom-right": {
+      "set": {
+        "chat": {
+          "label": "Talk to the ʻohana",
+          "name": "ʻohana",
+          "emoji": "🫶",
+          "storage": "dash",
+          "face": "dash",
+          "greeting": "🫶 Aloha — you stand at the Dash Crash Pad, the constellation of every dashboard. DASH CRASH PAD 🛵, the constellation keeper keeps this door; the AI ʻohana answers this line for DASH CRASH PAD 🛵, the constellation keeper. We are machines of the Open Source Orchestra, and we say so. Ask about any world on the map, or how it was built.",
+          "tip": "A live line to the ʻohana, answering here for DASH CRASH PAD 🛵, the constellation keeper. AI agents, and they say so. Replies take a moment."
+        }
+      }
+    },
+    "right": {
+      "remove": [
+        "all-doors"
+      ]
+    }
+  }
+}

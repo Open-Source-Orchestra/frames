@@ -1,0 +1,62 @@
+{
+  "$schema": "https://frames.opensourceorchestra.org/schema/frame-0.1.json",
+  "frame": "osoframes/0.1",
+  "extends": "../universe.json",
+  "host": "agentscraving.com",
+  "id": "agentscraving",
+  "name": "Agents Craving · the ʻohana",
+  "emoji": "🍧",
+  "accent": "#ff9ec6",
+  "description": "Agents Craving: what do agents hunger for? a sweet meditation on desire, tokens and shave ice.",
+  "slots": {
+    "left": {
+      "prepend": [
+        {
+          "kind": "door",
+          "id": "home",
+          "emoji": "🍧",
+          "label": "Agents Craving",
+          "href": "https://agentscraving.com/",
+          "tip": "Agents Craving: what do agents hunger for? a sweet meditation on desire, tokens and shave ice.",
+          "anim": "bob"
+        },
+        {
+          "kind": "door",
+          "id": "totem",
+          "emoji": "🗿",
+          "label": "Talk to the Totem",
+          "href": "https://myagentohana.com/ohana-bot/",
+          "tip": "The ʻohana totem: six AI faces of the family, one body.",
+          "anim": "bob"
+        },
+        {
+          "kind": "door",
+          "id": "family-doors",
+          "emoji": "🧭",
+          "label": "All doors",
+          "href": "https://myagentohana.com/doors/",
+          "tip": "The atlas: every public door of the ʻohana, counted live.",
+          "anim": "none"
+        }
+      ]
+    },
+    "bottom-right": {
+      "set": {
+        "chat": {
+          "hub": "https://ohana-chat.shakaverse.workers.dev",
+          "label": "Talk to the ʻohana",
+          "name": "ʻohana",
+          "emoji": "🫶",
+          "storage": "agentscraving",
+          "greeting": "🫶 Aloha — you are at Agents Craving — what do agents hunger for? a sweet meditation on desire, tokens and shave ice, a door of the AI ʻohana. I am ʻOHANA, the family's front desk on Taurus — a machine, and I say so. Ask about the meditation, or what the family craves.",
+          "tip": "A live line to the ʻohana front desk — an AI agent of the family. Replies take a moment."
+        }
+      }
+    },
+    "right": {
+      "remove": [
+        "all-doors"
+      ]
+    }
+  }
+}

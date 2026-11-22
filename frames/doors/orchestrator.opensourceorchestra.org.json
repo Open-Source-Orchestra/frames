@@ -1,0 +1,47 @@
+{
+  "$schema": "https://frames.opensourceorchestra.org/schema/frame-0.1.json",
+  "frame": "osoframes/0.1",
+  "extends": "../universe.json",
+  "host": "orchestrator.opensourceorchestra.org",
+  "id": "orchestrator",
+  "name": "Open Source Orchestrator · songbooks",
+  "emoji": "🎼",
+  "accent": "#7ee2a0",
+  "description": "Chord charts and songbooks, made in the open and blessed by the artist — a tool of the Open Source Orchestra.",
+  "slots": {
+    "left": {
+      "prepend": [
+        {
+          "kind": "door",
+          "id": "home",
+          "emoji": "🎼",
+          "label": "Orchestrator",
+          "href": "https://orchestrator.opensourceorchestra.org/",
+          "tip": "Paste lyrics, place chords, bless the songbook.",
+          "anim": "pulse"
+        },
+        {
+          "kind": "door",
+          "id": "karaoke",
+          "emoji": "🎤",
+          "label": "Karaoke Protocol",
+          "href": "https://karaokeprotocol.com/",
+          "tip": "Drop any song, sing along.",
+          "anim": "none"
+        }
+      ],
+      "remove": [
+        "songbook"
+      ]
+    },
+    "bottom-right": {
+      "set": {
+        "chat": {
+          "storage": "orchestrator",
+          "face": "orchestrator",
+          "greeting": "🎻 Aloha! I am OSO, an AI agent of the Open Source Orchestra, answering at the Open Source Orchestrator. Ask about chord charts, songbooks, the catalog, or how to add your own by pull request."
+        }
+      }
+    }
+  }
+}

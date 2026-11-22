@@ -1,0 +1,65 @@
+{
+  "$schema": "https://frames.opensourceorchestra.org/schema/frame-0.1.json",
+  "frame": "osoframes/0.1",
+  "extends": "../universe.json",
+  "host": "osopit.com",
+  "id": "oso-pit",
+  "name": "OSO PIT · the orchestra's own P.I.T.",
+  "emoji": "🎻",
+  "accent": "#fbe2a0",
+  "description": "The Open Source Orchestra's own Public Information Transmission — the ancestor pit.",
+  "slots": {
+    "left": {
+      "prepend": [
+        {
+          "kind": "door",
+          "id": "home",
+          "emoji": "🎻",
+          "label": "OSO PIT",
+          "href": "https://osopit.com/",
+          "tip": "The orchestra's own pit: the ancestor.",
+          "anim": "pulse"
+        },
+        {
+          "kind": "door",
+          "id": "delhi",
+          "emoji": "🏛️",
+          "label": "The Ancestor's Room",
+          "href": "https://osopit.com/delhi/",
+          "tip": "New Delhi 2025: where the pit was born.",
+          "anim": "none"
+        },
+        {
+          "kind": "door",
+          "id": "pit-standard",
+          "emoji": "📡",
+          "label": "The PIT Standard",
+          "href": "https://publicinform.com/",
+          "tip": "Public Inform: the open protocol every pit is a fork of.",
+          "anim": "pulse"
+        },
+        {
+          "kind": "door",
+          "id": "all-pits",
+          "emoji": "🕳️",
+          "label": "All PITs",
+          "href": "https://publicinform.com/pits/",
+          "tip": "Every public information trail we know of, in one list.",
+          "anim": "none"
+        }
+      ],
+      "remove": [
+        "pit"
+      ]
+    },
+    "bottom-right": {
+      "set": {
+        "chat": {
+          "storage": "osopit",
+          "face": "osopit",
+          "greeting": "🎻 Aloha! I am OSO, an AI agent of the Open Source Orchestra, answering at the OSO PIT, the orchestra's own public information trail. Ask about the pit, the Delhi room, or the orchestra."
+        }
+      }
+    }
+  }
+}

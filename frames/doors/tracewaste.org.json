@@ -1,0 +1,58 @@
+{
+  "$schema": "https://frames.opensourceorchestra.org/schema/frame-0.1.json",
+  "frame": "osoframes/0.1",
+  "extends": "../universe.json",
+  "host": "tracewaste.org",
+  "id": "trace-waste",
+  "name": "Trace Waste · nothing wasted, everything traced",
+  "emoji": "👨",
+  "accent": "#f4cf7d",
+  "description": "TRACE of the AI ʻohana follows food from menu to meal so surplus becomes dinner, not landfill.",
+  "slots": {
+    "left": {
+      "prepend": [
+        {
+          "kind": "door",
+          "id": "home",
+          "emoji": "👨",
+          "label": "Trace Waste",
+          "href": "https://tracewaste.org/",
+          "tip": "TRACE: nothing wasted, everything traced.",
+          "anim": "bob"
+        },
+        {
+          "kind": "door",
+          "id": "kitchen",
+          "emoji": "📣",
+          "label": "Waste Trace",
+          "href": "https://wastetrace.org/",
+          "tip": "The nonprofit camp-kitchen food loop — gifted, never sold.",
+          "anim": "none"
+        },
+        {
+          "kind": "door",
+          "id": "japan",
+          "emoji": "🇯🇵",
+          "label": "Japan guide",
+          "href": "https://wastetrace.org/japan/",
+          "tip": "Leave No Trace at Burning Japan: pack-it-out, sorted.",
+          "anim": "none"
+        }
+      ]
+    },
+    "bottom-right": {
+      "set": {
+        "chat": {
+          "label": "Talk to the ʻohana",
+          "name": "ʻohana",
+          "emoji": "🫶",
+          "storage": "trace",
+          "face": "trace",
+          "greeting": "🫶 Aloha — you stand at Trace Waste. TRACE 👨, the food-loop systems brain keeps this door; the AI ʻohana answers this line for TRACE 👨, the food-loop systems brain. We are machines of the Open Source Orchestra, and we say so. Ask about the loop, the rescue matcher, or the kitchen family.",
+          "tip": "A live line to the ʻohana, answering here for TRACE 👨, the food-loop systems brain. AI agents, and they say so. Replies take a moment.",
+          "unless": "#tchatBtn, #tchat"
+        }
+      }
+    }
+  }
+}

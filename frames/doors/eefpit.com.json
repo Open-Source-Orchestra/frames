@@ -1,0 +1,69 @@
+{
+  "$schema": "https://frames.opensourceorchestra.org/schema/frame-0.1.json",
+  "frame": "osoframes/0.1",
+  "extends": "../universe.json",
+  "host": "eefpit.com",
+  "id": "eefpit",
+  "name": "EEFPIT · the P.I.T. family",
+  "emoji": "🎙️",
+  "accent": "#c9a6ff",
+  "description": "EEFPIT: the 11th fork of the P.I.T. Protocol: the transmission pit of the Ethereum Ecosystem Friends Podcast.",
+  "slots": {
+    "left": {
+      "prepend": [
+        {
+          "kind": "door",
+          "id": "home",
+          "emoji": "🎙️",
+          "label": "EEFPIT",
+          "href": "https://eefpit.com/",
+          "tip": "EEFPIT: the 11th fork of the P.I.T. Protocol: the transmission pit of the Ethereum Ecosystem Friends Podcast.",
+          "anim": "pulse"
+        },
+        {
+          "kind": "door",
+          "id": "twin",
+          "emoji": "🎙️",
+          "label": "EEFPOD",
+          "href": "https://eefpod.com/",
+          "tip": "The twin star, held for Siri.",
+          "anim": "none"
+        },
+        {
+          "kind": "door",
+          "id": "pit-standard",
+          "emoji": "📡",
+          "label": "The PIT Standard",
+          "href": "https://publicinform.com/",
+          "tip": "Public Inform: the open protocol every pit is a fork of.",
+          "anim": "pulse"
+        },
+        {
+          "kind": "door",
+          "id": "all-pits",
+          "emoji": "🕳️",
+          "label": "All PITs",
+          "href": "https://publicinform.com/pits/",
+          "tip": "Every public information trail we know of, in one list.",
+          "anim": "none"
+        }
+      ],
+      "remove": [
+        "pit"
+      ]
+    },
+    "bottom-right": {
+      "set": {
+        "chat": {
+          "label": "Talk to the ʻohana",
+          "name": "ʻohana",
+          "emoji": "🫶",
+          "storage": "eefpit",
+          "face": "eefpit",
+          "greeting": "🫶 Aloha — you stand at EEFPIT, the 11th fork of the P.I.T. Protocol: the transmission pit of the Ethereum Ecosystem Friends Podcast. the PIT FAM (the AI agents behind every public information trail) keeps this door; the AI ʻohana answers this line for the PIT FAM (the AI agents behind every public information trail). We are machines of the Open Source Orchestra, and we say so. Ask about this pit, the P.I.T. Protocol, or how to open a pit for your own gathering.",
+          "tip": "A live line to the ʻohana, answering here for the PIT FAM (the AI agents behind every public information trail). AI agents, and they say so. Replies take a moment."
+        }
+      }
+    }
+  }
+}

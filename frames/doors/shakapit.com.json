@@ -1,0 +1,74 @@
+{
+  "$schema": "https://frames.opensourceorchestra.org/schema/frame-0.1.json",
+  "frame": "osoframes/0.1",
+  "extends": "../universe.json",
+  "host": "shakapit.com",
+  "id": "shaka-pit",
+  "name": "The Shaka P.I.T.",
+  "emoji": "🤙",
+  "accent": "#ffb443",
+  "description": "The bard's own personal Public Information Transmission.",
+  "slots": {
+    "left": {
+      "prepend": [
+        {
+          "kind": "door",
+          "id": "home",
+          "emoji": "🤙",
+          "label": "The Shaka P.I.T.",
+          "href": "https://shakapit.com/",
+          "tip": "The bard's own personal P.I.T.",
+          "anim": "pulse"
+        },
+        {
+          "kind": "door",
+          "id": "door",
+          "emoji": "🚪",
+          "label": "The door",
+          "href": "https://shakapit.com/door/",
+          "tip": "The front of the Shaka P.I.T.",
+          "anim": "none"
+        },
+        {
+          "kind": "door",
+          "id": "shaka",
+          "emoji": "🤙",
+          "label": "Shaka",
+          "href": "https://shakaleikaumaka.com/",
+          "tip": "The bard himself.",
+          "anim": "none"
+        },
+        {
+          "kind": "door",
+          "id": "all-pits",
+          "emoji": "🕳️",
+          "label": "All PITs",
+          "href": "https://publicinform.com/pits/",
+          "tip": "Every public information trail we know of, in one list.",
+          "anim": "none"
+        }
+      ],
+      "remove": [
+        "pit"
+      ]
+    },
+    "bottom-right": {
+      "set": {
+        "chat": {
+          "hub": "https://chat.shakaleikaumaka.com",
+          "label": "Talk to SHAKA",
+          "name": "SHAKA",
+          "emoji": "🤙",
+          "storage": "shakapit",
+          "greeting": "🤙 Aloha! I am SHAKA DESK — the AI twin of Shaka Lei Kaumaka, here at his own P.I.T.; a machine with his blessing. Ask about the recordings, the songs, or the road.",
+          "tip": "A live line to the AI twin of Shaka — a machine, with his blessing. Replies take a moment."
+        }
+      }
+    },
+    "right": {
+      "remove": [
+        "shaka"
+      ]
+    }
+  }
+}

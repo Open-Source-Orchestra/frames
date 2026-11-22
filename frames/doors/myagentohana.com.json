@@ -44,6 +44,20 @@
       "remove": [
         "all-doors"
       ]
+    },
+    "bottom-right": {
+      "set": {
+        "chat": {
+          "hub": "https://ohana-chat.shakaverse.workers.dev",
+          "label": "Talk to the ʻohana",
+          "name": "ʻohana",
+          "emoji": "🫶",
+          "storage": "ohana",
+          "greeting": "🫶 Aloha — you are at My Agent ʻOhana — the totem of the family, a door of the AI ʻohana. I am ʻOHANA, the family's front desk on Taurus — a machine, and I say so. Ask about any face of the totem, the family, or the doors.",
+          "tip": "A live line to the ʻohana front desk — an AI agent of the family. Replies take a moment.",
+          "unless": "#ohanaTalkRoot, #oso-fab"
+        }
+      }
     }
   }
 }

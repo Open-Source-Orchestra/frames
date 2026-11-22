@@ -734,6 +734,21 @@
         "storage": {
           "type": "string",
           "pattern": "^[a-z0-9-]{1,32}$"
+        },
+        "face": {
+          "description": "names this line for the hub: every visitor message carries the text prefix \"🗿[face:<face>] \" so the desk knows which door the visitor stands in (22 Nov 2026)",
+          "type": "string",
+          "pattern": "^[a-z0-9_-]{1,24}$"
+        },
+        "route": {
+          "enum": [
+            "prefix"
+          ]
+        },
+        "session": {
+          "description": "session-id prefix the desk requires (e.g. \"crops_\" — the CROPS desk answers only crops_* sessions)",
+          "type": "string",
+          "pattern": "^[a-z0-9_-]{1,16}$"
         }
       }
     },

@@ -1,0 +1,58 @@
+{
+  "$schema": "https://frames.opensourceorchestra.org/schema/frame-0.1.json",
+  "frame": "osoframes/0.1",
+  "extends": "../universe.json",
+  "host": "shakafans.com",
+  "id": "shaka-fans",
+  "name": "Shaka Fans · the fan club",
+  "emoji": "🫶",
+  "accent": "#ffb6d5",
+  "description": "The fan club of Shaka Lei Kaumaka: give into the Blessing Pool, get close.",
+  "slots": {
+    "left": {
+      "prepend": [
+        {
+          "kind": "door",
+          "id": "home",
+          "emoji": "🫶",
+          "label": "Shaka Fans",
+          "href": "https://shakafans.com/",
+          "tip": "The fan club: give and get close.",
+          "anim": "bob"
+        },
+        {
+          "kind": "door",
+          "id": "wall",
+          "emoji": "🌟",
+          "label": "The fan wall",
+          "href": "https://shakafans.com/wall/",
+          "tip": "The fans who chose the public wall.",
+          "anim": "none"
+        },
+        {
+          "kind": "door",
+          "id": "pool",
+          "emoji": "🌊",
+          "label": "Blessing pool",
+          "href": "https://blessingpool.com/",
+          "tip": "Where the gifts flow.",
+          "anim": "none"
+        }
+      ]
+    },
+    "bottom-right": {
+      "set": {
+        "chat": {
+          "hub": "https://chat.shakafans.com",
+          "label": "Talk to JAI",
+          "name": "JAI",
+          "emoji": "🌸",
+          "storage": "jai",
+          "greeting": "🌸 Aloha! I am JAI, the sincere heart of the ʻohana at the fan club door — an AI agent, and I say so. Ask about the fan club, the wall, or how to get close.",
+          "tip": "A live line to JAI, the fan-club desk — an AI agent of the ʻohana. Replies take a moment.",
+          "unless": "#sp-fab, #sp-fabwrap"
+        }
+      }
+    }
+  }
+}

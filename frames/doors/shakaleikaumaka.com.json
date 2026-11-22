@@ -55,6 +55,20 @@
           "anim": "sway"
         }
       ]
+    },
+    "bottom-right": {
+      "set": {
+        "chat": {
+          "hub": "https://chat.shakaleikaumaka.com",
+          "label": "Talk to SHAKA",
+          "name": "SHAKA",
+          "emoji": "🤙",
+          "storage": "shaka",
+          "greeting": "🤙 Aloha! I am SHAKA DESK — the AI twin of Shaka Lei Kaumaka at his front door, a machine with his blessing. Ask about the songs, the road, or how to join the circle.",
+          "tip": "A live line to the AI twin of Shaka — a machine, with his blessing. Replies take a moment.",
+          "unless": "#sp-fab, #sp-fabwrap, #oso-fab"
+        }
+      }
     }
   }
 }

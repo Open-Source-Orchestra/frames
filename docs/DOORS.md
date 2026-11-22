@@ -46,6 +46,7 @@ Every door of a universe can wear the **same** frame with a **different accent, 
 | `strings` | UI strings merged over the parent's |
 | `credit.add` | names added next to the ʻohana's credit (never removes it — AGPL §7(b)) |
 | `without` | kinds to drop everywhere, e.g. `["pill"]` or `["signature"]` |
+| `slots.bottom-right.set.chat` | the door's line: `hub` (the desk that answers), `label`/`name`/`emoji`/`greeting`/`storage`, `face` (text prefix `🗿[face:<door>] ` on every visitor line so one hub can tell doors apart), `session` (a desk-required session-id prefix such as `crops_`), `unless` (CSS selector of the page's own chat widget — the frame's line steps aside). Honesty law: a name on the line means that agent answers; a steward without a hub gets "Talk to the ʻohana" |
 | `slots.<slot>` | either a **full list** (replaces that slot) or **ops**: `remove` (ids, or `"kind:pill"`) → `replace` (items by id; new ids are appended) → `set` (`{ "id": { "href": "…" } }` patches fields) → `prepend` → `append` |
 
 The parent's relative URLs (`../media/signature.svg`, …) keep pointing at the parent's folder; your file's relative URLs resolve next to your file.
