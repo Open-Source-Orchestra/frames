@@ -1536,6 +1536,7 @@ var FRAMES = (function (W) {
       F + '.osof-enter .osof-slot>.osof-item{animation:osof-in-l .55s cubic-bezier(.2,.8,.2,1) calc(300ms + var(--osof-i,0) * 40ms) both}',
       F + '.osof-enter [data-slot=right]>.osof-item,' + F + '.osof-enter [data-slot=top-right]>.osof-item{animation-name:osof-in-r}',
       F + '.osof-enter [data-slot=bottom-left]>.osof-item,' + F + '.osof-enter [data-slot=bottom-right]>.osof-item{animation-name:osof-in-b}',
+      F + '.osof-enter [data-slot=overlay]>.osof-item{animation:none!important}',   // a transformed wrapper would turn the thanks line's position:fixed into "absolute" (22 Nov 2026)
       F + ' .osof-halo.glow{animation:osof-glow 1.1s ease-out 1 both}',
       '}',
       '@media (prefers-reduced-motion:reduce){' + F + ' .osof-btn,' + F + ' .osof-lbl,' + F + ' .osof-cap,' + F + ' .osof-final{transition:none}}'
