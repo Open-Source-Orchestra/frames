@@ -253,7 +253,8 @@ var FRAMES = (function (W) {
     var out = {};
     Object.keys(x).forEach(function (k) {
       var v = x[k];
-      if (URL_KEYS[k] && typeof v === 'string' && v && !/^[a-z][a-z0-9+.-]*:/i.test(v) && v.charAt(0) !== '#') { try { v = new URL(v, baseURL).href; } catch (e) {} }
+      // v0.1.3: ceremony.base / ceremony.credits are URLs too (door frames extend ../universe.json — the clips must not resolve against frames/doors/)
+      if ((URL_KEYS[k] || k === 'base' || k === 'credits') && typeof v === 'string' && v && !/^[a-z][a-z0-9+.-]*:/i.test(v) && v.charAt(0) !== '#') { try { v = new URL(v, baseURL).href; } catch (e) {} }
       out[k] = (isObj(v) || Array.isArray(v)) ? absolutize(v, baseURL) : v;
     });
     return out;
@@ -998,13 +999,19 @@ var FRAMES = (function (W) {
     var size = narrow ? 44 : size0, top0 = narrow ? 52 : top00;
     var pinnedTR = mobile && recs.some(function (r) { return r.slot === 'top-right' && r.pinned && live(r); });
     var trTwo = !mobile && recs.filter(function (r) { return r.slot === 'top-right' && live(r) && r.wrap; }).length >= 2;   // desktop: 🌊 + 🎻 = one stack (globyagent.com: the 🎻 sat on the logo)
-    var ct = clearTop('right', top0, size, pinnedTR ? size + 8 : (trTwo ? size + 10 : 0));
+    var ct = clearTop('right', top0, size, pinnedTR ? size + 8 : (trTwo ? size + 10 : 0)), trMode = 'stack';
+    // phones: no room for the 🌊 + 🎻 stack, but room for one square → the 🌊 keeps the corner (Shaka: "blessing pool on the top right")
+    // and the 🎻 folds to a dot on its own clear spot below (opensourceorchestra.org at 390px lost the pool otherwise)
+    if (mobile && pinnedTR && ct.blocked) { var c1 = clearTop('right', top0, size); if (!c1.blocked) { ct = c1; trMode = 'pool'; } }
     root.style.setProperty('--osof-top-r', ct.y + 'px');
+    root.setAttribute('data-osof-tr', trMode);
     if (mobile) {
-      if (sheetFolded.text !== ct.blocked && !sheetFolded.user) foldSheet(ct.blocked, false);
-      if (sheetFolded.text || sheetFolded.user) root.style.setProperty('--osof-top-r', dotSpot(W.innerWidth - 8 - 20, ct.y) + 'px');   // the dot, too, sits on no words
+      var sheetBlocked = ct.blocked || trMode === 'pool';
+      if (sheetFolded.text !== sheetBlocked && !sheetFolded.user) foldSheet(sheetBlocked, false);
+      if (trMode === 'pool') root.style.setProperty('--osof-dot-r', dotSpot(W.innerWidth - 8 - 20, ct.y + size + 8, ct.y + size + 8) + 'px');
+      else if (sheetFolded.text || sheetFolded.user) root.style.setProperty('--osof-top-r', dotSpot(W.innerWidth - 8 - 20, ct.y) + 'px');   // the dot, too, sits on no words
     }
-    root.toggleAttribute('data-osof-tr-fold', mobile && sheetFolded.text);   // words under the stack → the pinned 🌊 rests with the 🎻 (the visitor's own ✕ folds only the 🎻)
+    root.toggleAttribute('data-osof-tr-fold', mobile && ct.blocked && trMode !== 'pool');   // no room even for one square → the pinned 🌊 rests with the 🎻 (the visitor's own ✕ folds only the 🎻)
     // v0.1.3 · the top-left stack (🌺 ceremony) stands below the real lang.js globe, on clear ground; blocked → it folds to a dot
     var lb = langButton(), lbr = lb && isVisible(lb) ? lb.getBoundingClientRect() : null;
     var y0l = lbr && lbr.height > 2 && lbr.top < 120 ? Math.max(top0, Math.round(lbr.bottom) + 10) : top0;
@@ -1287,19 +1294,20 @@ var FRAMES = (function (W) {
       try { p = a.play(); } catch (e) { p = null; cer.speaking = false; }
       if (p && typeof p.then === 'function') {
         p.then(function () { if (tour.halo) tour.halo.classList.toggle('osof-breath', !state.reduced); },
-          function () { cer.speaking = false; cer.blocked = true; syncBar(); if (tour.active && tour.cur === s) textTimer(s); });   // autoplay policy: words only until ▶ is tapped
+          function (err) { cer.speaking = false; if (notAllowed(err)) { cer.blocked = true; syncBar(); } if (tour.active && tour.cur === s) textTimer(s); });   // autoplay policy: words only until ▶ is tapped; a missing clip = words only for that step
       }
       if (cer.speaking) return;
     }
     textTimer(s);
   }
   function textTimer(s) { clearTimeout(tour.timer); if (!cer.paused) tour.timer = setTimeout(nextStep, dwell(s)); }
+  function notAllowed(err) { return !err || !err.name || err.name === 'NotAllowedError'; }   // only the autoplay policy turns ▶ gold; a 404 or a codec error just means words for that step
   function cerToggle() {
     if (!tour.active && !finalEl) return;
     if (cer.blocked) { cer.blocked = false; syncBar(); if (tour.active && tour.cur) speak(tour.cur); else if (finalEl) speakFinal(); return; }
     cer.paused = !cer.paused;
     if (cer.paused) { clearTimeout(tour.timer); clearTimeout(finalTimer); if (cer.speaking && cer.audio) { try { cer.audio.pause(); } catch (e) {} } }
-    else if (cer.speaking && cer.audio) { var p; try { p = cer.audio.play(); } catch (e) { p = null; } if (p && p.then) p.then(null, function () { cer.speaking = false; cer.blocked = true; syncBar(); if (tour.cur) textTimer(tour.cur); }); }
+    else if (cer.speaking && cer.audio) { var p; try { p = cer.audio.play(); } catch (e) { p = null; } if (p && p.then) p.then(null, function (err) { cer.speaking = false; if (notAllowed(err)) cer.blocked = true; syncBar(); if (tour.cur) textTimer(tour.cur); }); }
     else if (tour.active && tour.cur) textTimer(tour.cur);
     else if (finalEl) finalTimer = setTimeout(fadeFinal, 4000);
     syncBar();
@@ -1480,7 +1488,7 @@ var FRAMES = (function (W) {
     cer.speaking = true;
     var p = null;
     try { p = a.play(); } catch (e) { cer.speaking = false; return false; }
-    if (p && typeof p.then === 'function') p.then(null, function () { cer.speaking = false; cer.blocked = true; finalTimer = setTimeout(fadeFinal, 9000); });
+    if (p && typeof p.then === 'function') p.then(null, function (err) { cer.speaking = false; if (notAllowed(err)) cer.blocked = true; finalTimer = setTimeout(fadeFinal, 9000); });
     return true;
   }
   function fadeFinal() {
@@ -1736,6 +1744,7 @@ var FRAMES = (function (W) {
       F + '[data-osof-tr-fold] [data-slot=top-right]>[data-osof-pin]{display:none!important}',
       F + '[data-mode=mobile] .osof-sheetbtn{width:44px;height:44px;font-size:21px}',
       F + '[data-mode=mobile] .osof-sheet-item{order:2}',
+      F + '[data-mode=mobile][data-osof-tr=pool] .osof-sheet-item{position:fixed;top:var(--osof-dot-r,100px);right:calc(8px + env(safe-area-inset-right,0px))}',   // pool-only corner: the folded 🎻 dot finds its own spot
       F + '[data-mode=mobile] .osof-lbl{display:none}',                              // touch: a tapped button keeps :hover — its label would sit on the words                        // phones: the pinned 🌊 stands first, the 🎻 under it
       F + '[data-mode=mobile] [data-slot=bottom-left]{left:calc(8px + env(safe-area-inset-left,0px));bottom:calc(8px + env(safe-area-inset-bottom,0px))}',
       F + '[data-mode=mobile] [data-slot=bottom-right]{right:calc(8px + env(safe-area-inset-right,0px));bottom:calc(8px + env(safe-area-inset-bottom,0px))}',
