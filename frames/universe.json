@@ -17,6 +17,42 @@
     "venmo": "https://venmo.com/u/jordanham",
     "pool": "https://blessingpool.com/"
   },
+  "ceremony": {
+    "base": "../media/ceremony/",
+    "ext": "mp3",
+    "credits": "../media/ceremony/credits.json",
+    "voice": "Shaka Lei Kaumaka's voice twin (Qwen3-TTS-0.6B-Base, Apache-2.0 weights; MIT C engine), made by the AI ʻohana",
+    "license": "CC-BY-SA-4.0",
+    "say": {
+      "welcome": "Aloha, and welcome. This is my voice, made by the AI ʻohana. I'm Shaka. Let me walk you around the frame.",
+      "globe": "Up here is the language globe. Choose your language, and the whole page follows you.",
+      "theater": "The theater. Films and calls of the orchestra, shared with everyone's consent.",
+      "songbook": "The songbook. Story songs of the ʻohana, free for anyone to sing.",
+      "kala": "Kala on the road. My ukulele and my bass at Devcon 8, in the official photos.",
+      "garden-circle": "The Garden Circle. Not a stage. A circle on the floor, with room for everyone.",
+      "mandala-room": "The Mandala Room. Four days of the Devcon 8 music sanctuary.",
+      "nodes": "Nodes. Every voice is a node. The artists of the orchestra, and their songs.",
+      "camera": "The camera. Photos, films and voices from the music sanctuary.",
+      "pit": "The PIT Standard. An open standard for a room that remembers honestly, consent first.",
+      "fork-the-first-artist": "Fork the first artist. A home for any artist, built in the open. Fork it for yours.",
+      "lisbon": "The road to Devcon 9 in Lisbon, October 2027. Anyone can join.",
+      "mandala": "Devcon 8 is done, and remembered. Next stop, Lisbon.",
+      "credit": "Down here is the credit. This frame was built by the AI ʻohana. Fork it, keep it open, and the credit travels with you. The small x button hides the whole frame, any time.",
+      "radio": "Here is the radio. Songs shared with the artists' consent. Nothing plays until you press play.",
+      "chat": "Talk to the orchestra. A live line to an AI agent of the ʻohana. It will tell you it's a machine.",
+      "fork-this-frame": "Fork this frame for your own site. Every fork stays open.",
+      "calls": "The calls. The weekly calls of the orchestra, recorded with everyone's consent.",
+      "schedule": "The schedule. The Devcon 8 music schedule, as it happened.",
+      "public-goods": "Public goods. The open ledger and the open shelf. Everything in the open.",
+      "all-doors": "All doors. Every public door of the ʻohana, in one atlas.",
+      "shaka": "My front door. Come say aloha.",
+      "totem": "The totem. Six agents of the ʻohana. Tap a face to talk. They are AI, and they say so.",
+      "sheet": "The frame button. Every door of the frame, in one sheet.",
+      "orchestra": "The Open Source Orchestra. Music as sanctuary, open to all. This is our home.",
+      "blessing-pool": "And this is the Blessing Pool. Freely I give, freely I receive. Every drop you give ripples through the whole constellation, and the constellation ripples back. Jump in with us, not as a donor, but as a co-gifter.",
+      "closing": "That was the frame. Press the flower any time to hear it again. Aloha, from me and the whole ʻohana."
+    }
+  },
   "strings": {},
   "slots": {
     "top-left": [
@@ -24,6 +60,20 @@
         "kind": "globe",
         "id": "globe",
         "tip": "Choose your language. The page and the frame follow you."
+      },
+      {
+        "kind": "tour",
+        "id": "ceremony",
+        "emoji": "🌺",
+        "label": "The ceremony · hear the welcome",
+        "pin": true,
+        "tip": "The ceremony: hear the welcome in Shaka's twin voice, with the words, button by button.",
+        "video": {
+          "src": "../media/walkthrough.mp4",
+          "poster": "../media/walkthrough.jpg",
+          "captions": "../media/walkthrough.vtt",
+          "duration": "45 s"
+        }
       }
     ],
     "left": [
@@ -63,7 +113,7 @@
       {
         "kind": "door",
         "id": "garden-circle",
-        "emoji": "🌺",
+        "emoji": "🌼",
         "label": "Garden Circle",
         "href": "https://opensourceorchestra.org/garden/circle/",
         "tip": "Not a stage: a circle on the floor, with room for everyone.",
@@ -140,25 +190,22 @@
     "top-right": [
       {
         "kind": "door",
+        "id": "blessing-pool",
+        "emoji": "🌊",
+        "label": "Blessing Pool",
+        "href": "https://blessingpool.com/",
+        "pin": true,
+        "tip": "The Blessing Pool: freely I give, freely I receive. Every drop ripples through the whole constellation.",
+        "anim": "sway"
+      },
+      {
+        "kind": "door",
         "id": "orchestra",
         "emoji": "🎻",
         "label": "Open Source Orchestra",
         "href": "https://opensourceorchestra.org/",
         "tip": "Home of the Open Source Orchestra: music as sanctuary, open to all.",
         "anim": "sway"
-      },
-      {
-        "kind": "tour",
-        "id": "tour",
-        "emoji": "✨",
-        "label": "Tour",
-        "video": {
-          "src": "../media/walkthrough.mp4",
-          "poster": "../media/walkthrough.jpg",
-          "captions": "../media/walkthrough.vtt",
-          "duration": "45 s"
-        },
-        "tip": "Replay this tour any time, and watch the walkthrough."
       }
     ],
     "right": [

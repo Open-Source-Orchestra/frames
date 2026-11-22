@@ -73,7 +73,7 @@ Pages that already carry a chat button or a mini player keep them: the universe 
 ## 4 · What visitors get
 
 - The same ring on every page of your door, in your accent, with your doors first.
-- **⚙ (in the credit mark, bottom-left):** *Frame on/off* and one switch per piece (doors, pills, theater, totem, talk line, radio, signature, tour), remembered in that browser only (`localStorage osof:settings:v1`). Off leaves one small 🎻 dot at an edge that brings the frame back — the dot still carries the credit. `?frame=off` on any address hides it for one page view.
+- **⚙ (in the credit mark, bottom-left):** *Frame on/off* and one switch per piece (doors, pills, theater, totem, talk line, radio, signature, tour = the 🌺 ceremony), remembered in that browser only (`localStorage osof:settings:v1`). Off leaves one small 🎻 dot at an edge that brings the frame back — the dot still carries the credit. `?frame=off` on any address hides it for one page view.
 - **BUTTON LAW** (19 Nov 2026): nothing of the frame sits on text. On phones the 🎻 steps below fixed bars and text; with no clear spot it folds to a dot for that page view; its tiny ✕ folds it on purpose (remembered). On desktops, when the page runs text edge to edge under where the rails would be, the rails fold into the 🎻 sheet instead of covering words.
 
 ## 5 · The gallery

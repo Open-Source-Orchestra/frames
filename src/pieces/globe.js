@@ -21,7 +21,9 @@
   }
 
   FRAMES.define('globe', function (ctx, item) {
-    ctx.css('globe', '#oso-frames .osof-globe-spot{width:54px;height:59px}#oso-frames[data-mode=mobile] .osof-globe-spot{width:38px;height:43px}');
+    // v0.1.3: the reserve has NO footprint of its own (the audit counted the empty spot as "an item on words"); the core measures
+    // the real lang.js button (extent/langButton) and places the top-left stack below it (--osof-top-l)
+    ctx.css('globe', '#oso-frames .osof-globe-spot{width:0;height:0;overflow:hidden}');
     if (!present()) {
       var src = ctx.resolve(item.src || LANG) || LANG;
       var s = document.createElement('script');

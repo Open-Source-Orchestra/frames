@@ -84,9 +84,12 @@
       const r = el.getBoundingClientRect(), vh = window.innerHeight, hgt = r.height || 30;
       const tries = [8];
       for (let y = 136; y <= vh * 0.4; y += hgt + 14) tries.push(y);
+      // v0.1.3: the two top corners (🌐 + 🌺 ceremony on the left, 🌊 Blessing Pool + 🎻 on the right) are obstacles too
+      const corners = typeof ctx.corners === 'function' ? ctx.corners() : [];
+      const onCorner = function (box) { return corners.some(function (c) { return c && box.left < c.right + 6 && box.right > c.left - 6 && box.top < c.bottom + 6 && box.top + box.height > c.top - 6; }); };
       for (let i = 0; i < tries.length; i++) {
         const box = { left: r.left, right: r.right, top: tries[i], height: hgt };
-        if (!ctx.textAt(box)) { el.style.setProperty('--osof-thanks-y', tries[i] + 'px'); return true; }
+        if (!onCorner(box) && !ctx.textAt(box)) { el.style.setProperty('--osof-thanks-y', tries[i] + 'px'); return true; }
       }
       el.hidden = true;
       return false;
@@ -102,6 +105,7 @@
     const t0 = setTimeout(show, Math.max(0, +item.delay || 900));
     const offResize = function () { if (!gone && !el.hidden) hide('resize'); };
     window.addEventListener('resize', offResize);
+    ctx.on('tour:start', function () { if (!gone && !el.hidden) hide('ceremony'); });   // the ceremony bar takes the top band
 
     return {
       el: el,

@@ -4,6 +4,8 @@
 //   ⚙ control panel (frame off → one dot → back on; a piece off and on, remembered) · ?frame=off untouched ·
 //   data-door="auto" resolves frames/doors/<host>.json (merged on universe.json; accent applied) and falls back ·
 //   BUTTON LAW: a full-width text page on a narrow desktop folds the rails into the 🎻 sheet; the 🎻 never sits on text.
+//   v0.1.3 (test 8): the ceremony — 🌺 always top-left (desktop + phone), 🌊 Blessing Pool first top-right, a tap starts voice + captions
+//   (audio stubbed), captions never on words, Esc stops, nothing starts by itself, the ✕ says "hide frame", the phone sheet's first row hides all.
 // usage: node tests/e2e-settings.mjs
 import http from 'node:http';
 import { readFile } from 'node:fs/promises';
@@ -12,7 +14,7 @@ import { fileURLToPath } from 'node:url';
 import { createRequire } from 'node:module';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
-const TYPES = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.json': 'application/json; charset=utf-8', '.svg': 'image/svg+xml', '.vtt': 'text/vtt', '.jpg': 'image/jpeg', '.mp4': 'video/mp4' };
+const TYPES = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.json': 'application/json; charset=utf-8', '.svg': 'image/svg+xml', '.vtt': 'text/vtt', '.jpg': 'image/jpeg', '.mp4': 'video/mp4', '.mp3': 'audio/mpeg' };
 const PAGE = (title, body) => `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${title}</title>
 <style>body{margin:0;font:17px/1.6 Georgia,serif;background:#141230;color:#eee}main{padding:24px 0}p{margin:0 0 14px}</style></head><body><main>${body}</main>
 <script src="/frames.js" data-door="auto" defer></script></body></html>`;
@@ -90,7 +92,7 @@ const errsOf = (p) => { const e = []; p.on('pageerror', (x) => e.push('PE:' + St
   ok(r.id === 'pit-protocol', `data-door=auto on publicinform.com → id ${r.id}`);
   ok(r.accent === '#7fe0ff', `accent applied (${r.accent})`);
   ok(r.first === 'home' && r.pitGone && r.n >= 10, `slot ops: prepend + remove (left: ${r.n} items, first ${r.first})`);
-  ok(r.version === '0.1.2' && r.gear, `v${r.version} with the ⚙ gear in the credit mark`);
+  ok(r.version === '0.1.3' && r.gear, `v${r.version} with the ⚙ gear in the credit mark`);
   ok(!errs.length, 'no console/page errors' + (errs.length ? ' → ' + errs.join(' | ') : ''));
   await ctx.close();
 }
@@ -265,6 +267,103 @@ const errsOf = (p) => { const e = []; p.on('pageerror', (x) => e.push('PE:' + St
   ok(hasHide, 'the phone sheet offers "Hide the whole frame"');
   await p2.click('#osof-dlg-sheet .osof-sheet-hide');
   ok(await p2.evaluate(() => document.getElementById('oso-frames').hasAttribute('data-osof-off') && !!document.querySelector('#oso-frames .osof-dot')), 'one tap on a phone: everything gone, one dot stays');
+  await ctx2.close();
+}
+// 8 · THE CEREMONY (v0.1.3, Shaka 22 Nov 2026 13:24 BKK): 🌺 top-left under the globe · 🌊 Blessing Pool first top-right · a tap plays
+//     the twin voice with the same words as captions (audio stubbed here) · captions on no words · Esc stops · never starts by itself ·
+//     "✕ hide frame" is visible once · phones: 🌺 at 38px top-left, 🌊 + 🎻 stacked top-right, the sheet at the bottom lifts our corners
+const AUDIO_STUB = `window.__audioLog = []; window.Audio = class { constructor() { this.paused = true; this._l = {}; this.currentTime = 0; this.src = ''; }
+  addEventListener(n, f) { (this._l[n] = this._l[n] || []).push(f); } removeEventListener() {} pause() { this.paused = true; window.__audioLog.push('pause'); }
+  play() { this.paused = false; window.__audioLog.push('play:' + this.src.split('/').pop()); const s = this; setTimeout(() => { if (!s.paused) { s.paused = true; (s._l.ended || []).forEach((f) => f()); } }, 300); return Promise.resolve(); } };`;
+{
+  const ctx = await ctxFor('nobody.example', { width: 1440, height: 900 });   // room at the bottom-left for the 4-second "✕ hide frame" (it shows on clear ground only)
+  await ctx.addInitScript(AUDIO_STUB);
+  const p = await ctx.newPage(); const errs = errsOf(p);
+  await p.goto('http://nobody.example/hero.html?frame=fresh', { waitUntil: 'load' });
+  await p.waitForSelector('#oso-frames[data-osof-ready]', { state: 'attached' }); await p.waitForTimeout(1900);
+  let r = await p.evaluate(async () => {
+    const F = document.getElementById('oso-frames');
+    const cb = F.querySelector('[data-slot=top-left] .osof-cerbtn'), cr = cb && cb.getBoundingClientRect();
+    const tr = [...F.querySelectorAll('[data-slot=top-right] > .osof-item:not(.osof-sheet-item)')].filter((e) => e.getBoundingClientRect().width > 0).map((e) => e.getAttribute('data-osof-id'));
+    const xl = F.querySelector('.osof-credit-x .osof-x-lbl');
+    const say = OSOFrames.data.ceremony && OSOFrames.data.ceremony.say;
+    const mp3 = await fetch('/media/ceremony/welcome.mp3', { method: 'HEAD' }).then((x) => x.status).catch(() => 0);
+    return { cer: !!cb && cr.width > 0 && cr.left < 80 && cr.top < 160, cerTop: cr && Math.round(cr.top), cerSize: cr && Math.round(cr.width), pinned: cb && cb.closest('.osof-item').hasAttribute('data-osof-pin'), tr, oldTour: !!F.querySelector('[data-slot=top-right] [data-osof-kind=tour]'),
+      bar: !!F.querySelector('.osof-tourbar:not([hidden])'), xlbl: !!xl, xlblShown: xl && getComputedStyle(xl).opacity === '1' && cb.closest('#oso-frames').querySelector('.osof-credit-x').classList.contains('osof-say'), saidWelcome: say && /This is my voice, made by the AI ʻohana/.test(say.welcome), nSay: say && Object.keys(say).length, mp3 };
+  });
+  ok(r.cer && r.pinned, `🌺 ceremony button sits top-left (y=${r.cerTop}, ${r.cerSize}px, pinned)`);
+  ok(r.tr[0] === 'blessing-pool' && r.tr[1] === 'orchestra' && !r.oldTour, `🌊 Blessing Pool is first top-right, then 🎻 (${r.tr.join(', ')}); the old ✨ is gone`);
+  ok(!r.bar, 'nothing starts by itself (no ceremony bar, no bubbles)');
+  ok(r.xlbl && r.xlblShown, '"✕ hide frame" is written next to the credit mark on a first visit (4 s)');
+  ok(r.saidWelcome && r.nSay >= 26 && r.mp3 === 200, `the script carries the honest line, ${r.nSay} passages, welcome.mp3 served (${r.mp3})`);
+  await p.click('#oso-frames .osof-cerbtn');
+  await p.waitForTimeout(250);
+  r = await p.evaluate(() => {
+    const F = document.getElementById('oso-frames');
+    const bar = F.querySelector('.osof-tourbar:not([hidden])'), cap = F.querySelector('.osof-cap.on'), cr = cap && cap.getBoundingClientRect();
+    const words = cap ? document.elementsFromPoint(cr.left + cr.width / 2, cr.top + cr.height / 2).some((e) => !F.contains(e) && /^(P|A|H\d|LI)$/.test(e.tagName)) : null;
+    const br = bar && bar.getBoundingClientRect();
+    const barWords = bar ? document.elementsFromPoint(br.left + br.width / 2, br.top + br.height / 2).some((e) => !F.contains(e) && /^(P|A|H\d|LI)$/.test(e.tagName)) : null;
+    return { bar: !!bar, play: bar && !!bar.querySelector('.osof-cer-play'), mute: bar && !!bar.querySelector('.osof-cer-mute'), skip: bar && !!bar.querySelector('.osof-skip'), count: bar && bar.querySelector('.osof-count').textContent, cap: cap && cap.textContent, words, barWords, halo: !!F.querySelector('.osof-halo:not([hidden])'), breath: !!F.querySelector('.osof-halo.osof-breath'), log: window.__audioLog.slice(), on: F.hasAttribute('data-osof-ceremony') };
+  });
+  ok(r.bar && r.play && r.mute && r.skip, `a tap starts the ceremony: player bar with ▶/⏸ · ${r.count} · 🔊 · Skip ✕`);
+  ok(r.log.filter((x) => /^play/.test(x))[0] === 'play:welcome.mp3', `the welcome clip plays first (${r.log.filter((x) => /^play/.test(x))[0]})`);
+  ok(r.cap && /This is my voice, made by the AI ʻohana/.test(r.cap) && r.words === false, 'the caption shows the same words as the voice, on no page words');
+  ok(r.barWords === false && r.halo && r.breath && r.on, 'the bar stands on clear ground; the spoken button breathes');
+  await p.waitForTimeout(2600);
+  r = await p.evaluate(() => { const F = document.getElementById('oso-frames'); return { count: F.querySelector('.osof-count').textContent, log: window.__audioLog.filter((x) => /^play/.test(x)), cap: (F.querySelector('.osof-cap.on') || {}).textContent }; });
+  ok(r.log.length >= 3 && /^[3-9] \/ \d+$/.test(r.count), `steps advance when each clip ends (${r.count}; ${r.log.length} clips played)`);
+  await p.click('#oso-frames .osof-cer-mute');
+  r = await p.evaluate(() => ({ pressed: document.querySelector('#oso-frames .osof-cer-mute').getAttribute('aria-pressed'), bar: !!document.querySelector('#oso-frames .osof-tourbar:not([hidden])'), cap: !!document.querySelector('#oso-frames .osof-cap.on') }));
+  ok(r.pressed === 'true' && r.bar && r.cap, '🔇 keeps the words and drops the voice');
+  await p.keyboard.press('Escape');
+  await p.waitForTimeout(200);
+  r = await p.evaluate(() => { const F = document.getElementById('oso-frames'); return { bar: !!F.querySelector('.osof-tourbar:not([hidden])'), cap: !!F.querySelector('.osof-cap.on'), on: F.hasAttribute('data-osof-ceremony'), paused: window.__audioLog[window.__audioLog.length - 1] }; });
+  ok(!r.bar && !r.cap && !r.on, 'Esc stops the ceremony (bar, caption, halo gone)');
+  ok(!errs.length, 'no errors on the ceremony' + (errs.length ? ' → ' + errs.join(' | ') : ''));
+  await ctx.close();
+  // phone
+  const ctx2 = await ctxFor('nobody.example', { width: 390, height: 844 }, true);
+  await ctx2.addInitScript(AUDIO_STUB);
+  const p2 = await ctx2.newPage(); const errs2 = errsOf(p2);
+  await p2.goto('http://nobody.example/hero.html?frame=fresh', { waitUntil: 'load' });
+  await p2.waitForSelector('#oso-frames[data-osof-ready]', { state: 'attached' }); await p2.waitForTimeout(900);
+  r = await p2.evaluate(() => {
+    const F = document.getElementById('oso-frames');
+    const cb = F.querySelector('.osof-cerbtn'), cr = cb.getBoundingClientRect();
+    const pool = F.querySelector('[data-slot=top-right] [data-osof-id=blessing-pool] .osof-btn'), pr = pool && pool.getBoundingClientRect();
+    const sb = F.querySelector('.osof-sheetbtn'), sr = sb.getBoundingClientRect();
+    return { cerVisible: cr.width > 0 && cr.width <= 40 && cr.left < 60 && cr.top >= 50, folded: cb.classList.contains('osof-fold'), poolVisible: !!pr && pr.width > 0 && pr.right > innerWidth - 60, poolAboveSheet: !!pr && pr.bottom <= sr.top, sheetVisible: sr.width > 0, bar: !!F.querySelector('.osof-tourbar:not([hidden])') };
+  });
+  ok(r.cerVisible && !r.folded, '📱 the 🌺 ceremony stays top-left on a phone (38px, under the globe, not folded on a quiet hero)');
+  ok(r.poolVisible && r.poolAboveSheet && r.sheetVisible, '📱 🌊 Blessing Pool first top-right, the 🎻 sheet button under it');
+  ok(!r.bar, '📱 nothing starts by itself');
+  await p2.click('#oso-frames .osof-cerbtn');
+  await p2.waitForTimeout(500);
+  r = await p2.evaluate(() => {
+    const F = document.getElementById('oso-frames');
+    const bar = F.querySelector('.osof-tourbar:not([hidden])'), br = bar && bar.getBoundingClientRect();
+    const txt = bar && bar.querySelector('.osof-cer-text.on');
+    const brz = F.querySelector('[data-slot=bottom-right]').getBoundingClientRect(), blz = F.querySelector('[data-slot=bottom-left]').getBoundingClientRect();
+    return { sheet: !!bar && bar.hasAttribute('data-osof-sheet') && Math.abs(br.bottom - (innerHeight - 8)) < 3 && br.left <= 10 && br.right >= innerWidth - 10, text: txt && txt.textContent, cornersAbove: brz.bottom <= br.top + 1 && blz.bottom <= br.top + 1, log: window.__audioLog.filter((x) => /^play/.test(x))[0] };
+  });
+  ok(r.sheet && /This is my voice/.test(r.text || ''), '📱 the words + controls sit in one bottom sheet');
+  ok(r.cornersAbove, '📱 our chat/radio/credit corners step above the sheet (no piece on another)');
+  ok(r.log === 'play:welcome.mp3', `📱 the voice plays after the tap (${r.log})`);
+  await p2.click('#oso-frames .osof-skip');
+  await p2.waitForTimeout(400);
+  r = await p2.evaluate(() => { const F = document.getElementById('oso-frames'); const brz = F.querySelector('[data-slot=bottom-right]').getBoundingClientRect(); return { bar: !!F.querySelector('.osof-tourbar:not([hidden])'), back: brz.bottom > innerHeight - 60 }; });
+  ok(!r.bar && r.back, '📱 Skip ✕ ends it and the corners come back down');
+  await p2.click('#oso-frames .osof-sheetbtn');
+  r = await p2.evaluate(() => { const d = document.querySelector('#osof-dlg-sheet:not([hidden])'); const first = d && d.querySelector('.osof-dlg-body').firstElementChild; return { first: first && first.className, text: first && first.textContent, note: d && !!d.querySelector('.osof-sheet-note') }; });
+  ok(r.first === 'osof-sheet-hide' && /Hide the whole frame/.test(r.text || '') && r.note, '📱 the sheet\'s FIRST row is "✕ Hide the whole frame" (+ the one-line difference from the 🎻 ✕)');
+  await p2.keyboard.press('Escape');
+  // the phone bottom law: edge-to-edge words → the chat pill folds to its tiny emoji (or steps up) — never on words
+  await p2.goto('http://nobody.example/wide.html', { waitUntil: 'load' });
+  await p2.waitForSelector('#oso-frames[data-osof-ready]', { state: 'attached' }); await p2.waitForTimeout(900);
+  r = await p2.evaluate(() => { const F = document.getElementById('oso-frames'); const w = F.querySelector('.osof-chatwrap'); const vis = w && (w.getAttribute('data-mini') === '1' ? w.querySelector('.osof-fab-mini') : w.querySelector('.osof-fab')); const rr = vis && vis.getBoundingClientRect(); const under = rr ? document.elementsFromPoint(rr.left + rr.width / 2, rr.top + rr.height / 2).some((e) => !F.contains(e) && /^(P|LI|H\d)$/.test(e.tagName)) : null; return { mini: w && w.getAttribute('data-mini'), under, ls: localStorage.getItem('osof:ui:mini:chat') }; });
+  ok(r.mini === '1' && !r.ls, `📱 edge-to-edge words: the chat pill folds to its tiny emoji for this view (not remembered; words under the tiny one: ${r.under})`);
+  ok(!errs2.length, '📱 no errors' + (errs2.length ? ' → ' + errs2.join(' | ') : ''));
   await ctx2.close();
 }
 await b.close(); srv.close();

@@ -608,7 +608,10 @@
       el: wrap,
       tour: item.tip || fill(T('tour', '{label}: an AI agent of the ʻohana answers you, live from Taurus.'), { label: label }),
       open: function () { engine.open(mainLine, fab, wrap); },
-      close: function () { engine.close(); }
+      close: function () { engine.close(); },
+      // NO COVERED TEXT LAW (phones): the core folds the pill to the tiny emoji while words run under it — session only,
+      // never undoing the visitor's own ✕ (remembered mini)
+      fold: function (v) { if (ui.get(miniKey) === true) return; wrap.setAttribute('data-mini', v ? '1' : '0'); }
     };
   });
 }

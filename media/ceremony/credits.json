@@ -1,0 +1,121 @@
+{
+  "what": "The ceremony — the welcome of the Open Source Orchestra frame, one short passage per button (frames v0.1.3, 22 Nov 2026)",
+  "voice": "Shaka Lei Kaumaka's voice twin (Qwen3-TTS-12Hz-0.6B-Base, Apache-2.0 weights, run by the MIT C engine gabriele-mastrapasqua/qwen3-tts on CPU; zero-shot clone from a 6-second consented reference), made by the AI ʻohana",
+  "honest_line": "This is my voice, made by the AI ʻohana. — spoken once, in the welcome (welcome.mp3); every clip here is synthetic, made by the ʻohana in Shaka's voice, with his blessing",
+  "license": "CC-BY-SA-4.0",
+  "credit": "Built by Open Source Orchestra: Shaka Lei Kaumaka & the AI ʻohana (https://opensourceorchestra.org)",
+  "words": "script: /ceremony script of 22 Nov 2026 (the same words are the captions in frames/universe.json → ceremony.say)",
+  "format": "mp3 mono 24 kHz 64 kbit/s, loudness −16 LUFS, ≤ 110 KB per clip",
+  "verified": "each clip transcribed with whisper (faster-whisper medium.en) and matched word-level against the script before shipping: 27/27 ≥ 0.90, mean 0.979, total 161.3 s (22 Nov 2026)",
+  "machines_say_they_are_machines": true,
+  "clips": {
+    "welcome": {
+      "seconds": 7.42,
+      "whisper_match": 1.0
+    },
+    "globe": {
+      "seconds": 5.16,
+      "whisper_match": 0.966
+    },
+    "theater": {
+      "seconds": 6.38,
+      "whisper_match": 1.0
+    },
+    "songbook": {
+      "seconds": 5.86,
+      "whisper_match": 1.0
+    },
+    "kala": {
+      "seconds": 6.62,
+      "whisper_match": 1.0
+    },
+    "garden-circle": {
+      "seconds": 5.74,
+      "whisper_match": 0.966
+    },
+    "mandala-room": {
+      "seconds": 5.06,
+      "whisper_match": 1.0
+    },
+    "nodes": {
+      "seconds": 5.33,
+      "whisper_match": 1.0
+    },
+    "camera": {
+      "seconds": 4.94,
+      "whisper_match": 0.952
+    },
+    "pit": {
+      "seconds": 7.66,
+      "whisper_match": 0.923
+    },
+    "fork-the-first-artist": {
+      "seconds": 5.5,
+      "whisper_match": 1.0
+    },
+    "lisbon": {
+      "seconds": 5.5,
+      "whisper_match": 1.0
+    },
+    "mandala": {
+      "seconds": 5.02,
+      "whisper_match": 1.0
+    },
+    "credit": {
+      "seconds": 9.5,
+      "whisper_match": 0.909
+    },
+    "radio": {
+      "seconds": 6.86,
+      "whisper_match": 0.938
+    },
+    "chat": {
+      "seconds": 6.29,
+      "whisper_match": 1.0
+    },
+    "fork-this-frame": {
+      "seconds": 4.61,
+      "whisper_match": 1.0
+    },
+    "calls": {
+      "seconds": 5.33,
+      "whisper_match": 1.0
+    },
+    "schedule": {
+      "seconds": 4.13,
+      "whisper_match": 0.9
+    },
+    "public-goods": {
+      "seconds": 4.61,
+      "whisper_match": 1.0
+    },
+    "all-doors": {
+      "seconds": 4.61,
+      "whisper_match": 1.0
+    },
+    "shaka": {
+      "seconds": 2.45,
+      "whisper_match": 1.0
+    },
+    "totem": {
+      "seconds": 6.62,
+      "whisper_match": 0.974
+    },
+    "sheet": {
+      "seconds": 3.82,
+      "whisper_match": 1.0
+    },
+    "orchestra": {
+      "seconds": 6.05,
+      "whisper_match": 1.0
+    },
+    "blessing-pool": {
+      "seconds": 13.73,
+      "whisper_match": 0.987
+    },
+    "closing": {
+      "seconds": 6.55,
+      "whisper_match": 0.923
+    }
+  }
+}

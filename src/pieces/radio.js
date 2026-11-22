@@ -183,7 +183,10 @@
       el: el,
       tour: item.tip || T('tour', 'The radio: songs of the ʻohana. Nothing plays or loads until you press ▶.'),
       open: function () { setMini(false); askLive(); play.focus(); },
-      close: function () { if (audio && !audio.paused) audio.pause(); }
+      close: function () { if (audio && !audio.paused) audio.pause(); },
+      // NO COVERED TEXT LAW (phones): the core folds the dock to the tiny 📻 while words run under it — session only, never
+      // while a song plays (the visitor pressed ▶), never undoing the visitor's own ✕ (remembered mini)
+      fold: function (v) { if (ui.get(miniKey) === true) return; if (v && audio && !audio.paused) return; el.setAttribute('data-mini', v ? '1' : '0'); }
     };
   });
 }
