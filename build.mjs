@@ -14,7 +14,7 @@ import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const ROOT = dirname(fileURLToPath(import.meta.url));
-const ORDER = ['door', 'globe', 'theater', 'totem', 'chat', 'radio', 'signature'];   // fixed order; missing files are fine
+const ORDER = ['door', 'globe', 'theater', 'totem', 'chat', 'radio', 'signature', 'thanks'];   // fixed order; missing files are fine
 const TARGET = 70 * 1024;
 const args = new Set(process.argv.slice(2));
 const CHECK_ONLY = args.has('--check'), STRICT = args.has('--strict');

@@ -170,6 +170,38 @@
         "pattern": "^[a-z][a-z0-9-]{0,31}$"
       },
       "description": "v0.1.1 · kinds to drop from the parent (e.g. [\"signature\",\"pill\"]). Only meaningful with extends."
+    },
+    "gift": {
+      "description": "v0.1.2 · gift rails shown by the `thanks` line and exposed to agents (meta/link + data-gift). https only. Doors inherit and may swap a rail.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "x402": {
+          "$ref": "#/$defs/url"
+        },
+        "stripe": {
+          "$ref": "#/$defs/url"
+        },
+        "paypal": {
+          "$ref": "#/$defs/url"
+        },
+        "venmo": {
+          "$ref": "#/$defs/url"
+        },
+        "pool": {
+          "$ref": "#/$defs/url"
+        }
+      }
+    },
+    "tour": {
+      "description": "v0.1.2 · {auto:true} brings the first-visit auto tour back (off by default since 22 Nov 2026; ✨ still replays it on request).",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "auto": {
+          "type": "boolean"
+        }
+      }
     }
   },
   "$defs": {
@@ -377,6 +409,18 @@
           },
           "then": {
             "$ref": "#/$defs/signature"
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "thanks"
+              }
+            }
+          },
+          "then": {
+            "$ref": "#/$defs/thanks"
           }
         }
       ]
@@ -835,6 +879,25 @@
         },
         "append": {
           "$ref": "#/$defs/list"
+        }
+      }
+    },
+    "thanks": {
+      "description": "v0.1.2 · One small line, top centre, once per page view: thanks for every gift + the rails (agents: x402 · humans: Stripe/PayPal/Venmo). Fades after `seconds` (default 3). BUTTON LAW: never on words; with no clear band it does not show.",
+      "type": "object",
+      "properties": {
+        "seconds": {
+          "type": "number",
+          "minimum": 1.5,
+          "maximum": 8
+        },
+        "delay": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 10000
+        },
+        "gift": {
+          "$ref": "#/properties/gift"
         }
       }
     }

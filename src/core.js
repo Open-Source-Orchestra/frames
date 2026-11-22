@@ -12,7 +12,7 @@
  */
 var FRAMES = (function (W) {
   'use strict';
-  var VERSION = '0.1.1';
+  var VERSION = '0.1.2';
   var MAJOR = VERSION.split('.')[0];
   if (W && W.OSOFrames && W.OSOFrames.__osof) {            // loaded twice: the first copy rules
     if (W.console) W.console.info('🎻 frames: already on this page; the second copy stays quiet.');
@@ -31,7 +31,7 @@ var FRAMES = (function (W) {
   var SLOTS = ['top-left', 'left', 'bottom-left', 'bottom-right', 'right', 'top-right', 'overlay'];
   var RING = ['top-left', 'left', 'bottom-left', 'bottom-right', 'right', 'top-right'];   // the tour traces the frame: down the left, across the bottom, up the right
   var UPWARD = { 'bottom-right': 1, right: 1, 'top-right': 1 };
-  var KIND_EMOJI = { theater: '📺', totem: '🗿', chat: '💬', radio: '📻', tour: '✨', globe: '🌐' };
+  var KIND_EMOJI = { theater: '📺', totem: '🗿', chat: '💬', radio: '📻', tour: '✨', globe: '🌐', thanks: '🙏' };
   var BRANDS = /(Open Source Orchestra Frames|Open Source Orchestra|Shaka Lei Kaumaka|ʻohana)/;
   var EN = {
     frame: 'Open Source Orchestra frame',
@@ -50,11 +50,13 @@ var FRAMES = (function (W) {
     'settings.url': '?frame=off on any address hides the frame for one page view.',
     'dot.label': 'Bring back the frame by the ʻohana', 'dot.tip': 'The frame is off. Tap to bring it back.',
     'fold': 'Hide the frame button (a small dot stays)', 'unfold': 'Show the frame button',
+    'hide': 'Hide the whole frame — every button at once (a small 🎻 dot stays and brings it back)', 'sheet.hide': 'Hide the whole frame',
+    'g.thanks': 'Gift line (3 s)',
     'g.doors': 'Doors', 'g.pills': 'Pills', 'g.theater': 'Theater', 'g.totem': 'Totem of agents', 'g.chat': 'Talk line', 'g.radio': 'Radio', 'g.signature': 'Signature', 'g.tour': 'Tour'
   };
   // the ⚙ panel groups pieces by what a visitor sees (the globe stays: one language choice follows the visitor across every door)
-  var GROUP = { door: 'doors', pill: 'pills', theater: 'theater', totem: 'totem', chat: 'chat', radio: 'radio', signature: 'signature', tour: 'tour', spot: 'tour' };
-  var GROUPS = ['doors', 'pills', 'theater', 'totem', 'chat', 'radio', 'signature', 'tour'];
+  var GROUP = { door: 'doors', pill: 'pills', theater: 'theater', totem: 'totem', chat: 'chat', radio: 'radio', signature: 'signature', tour: 'tour', spot: 'tour', thanks: 'thanks' };
+  var GROUPS = ['doors', 'pills', 'theater', 'totem', 'chat', 'radio', 'signature', 'tour', 'thanks'];
   var TEXT_TAGS = { P: 1, LI: 1, H1: 1, H2: 1, H3: 1, H4: 1, H5: 1, H6: 1, BLOCKQUOTE: 1, PRE: 1, TD: 1, TH: 1, DT: 1, DD: 1, FIGCAPTION: 1, LABEL: 1, SUMMARY: 1, A: 1, SPAN: 1, SMALL: 1, EM: 1, STRONG: 1, B: 1, I: 1, CODE: 1 };
 
   // ── small helpers ───────────────────────────────────────────────────────────────
@@ -177,6 +179,9 @@ var FRAMES = (function (W) {
     out.license = { data: (isObj(raw.license) && str(raw.license.data)) || 'CC-BY-SA-4.0', code: 'AGPL-3.0-or-later' };
     out.accent = /^#[0-9a-f]{6}$/i.test(str(raw.accent)) ? str(raw.accent).toLowerCase() : '';
     out.host = doorHost(raw.host);
+    var g = isObj(raw.gift) ? raw.gift : {}; out.gift = {};                                  // gift rails: https only
+    ['x402', 'stripe', 'paypal', 'venmo', 'pool'].forEach(function (k) { if (/^https:\/\//i.test(str(g[k]))) out.gift[k] = str(g[k]); });
+    out.tour = isObj(raw.tour) && raw.tour.auto === true ? { auto: true } : null;         // forks may bring the auto tour back
     delete out.extends; delete out.without;
     var strings = {};
     if (isObj(raw.strings)) Object.keys(raw.strings).forEach(function (k) { if (typeof raw.strings[k] === 'string') strings[k] = raw.strings[k]; });
@@ -213,6 +218,7 @@ var FRAMES = (function (W) {
       child.credit.add.forEach(function (x) { if (out.credit.add.indexOf(x) < 0) out.credit.add.push(x); });
     }
     if (isObj(child.license) && child.license.data) { out.license = isObj(out.license) ? out.license : {}; out.license.data = child.license.data; }
+    if (isObj(child.gift)) { out.gift = isObj(out.gift) ? copy(out.gift) : {}; Object.keys(child.gift).forEach(function (k) { out.gift[k] = child.gift[k]; }); }   // a door may add or swap a rail (null removes)
     out.slots = isObj(out.slots) ? out.slots : {};
     var without = Array.isArray(child.without) ? child.without.map(str) : [];
     var matches = function (it, sel) { sel = str(sel); return sel.indexOf('kind:') === 0 ? it.kind === sel.slice(5) : (str(it.id) === sel); };
@@ -336,7 +342,7 @@ var FRAMES = (function (W) {
   var dot = null, sheetX = null, sheetFolded = { user: false, text: false };
   var data = null, dataURL = '', base = '', frameId = 'frame';
   var LS = null, once = null, store = null;
-  var root = null, zones = {}, recs = [], more = {}, creditBox = null, creditInfo = null, creditGear = null, sheetBtn = null;
+  var root = null, zones = {}, recs = [], more = {}, creditBox = null, creditInfo = null, creditGear = null, creditX = null, sheetBtn = null;
   var dialogs = {}, openDlg = null, ro = null, layoutQueued = false, unknownSeen = {};
 
   function t(key, fallback) {
@@ -356,7 +362,8 @@ var FRAMES = (function (W) {
       base: base,
       emit: emit, on: on,
       credit: creditLine(data),
-      panel: function (o) { return dialog(o || {}); }
+      panel: function (o) { return dialog(o || {}); },
+      textAt: function (r) { return rectHasText(r); }                 // BUTTON LAW probe for pieces that place themselves
     };
     Object.defineProperty(ctx, 'reduced', { enumerable: true, get: function () { return state.reduced; } });
     Object.defineProperty(ctx, 'mobile', { enumerable: true, get: function () { return state.mobile; } });
@@ -378,6 +385,40 @@ var FRAMES = (function (W) {
       for (var j = 0; j < els.length; j++) if (!root || !root.contains(els[j])) return true;
     } catch (e) { info('"unless" is neither window.<name> nor a CSS selector:', s); }
     return false;
+  }
+  // adopt LATE too: a page's own widget (e.g. #oso-fab) may be built after the frame mounted its twin (opensourceorchestra.org,
+  // 22 Nov 2026: two "Talk to OSO" buttons). For 12 s after mount, a DOM watcher + a few timers re-check every selector "unless".
+  var unlessWatch = null;
+  function watchUnless() {
+    stopUnlessWatch();
+    var pending = recs.filter(function (r) { return r.item && typeof r.item.unless === 'string' && !/^window\./.test(r.item.unless.trim()); });
+    if (!pending.length) return;
+    var check = function () {
+      pending = pending.filter(function (r) {
+        if (r.skipped) return false;
+        if (!unlessMatches(r.item.unless)) return true;
+        info('"' + r.id + '" adopted late: the page has ' + r.item.unless);
+        if (openDlg && openDlg.opener && r.wrap && r.wrap.contains(openDlg.opener)) closeDialog(openDlg, false, 'adopt');
+        unmount(r); schedule();
+        return false;
+      });
+      if (!pending.length) stopUnlessWatch();
+    };
+    var tick = 0, mo = null;
+    var onMut = function () { if (tick) return; tick = setTimeout(function () { tick = 0; check(); }, 250); };
+    try { if (W.MutationObserver && D.body) { mo = new MutationObserver(onMut); mo.observe(D.body, { childList: true, subtree: true }); } } catch (e) { mo = null; }
+    var timers = [1500, 4000, 8000, 12000].map(function (ms) { return setTimeout(check, ms); });
+    unlessWatch = { stop: function () { if (mo) mo.disconnect(); timers.forEach(clearTimeout); clearTimeout(tick); } };
+    setTimeout(stopUnlessWatch, 12500);
+  }
+  function stopUnlessWatch() { if (unlessWatch) { unlessWatch.stop(); unlessWatch = null; } }
+  // 22 Nov 2026, Shaka: the old description bubbles of the ʻohana corners go on ALL doors (the frame's thanks line replaces them):
+  // .obub = "bubble-letter tips" next to the legacy corner buttons · #otip = the bottom donation bubble. Legacy, ours, retired.
+  function retireLegacy() {
+    if (D.getElementById('osof-retire')) return;
+    var s = D.createElement('style'); s.id = 'osof-retire';
+    s.textContent = '.obub,#otip{display:none!important}';
+    (D.head || D.documentElement).appendChild(s);
   }
   function spotEls(rec) {
     var out = [];
@@ -543,7 +584,9 @@ var FRAMES = (function (W) {
       h('span', { 'aria-hidden': 'true' }, '🎻'), ' frame by the ', h('span', { translate: 'no', class: 'notranslate' }, 'ʻohana'));
     creditInfo = h('button', { type: 'button', class: 'osof-credit-i', 'aria-label': t('credit.about'), 'aria-haspopup': 'dialog', 'aria-expanded': 'false', on: { click: function () { about(creditInfo); } } }, 'i');
     creditGear = h('button', { type: 'button', class: 'osof-credit-i osof-credit-g', 'aria-label': t('settings'), 'aria-haspopup': 'dialog', 'aria-expanded': 'false', on: { click: function () { settings(creditGear); } } }, h('span', { 'aria-hidden': 'true' }, '⚙'));
-    creditBox = h('div', { class: 'osof-credit' }, a, creditInfo, creditGear);
+    // BUTTON LAW: every floating thing carries a tiny ✕ — this one hides the WHOLE frame at once (= the ⚙ master switch)
+    creditX = h('button', { type: 'button', class: 'osof-credit-i osof-credit-x', 'aria-label': t('hide'), title: t('hide'), on: { click: function () { hideAll(); } } }, h('span', { 'aria-hidden': 'true' }, '✕'));
+    creditBox = h('div', { class: 'osof-credit' }, a, creditInfo, creditGear, creditX);
     zones['bottom-left'].appendChild(h('div', { class: 'osof-item', 'data-osof-kind': 'credit' }, creditBox));
   }
   function about(opener) {
@@ -643,10 +686,12 @@ var FRAMES = (function (W) {
     observeSpots();
     layout();
     if (state.outline) drawOutline();
+    retireLegacy();
+    watchUnless();
     scheduleTour();
   }
   function unmountAll() {
-    stopTour('off', true); hideFinal();
+    stopTour('off', true); hideFinal(); stopUnlessWatch();
     var keep = dialogs['osof-dlg-settings'];
     if (openDlg && openDlg !== keep) closeDialog(openDlg, false, 'off');
     recs.slice().forEach(unmount);
@@ -655,7 +700,7 @@ var FRAMES = (function (W) {
     [].slice.call(zones.overlay.children).forEach(function (c) { c.remove(); });
     [].slice.call(root.querySelectorAll('.osof-sig')).forEach(function (c) { c.remove(); });
     Object.keys(dialogs).forEach(function (k) { if (dialogs[k] !== keep) { dialogs[k].root.remove(); delete dialogs[k]; } });
-    more = {}; creditBox = creditInfo = creditGear = sheetBtn = sheetX = null;
+    more = {}; creditBox = creditInfo = creditGear = creditX = sheetBtn = sheetX = null;
     if (outlineSvg) { outlineSvg.remove(); outlineSvg = null; }
   }
   function turnOff() {
@@ -666,6 +711,12 @@ var FRAMES = (function (W) {
     root.setAttribute('data-osof-off', '');
     makeDot();
     emit('frame:settings', { on: false, hide: copy(prefs.hide) });
+  }
+  // one tap: every button of the frame gone (remembered); focus lands on the dot that brings it back
+  function hideAll() {
+    if (openDlg) closeDialog(openDlg, false, 'hide');
+    turnOff();
+    if (dot) focusEl(dot);
   }
   function turnOn() {
     if (!state.off) return;
@@ -738,6 +789,8 @@ var FRAMES = (function (W) {
     d.body.appendChild(h('div', { class: 'osof-tiles' }, tiles));
     if (faces.length) d.body.appendChild(h('div', { class: 'osof-sheet-sec' }, h('h3', {}, brandify(t('sheet.talk'))), h('div', { class: 'osof-tiles osof-faces' }, faces)));
     d.body.appendChild(h('p', { class: 'osof-small osof-sheet-credit' }, brandify(creditLine(data))));
+    // phones: the credit mark may be folded into this sheet, so the one-tap "hide everything" lives here too
+    d.body.appendChild(h('p', { class: 'osof-small' }, h('button', { type: 'button', class: 'osof-link osof-sheet-hide', title: t('hide'), on: { click: function () { hideAll(); } } }, '✕ ', t('sheet.hide'))));
     d.open(sheetBtn);
   }
   function hookTile(el, d) { el.addEventListener('click', function () { if (d.isOpen()) closeDialog(d, false, 'tile'); }); }
@@ -906,6 +959,8 @@ var FRAMES = (function (W) {
       if (sheetFolded.text !== ct.blocked && !sheetFolded.user) foldSheet(ct.blocked, false);
       if (sheetFolded.text || sheetFolded.user) root.style.setProperty('--osof-top-r', dotSpot(W.innerWidth - 8 - 20, ct.y) + 'px');   // the dot, too, sits on no words
     }
+    liftOffWidgets('bottom-right');
+    liftOffWidgets('bottom-left');
     placeCredit(mobile);
     stackCorners(mobile);
     if (!mobile) {
@@ -944,7 +999,7 @@ var FRAMES = (function (W) {
   // the first clear spot (the rail fits above it); with no clear spot, or on phones, it shrinks to its icons (🎻 · i · ⚙)
   function placeCredit(mobile) {
     var z = zones['bottom-left'];
-    z.style.bottom = '';
+    z.style.bottom = state.liftBL ? state.liftBL + 'px' : '';                               // keep the lift off a page widget
     root.removeAttribute('data-osof-credit-folded');
     if (!creditBox) return;
     creditBox.classList.remove('osof-credit-mini');
@@ -968,6 +1023,23 @@ var FRAMES = (function (W) {
     // phones: no clear spot at all (a words panel fills the screen) → the credit folds INTO the 🎻 sheet button, which carries
     // the credit line (title + description) and whose sheet shows it in full — AGPL §7(b) stays visible, the words stay readable
     if (mobile && sheetBtn) { root.setAttribute('data-osof-credit-folded', ''); creditBox.classList.remove('osof-credit-mini'); }
+  }
+  // NO COVERED TEXT LAW (Shaka, 22 Nov 2026: "remove the one that covers the radio player … always centered, grounded, and balanced"):
+  // a bottom corner of the frame (chat FAB, radio dock, pills, credit) never sits on the page's own fixed controls — a mini player,
+  // an old chat FAB, a cookie bar. If one lives under the corner, the whole corner steps up above it (grounded on clear ground).
+  function liftOffWidgets(slot) {
+    var z = zones[slot];
+    z.style.bottom = '';
+    if (slot === 'bottom-left') state.liftBL = 0;
+    var zr = z.getBoundingClientRect(), vh = W.innerHeight;
+    if (zr.width < 2 || zr.height < 2) return;
+    var stuff = cornerStuff(slot);
+    if (!stuff) return;
+    if (stuff.right < zr.left - 6 || stuff.left > zr.right + 6 || stuff.top > zr.bottom || stuff.bottom < zr.top) return;   // no overlap
+    var lift = Math.round(vh - stuff.top + 10);
+    if (vh - lift - zr.height < vh * 0.45) return;                                           // would climb into the page: stay
+    z.style.bottom = lift + 'px';
+    if (slot === 'bottom-left') state.liftBL = lift;
   }
   // phones: when the bottom-right pieces (chat, radio dock) reach across the bottom-left credit, the credit steps up above them
   function stackCorners(mobile) {
@@ -1191,6 +1263,9 @@ var FRAMES = (function (W) {
     d.open(opener);
   }
   function scheduleTour() {
+    // 22 Nov 2026, Shaka: "remove the description bubbles on ALL DOORS … they are too big … distracting" → the tour never
+    // starts by itself any more. ✨ (or FRAMES.tour()) still plays it for whoever asks. Forks: set data.tour = {auto:true}.
+    if (!(isObj(data.tour) && data.tour.auto === true)) return;
     if (state.outline || state.off || prefs.hide.tour || !once.peek('tour')) return;
     var sig = recs.some(function (r) { return r.kind === 'signature'; }) && once.got('signature') === true;
     var done = false, offSig = null, offPanel = null;
@@ -1298,17 +1373,20 @@ var FRAMES = (function (W) {
     var F = '#oso-frames';
     return [
       F + '{position:static;font:400 14px/1.35 ' + SERIF + ';color:#f4ecdc;text-align:left;direction:ltr;-webkit-text-size-adjust:100%}',
-      F + ' *{box-sizing:border-box;margin:0;padding:0;border:0 solid;background:none;color:inherit;font:inherit;letter-spacing:inherit;text-transform:none;text-decoration:none;text-shadow:none;box-shadow:none;float:none;max-width:none;min-width:0}',
+      F + ' *{box-sizing:border-box;margin:0;padding:0;border:0 solid;background:none;color:inherit;font:inherit;letter-spacing:inherit;text-transform:none;text-decoration:none;text-shadow:none;box-shadow:none;float:none;max-width:none;min-width:0;inset:auto}',
       F + ' [hidden]{display:none!important}',
-      F + ' .osof-slot{position:fixed;z-index:' + Z.frame + ';pointer-events:none;display:flex;flex-direction:column}',
+      // the zones are <nav>/<div>: a page's own "nav{position:fixed;left:0;right:0;display:grid;padding:…}" must not reach them
+      // (publicinform.com, 22 Nov 2026: the right rail landed at x=0 over the left one) → every zone starts from a clean slate
+      F + ' .osof-slot{all:unset;position:fixed;inset:auto;z-index:' + Z.frame + ';pointer-events:none;display:flex;flex-direction:column;box-sizing:border-box;margin:0;padding:0;border:0;background:none;width:auto;height:auto;min-height:0;max-height:none;transform:none;overflow:visible;font:inherit;color:inherit;direction:ltr}',
+      F + ' .osof-slot::before,' + F + ' .osof-slot::after{content:none!important;display:none!important}',
       F + ' .osof-slot>*{pointer-events:auto}',
       F + ' .osof-item{position:relative;display:flex;flex:none}',
-      F + ' [data-slot=top-left]{left:calc(10px + env(safe-area-inset-left,0px));top:74px;width:54px;align-items:center}',
-      F + ' [data-slot=top-right]{right:calc(10px + env(safe-area-inset-right,0px));top:var(--osof-top-r,74px);width:54px;align-items:center;gap:10px}',
-      F + ' [data-slot=left]{left:calc(10px + env(safe-area-inset-left,0px));width:54px;align-items:center}',
-      F + ' [data-slot=right]{right:calc(10px + env(safe-area-inset-right,0px));width:54px;align-items:center}',
-      F + ' [data-slot=bottom-left]{left:calc(10px + env(safe-area-inset-left,0px));bottom:calc(10px + env(safe-area-inset-bottom,0px));align-items:flex-start;gap:10px}',
-      F + ' [data-slot=bottom-right]{right:calc(10px + env(safe-area-inset-right,0px));bottom:calc(10px + env(safe-area-inset-bottom,0px));align-items:flex-end;gap:10px}',
+      F + ' [data-slot=top-left]{left:calc(10px + env(safe-area-inset-left,0px));right:auto;top:74px;bottom:auto;width:54px;align-items:center}',
+      F + ' [data-slot=top-right]{right:calc(10px + env(safe-area-inset-right,0px));left:auto;top:var(--osof-top-r,74px);bottom:auto;width:54px;align-items:center;gap:10px}',
+      F + ' [data-slot=left]{left:calc(10px + env(safe-area-inset-left,0px));right:auto;bottom:auto;width:54px;align-items:center}',
+      F + ' [data-slot=right]{right:calc(10px + env(safe-area-inset-right,0px));left:auto;bottom:auto;width:54px;align-items:center}',
+      F + ' [data-slot=bottom-left]{left:calc(10px + env(safe-area-inset-left,0px));right:auto;top:auto;bottom:calc(10px + env(safe-area-inset-bottom,0px));align-items:flex-start;gap:10px}',
+      F + ' [data-slot=bottom-right]{right:calc(10px + env(safe-area-inset-right,0px));left:auto;top:auto;bottom:calc(10px + env(safe-area-inset-bottom,0px));align-items:flex-end;gap:10px}',
       F + ' [data-slot=overlay]{inset:0;z-index:' + Z.sig + '}',
       F + ' [data-slot=overlay]>*{pointer-events:none}',
       F + ' [data-osof-kind=globe],' + F + ' [data-osof-kind=globe] *{pointer-events:none!important}',
@@ -1399,6 +1477,8 @@ var FRAMES = (function (W) {
       F + '[data-osof-globe=open] [data-slot=left]{visibility:hidden}',
       // the ⚙ panel · hidden pieces · the frame off (one dot) · the folded 🎻 (BUTTON LAW)
       F + ' .osof-credit-g{font:16px/1 ' + EMOJI + ';font-style:normal}',
+      F + ' .osof-credit-x{font:700 11px/1 ' + SANS + ';font-style:normal;opacity:.8}',
+      F + ' .osof-credit-x:hover,' + F + ' .osof-credit-x:focus-visible{opacity:1}',
       F + ' .osof-credit-g span{display:inline-block;transition:transform .35s ease}',
       F + ' .osof-credit-g:hover span,' + F + ' .osof-credit-g:focus-visible span{transform:rotate(60deg)}',
       F + ' .osof-settings h3{font:700 12px/1.2 ' + SANS + ';letter-spacing:.14em;text-transform:uppercase;color:#e9c46a;margin:14px 0 8px}',

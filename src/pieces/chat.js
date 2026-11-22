@@ -550,7 +550,8 @@
 
     const mainDef = {
       hub: item.hub || 'https://chat.opensourceorchestra.org',
-      face: null,
+      face: /^[a-z0-9_-]{1,24}$/i.test(String(item.face || '')) ? String(item.face) : null,   // a door may name its line (PIT FAM): the hub sees the prefix
+      route: item.route || (item.face ? 'prefix' : null),
       name: item.name || 'OSO',
       emoji: item.emoji || '🎻',
       color: item.color || '#e8c476',

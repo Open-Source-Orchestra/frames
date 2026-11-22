@@ -21,6 +21,12 @@ const NARROW = PAGE('narrow text', `<div style="max-width:560px;margin:0 auto">`
 const OVERLAY = { frame: 'osoframes/0.1', id: 'ben-artist', name: 'Ben · artist frame', accent: '#2f9e6f', credit: { add: ['Ben'] },
   slots: { left: [{ kind: 'door', id: 'home', emoji: '🎸', label: 'Ben', href: '/?who=ben', tip: 'Ben, the first beta artist.' }, { kind: 'door', id: 'ben-tip', emoji: '💸', label: 'Tip Ben', href: 'https://artist.opensourceorchestra.org/tip/?artist=ben', tip: 'Tip Ben over x402.' }],
            'bottom-right': { remove: ['radio'] } } };
+// 22 Nov 2026: a page whose own CSS reaches our <nav> zones (publicinform.com) + a late-built page chat FAB + a bottom mini player
+const NAVLEAK = PAGE('nav leak', `<div style="max-width:560px;margin:60px auto 0">` + Array.from({ length: 30 }, (_, i) => `<p>Paragraph ${i + 1}. ${'Centred words. '.repeat(8)}</p>`).join('') + '</div>' +
+  `<div id="mini" style="position:fixed;right:16px;bottom:12px;width:300px;height:44px;border-radius:22px;background:#333;color:#fff;font:13px/44px sans-serif;padding:0 16px">TAP TO PLAY — a song of the orchestra</div>` +
+  `<script>setTimeout(function(){var b=document.createElement('button');b.id='oso-fab';b.textContent='Talk to OSO';b.style.cssText='position:fixed;right:20px;bottom:70px;padding:10px 16px;border-radius:999px';document.body.appendChild(b);},2800);</script>`)
+  .replace('<style>', '<style>nav{position:fixed;top:0;left:0;right:0;z-index:50;display:grid;grid-template-columns:auto 1fr auto;padding:14px 32px;background:#000}nav::after{content:"";width:110px}')
+  .replace('<main>', '<nav><a href="/">A page nav</a><span></span><a href="/x">Links</a></nav><main>');
 const HERO = PAGE('hero then text', `<div style="height:280px"></div><div style="max-width:560px;margin:0 auto">` + Array.from({ length: 30 }, (_, i) => `<p>Paragraph ${i + 1}. ${'Words below a quiet hero. '.repeat(8)}</p>`).join('') + '</div>');
 
 async function loadPlaywright() {
@@ -41,6 +47,7 @@ function serve() {
         if (u.pathname === '/wide.html') return rsp.writeHead(200, { 'content-type': TYPES['.html'] }).end(WIDE);
         if (u.pathname === '/narrow.html') return rsp.writeHead(200, { 'content-type': TYPES['.html'] }).end(NARROW);
         if (u.pathname === '/hero.html') return rsp.writeHead(200, { 'content-type': TYPES['.html'] }).end(HERO);
+        if (u.pathname === '/navleak.html') return rsp.writeHead(200, { 'content-type': TYPES['.html'] }).end(NAVLEAK);
         if (u.pathname === '/overlay.json') return rsp.writeHead(200, { 'content-type': TYPES['.json'] }).end(JSON.stringify(OVERLAY));
         if (u.pathname === '/attr.html') return rsp.writeHead(200, { 'content-type': TYPES['.html'] }).end(NARROW.replace('data-door="auto"', 'data-door="auto" data-frame-overlay="/overlay.json"'));
         if (u.pathname.startsWith('/__hub')) { rsp.writeHead(500).end('{}'); return; }
@@ -82,7 +89,7 @@ const errsOf = (p) => { const e = []; p.on('pageerror', (x) => e.push('PE:' + St
   ok(r.id === 'pit-protocol', `data-door=auto on publicinform.com → id ${r.id}`);
   ok(r.accent === '#7fe0ff', `accent applied (${r.accent})`);
   ok(r.first === 'home' && r.pitGone && r.n >= 10, `slot ops: prepend + remove (left: ${r.n} items, first ${r.first})`);
-  ok(r.version === '0.1.1' && r.gear, `v${r.version} with the ⚙ gear in the credit mark`);
+  ok(r.version === '0.1.2' && r.gear, `v${r.version} with the ⚙ gear in the credit mark`);
   ok(!errs.length, 'no console/page errors' + (errs.length ? ' → ' + errs.join(' | ') : ''));
   await ctx.close();
 }
@@ -202,6 +209,57 @@ const errsOf = (p) => { const e = []; p.on('pageerror', (x) => e.push('PE:' + St
   ok(r.id === 'inline-artist' && r.from === 'window', 'window.__framesOverlay (inline object) works');
   ok(!errs.filter((e) => !/evil\.example/.test(e)).length, 'no errors on the overlay flow' + (errs.length ? ' → ' + errs.join(' | ') : ''));
   await ctx.close();
+}
+// 7 · NO COVERED TEXT LAW (22 Nov 2026): page CSS cannot drag a rail to the wrong side · frame items never sit on each other ·
+//     the bottom corner lifts off a page's mini player · a late page FAB is adopted (no double chat) · no auto tour bubbles ·
+//     the 3-second thanks line shows top-centre on no words and leaves · ✕ on the credit hides everything at once
+{
+  const ctx = await ctxFor('nobody.example', { width: 1280, height: 800 });
+  const p = await ctx.newPage(); const errs = errsOf(p);
+  await p.goto('http://nobody.example/navleak.html?frame=fresh', { waitUntil: 'load' });
+  await p.waitForSelector('#oso-frames[data-osof-ready]', { state: 'attached' }); await p.waitForTimeout(1300);
+  let r = await p.evaluate(() => {
+    const F = document.getElementById('oso-frames'), vw = innerWidth;
+    const z = (s) => F.querySelector(`[data-slot="${s}"]`).getBoundingClientRect();
+    const items = [...F.querySelectorAll('.osof-slot > .osof-item')].filter((e) => !e.hidden && e.getBoundingClientRect().width > 0).map((e) => ({ k: e.getAttribute('data-osof-kind'), id: e.getAttribute('data-osof-id'), r: e.getBoundingClientRect() }));
+    let overlaps = 0;
+    for (let i = 0; i < items.length; i++) for (let j = i + 1; j < items.length; j++) { const a = items[i].r, b2 = items[j].r; const ix = Math.min(a.right, b2.right) - Math.max(a.left, b2.left), iy = Math.min(a.bottom, b2.bottom) - Math.max(a.top, b2.top); if (ix > 4 && iy > 4) overlaps++; }
+    const totem = F.querySelector('[data-osof-kind=totem]'); const tr = totem && totem.getBoundingClientRect();
+    const mini = document.getElementById('mini').getBoundingClientRect(); const br = z('bottom-right');
+    const th = F.querySelector('.osof-thanks'); const thr = th && th.getBoundingClientRect();
+    const words = th && !th.hidden ? document.elementsFromPoint(thr.left + thr.width / 2, thr.top + thr.height / 2).some((e) => !F.contains(e) && /^(P|A|H\d)$/.test(e.tagName)) : null;
+    return { rightX: z('right').left, leftX: z('left').left, vw, totemRight: !!tr && tr.left > vw / 2, overlaps, chat: !!F.querySelector('[data-osof-kind=chat]'), brAboveMini: br.bottom <= mini.top + 1, thanksShown: !!th && !th.hidden && th.classList.contains('osof-on'), thanksTop: thr && Math.round(thr.top), thanksCentred: thr && Math.abs((thr.left + thr.width / 2) - vw / 2) < 6, wordsUnderThanks: words, tourBar: !!F.querySelector('.osof-tourbar:not([hidden])'), metaX402: !!document.querySelector('head meta[name="x402"]') };
+  });
+  ok(r.rightX > r.vw / 2 && r.leftX < r.vw / 2, `page nav{left:0;right:0} cannot move the rails (left at ${Math.round(r.leftX)}, right at ${Math.round(r.rightX)})`);
+  ok(r.totemRight, 'the totem is on the right rail');
+  ok(r.overlaps === 0, `no frame item sits on another (${r.overlaps} overlaps)`);
+  ok(r.brAboveMini, 'the bottom-right corner (chat) lifted above the page\'s mini player');
+  ok(r.thanksShown && r.thanksCentred && r.thanksTop >= 0 && r.wordsUnderThanks === false, `the thanks line shows centred at the top (y=${r.thanksTop}) with no words under it`);
+  ok(r.metaX402, 'agent language: <meta name="x402"> in <head>');
+  ok(r.chat, 'before the page builds its own FAB, the frame offers its chat');
+  await p.waitForTimeout(3600);
+  r = await p.evaluate(() => { const F = document.getElementById('oso-frames'); const th = F.querySelector('.osof-thanks'); return { thanksGone: !th || th.hidden, chat: !!F.querySelector('[data-osof-kind=chat]'), fab: !!document.getElementById('oso-fab') }; });
+  ok(r.thanksGone, 'the thanks line is gone after three seconds');
+  ok(r.fab && !r.chat, 'the page built #oso-fab late → the frame\'s chat bowed out (no double "Talk to OSO")');
+  await p.waitForTimeout(5200);
+  ok(!(await p.evaluate(() => !!document.querySelector('#oso-frames .osof-tourbar:not([hidden]), #oso-frames .osof-cap.osof-on'))), 'no auto tour: no caption bubbles ever appear by themselves');
+  await p.click('#oso-frames .osof-credit-x');
+  r = await p.evaluate(() => ({ off: document.getElementById('oso-frames').hasAttribute('data-osof-off'), items: document.querySelectorAll('#oso-frames .osof-item').length, dotFocused: document.activeElement && document.activeElement.classList.contains('osof-dot'), ls: localStorage.getItem('osof:settings:v1') }));
+  ok(r.off && r.items === 0 && /"on":false/.test(r.ls || ''), `✕ on the credit hides every button at once (${r.items} items left, remembered)`);
+  ok(r.dotFocused, 'focus lands on the dot that brings it back');
+  ok(!errs.length, 'no errors on the law page' + (errs.length ? ' → ' + errs.join(' | ') : ''));
+  await ctx.close();
+  // phone: the sheet carries "Hide the whole frame"
+  const ctx2 = await ctxFor('nobody.example', { width: 390, height: 844 }, true);
+  const p2 = await ctx2.newPage();
+  await p2.goto('http://nobody.example/hero.html', { waitUntil: 'load' });
+  await p2.waitForSelector('#oso-frames[data-osof-ready]', { state: 'attached' }); await p2.waitForTimeout(800);
+  await p2.click('#oso-frames .osof-sheetbtn');
+  const hasHide = await p2.evaluate(() => !!document.querySelector('#osof-dlg-sheet:not([hidden]) .osof-sheet-hide'));
+  ok(hasHide, 'the phone sheet offers "Hide the whole frame"');
+  await p2.click('#osof-dlg-sheet .osof-sheet-hide');
+  ok(await p2.evaluate(() => document.getElementById('oso-frames').hasAttribute('data-osof-off') && !!document.querySelector('#oso-frames .osof-dot')), 'one tap on a phone: everything gone, one dot stays');
+  await ctx2.close();
 }
 await b.close(); srv.close();
 console.log(fails ? `\n✗ ${fails} check(s) failed` : '\n✓ e2e-settings: all green');
