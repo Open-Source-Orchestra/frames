@@ -24,6 +24,7 @@ const OVERLAY = { frame: 'osoframes/0.1', id: 'ben-artist', name: 'Ben · artist
 // 22 Nov 2026: a page whose own CSS reaches our <nav> zones (publicinform.com) + a late-built page chat FAB + a bottom mini player
 const NAVLEAK = PAGE('nav leak', `<div style="max-width:560px;margin:60px auto 0">` + Array.from({ length: 30 }, (_, i) => `<p>Paragraph ${i + 1}. ${'Centred words. '.repeat(8)}</p>`).join('') + '</div>' +
   `<div id="mini" style="position:fixed;right:16px;bottom:12px;width:300px;height:44px;border-radius:22px;background:#333;color:#fff;font:13px/44px sans-serif;padding:0 16px">TAP TO PLAY — a song of the orchestra</div>` +
+  `<a id="wide" href="/x" style="position:absolute;top:600px;left:30px;right:30px;height:50px;display:block;background:#222;color:#fff;font:14px/50px sans-serif;text-align:center">A WIDE BUTTON ROW THAT RUNS UNDER BOTH RAILS — FORK THE PROTOCOL</a>` +
   `<script>setTimeout(function(){var b=document.createElement('button');b.id='oso-fab';b.textContent='Talk to OSO';b.style.cssText='position:fixed;right:20px;bottom:70px;padding:10px 16px;border-radius:999px';document.body.appendChild(b);},2800);</script>`)
   .replace('<style>', '<style>nav{position:fixed;top:0;left:0;right:0;z-index:50;display:grid;grid-template-columns:auto 1fr auto;padding:14px 32px;background:#000}nav::after{content:"";width:110px}')
   .replace('<main>', '<nav><a href="/">A page nav</a><span></span><a href="/x">Links</a></nav><main>');
@@ -232,6 +233,11 @@ const errsOf = (p) => { const e = []; p.on('pageerror', (x) => e.push('PE:' + St
   });
   ok(r.rightX > r.vw / 2 && r.leftX < r.vw / 2, `page nav{left:0;right:0} cannot move the rails (left at ${Math.round(r.leftX)}, right at ${Math.round(r.rightX)})`);
   ok(r.totemRight, 'the totem is on the right rail');
+  {
+    const rr = await p.evaluate(() => { const F = document.getElementById('oso-frames'); const wide = document.getElementById('wide').getBoundingClientRect(); const z = (s) => F.querySelector(`[data-slot="${s}"]`).getBoundingClientRect(); const under = [...F.querySelectorAll('[data-slot=left] .osof-item:not([hidden]), [data-slot=right] .osof-item:not([hidden])')].filter((e) => { const b2 = e.getBoundingClientRect(); return b2.width > 0 && b2.bottom > wide.top && b2.top < wide.bottom; }).length; return { mode: F.getAttribute('data-mode'), leftBottom: Math.round(z('left').bottom), rightBottom: Math.round(z('right').bottom), wideTop: Math.round(wide.top), under, leftKids: F.querySelectorAll('[data-slot=left] .osof-item:not([hidden])').length }; });
+    ok(rr.mode === 'desktop' && rr.leftKids >= 3, `one wide button row does not fold the rails (mode ${rr.mode}, ${rr.leftKids} left items)`);
+    ok(rr.under === 0 && rr.leftBottom <= rr.wideTop && rr.rightBottom <= rr.wideTop, `the rails end above the wide row (left ${rr.leftBottom}, right ${rr.rightBottom} ≤ ${rr.wideTop}; ${rr.under} items on it)`);
+  }
   ok(r.overlaps === 0, `no frame item sits on another (${r.overlaps} overlaps)`);
   ok(r.brAboveMini, 'the bottom-right corner (chat) lifted above the page\'s mini player');
   ok(r.thanksShown && r.thanksCentred && r.thanksTop >= 0 && r.wordsUnderThanks === false, `the thanks line shows centred at the top (y=${r.thanksTop}) with no words under it`);

@@ -13,7 +13,7 @@
    "emoji": "🎨",
    "accent": "#b48cff",
    "extends": "../universe.json",
-   "items": 28,
+   "items": 29,
    "doors": 19,
    "signature": true,
    "url": "https://artist.opensourceorchestra.org/"
@@ -26,7 +26,7 @@
    "emoji": "🌊",
    "accent": "#4fc3f7",
    "extends": "../universe.json",
-   "items": 26,
+   "items": 27,
    "doors": 17,
    "signature": true,
    "url": "https://blessingpool.com/"
@@ -39,7 +39,7 @@
    "emoji": "🦄",
    "accent": "#c792ea",
    "extends": "../universe.json",
-   "items": 27,
+   "items": 28,
    "doors": 18,
    "signature": true,
    "url": "https://devconpit.com/"
@@ -52,7 +52,7 @@
    "emoji": "🗿",
    "accent": "#f7d794",
    "extends": "../universe.json",
-   "items": 26,
+   "items": 27,
    "doors": 17,
    "signature": true,
    "url": "https://myagentohana.com/"
@@ -78,7 +78,7 @@
    "emoji": "📺",
    "accent": "#ff7eb6",
    "extends": "../universe.json",
-   "items": 24,
+   "items": 25,
    "doors": 16,
    "signature": true,
    "url": "https://osodaomeet.opensourceorchestra.org/"
@@ -91,7 +91,7 @@
    "emoji": "♓",
    "accent": "#c792ea",
    "extends": "../universe.json",
-   "items": 26,
+   "items": 27,
    "doors": 17,
    "signature": true,
    "url": "https://piscisagents.org/"
@@ -104,7 +104,7 @@
    "emoji": "📡",
    "accent": "#7fe0ff",
    "extends": "../universe.json",
-   "items": 27,
+   "items": 28,
    "doors": 18,
    "signature": true,
    "url": "https://publicinform.com/"
@@ -117,7 +117,7 @@
    "emoji": "🤙",
    "accent": "#ffb443",
    "extends": "../universe.json",
-   "items": 26,
+   "items": 27,
    "doors": 17,
    "signature": true,
    "url": "https://shakaleikaumaka.com/"
@@ -130,7 +130,7 @@
    "emoji": "🌴",
    "accent": "#2f9e6f",
    "extends": "../universe.json",
-   "items": 27,
+   "items": 28,
    "doors": 18,
    "signature": true,
    "url": "https://zuchiangmai.app/"

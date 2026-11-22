@@ -10,6 +10,13 @@
     "data": "CC-BY-SA-4.0",
     "code": "AGPL-3.0-or-later"
   },
+  "gift": {
+    "x402": "https://shakaleikaumaka.com/x402-bless.json",
+    "stripe": "https://blessingpool.com/#tide",
+    "paypal": "https://paypal.me/Shakalei",
+    "venmo": "https://venmo.com/u/jordanham",
+    "pool": "https://blessingpool.com/"
+  },
   "strings": {},
   "slots": {
     "top-left": [
@@ -309,6 +316,12 @@
       }
     ],
     "overlay": [
+      {
+        "kind": "thanks",
+        "id": "thanks",
+        "seconds": 3,
+        "tip": "A three-second thank-you for every gift, with the rails: x402 for agents, Stripe, PayPal and Venmo for humans."
+      },
       {
         "kind": "signature",
         "id": "signature",

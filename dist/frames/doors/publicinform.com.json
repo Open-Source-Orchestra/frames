@@ -51,6 +51,19 @@
       "remove": [
         "pit"
       ]
+    },
+    "bottom-right": {
+      "set": {
+        "chat": {
+          "label": "Talk to the PIT FAM",
+          "name": "PIT FAM",
+          "emoji": "🕳️",
+          "storage": "pitfam",
+          "face": "pitfam",
+          "greeting": "Aloha — you have reached the PIT FAM: the AI agents behind every public information trail of the Open Source Orchestra. Ask about the P.I.T. protocol, the whitepaper, or how to open a pit for your own gathering.",
+          "tip": "A live line to the PIT FAM — the agents behind every public information trail. Replies take a moment."
+        }
+      }
     }
   }
 }

@@ -850,6 +850,7 @@ var FRAMES = (function (W) {
   // ours = the frame itself and the ʻŌlelo host (#olelo). The LEGACY 🌐 corner (#olang) is page content: its label bar
   // ("every language — on a Planet We Share As One") is words the 🎻 must not sit on (blessingpool.com at 390px).
   function ours(a) { return (root && root.contains(a)) || a.id === 'olelo' || a.id === 'oso-frames'; }
+  function inFixed(a) { for (var f = a; f && f !== D.body && f !== D.documentElement; f = f.parentElement) { var p = W.getComputedStyle(f).position; if (p === 'fixed' || p === 'sticky') return true; } return false; }
   function textUnder(x, y, size, textOnly) {
     if (!D.elementsFromPoint) return null;
     var vw = W.innerWidth, vh = W.innerHeight, pts = [], gx = [x + 2, x + size / 2, x + size - 2], gy = [y + 2, y + size / 2, y + size - 2];
@@ -866,6 +867,7 @@ var FRAMES = (function (W) {
           if (cs.visibility === 'hidden' || +cs.opacity < 0.05) break;
           var tl = TEXT_TAGS[a.tagName] ? (a.innerText || '').replace(/\s+/g, ' ').trim().length : ownTextLen(a);
           if (tl > 2) {                                            // words are words: a 16-char link, a <div class=kick> kicker — any tag
+            if (textOnly === 'flow' && inFixed(a)) break;          // 'flow': words of the page itself, not of its fixed widgets (those are cleared by the corner rules)
             var tr = a.getBoundingClientRect();
             if (tr.width * tr.height > 200 && tr.width * tr.height < vw * vh * 0.45) return tr;
           }
@@ -921,15 +923,28 @@ var FRAMES = (function (W) {
     return e;
   }
   // are the rails about to sit on the page's text? (narrow windows, edge-to-edge paragraphs) → fold into the 🎻 sheet
+  // NO COVERED TEXT LAW (22 Nov 2026): a rail stands on its longest clear band — the tallest stretch of its edge with none of the
+  // page's own (in-flow) words under it. A wide button row at y=680 ends the rail above it; a paragraph wall leaves no band.
+  function clearRuns(top, bottom) {
+    var vw = W.innerWidth, size = 46, out = {};
+    ['left', 'right'].forEach(function (side) {
+      var x = side === 'left' ? 10 : vw - 10 - size, best = null, cur = null;
+      var close = function () { if (cur && (!best || cur.bottom - cur.top > best.bottom - best.top)) best = cur; cur = null; };
+      for (var y = top; y + size <= bottom; y += 24) {
+        if (textUnder(x, y, size, 'flow')) { close(); continue; }
+        if (!cur) cur = { top: y, bottom: y + size }; else cur.bottom = y + size;
+      }
+      close();
+      out[side] = best || { top: top, bottom: top };
+    });
+    return out;
+  }
   function railsCrowded(top0) {
-    var vw = W.innerWidth, vh = W.innerHeight, hits = 0, size = 46;
-    if (!D.elementsFromPoint || vw < 721) return false;
-    for (var side = 0; side < 2; side++) {
-      var x = side ? vw - 10 - size : 10, n = 0;
-      for (var y = top0 + 20; y < vh - 90 && n < 3; y += 72) if (textUnder(x, y, size, true)) n++;
-      hits = Math.max(hits, n);
-    }
-    return hits >= 2;
+    state.runs = null;
+    if (!D.elementsFromPoint || W.innerWidth < 721) return false;
+    state.runs = clearRuns(top0 + 14, W.innerHeight - 24);
+    var l = state.runs.left, r = state.runs.right;
+    return Math.min(l.bottom - l.top, r.bottom - r.top) < 150;                 // no band for even three doors on one side → the 🎻 sheet
   }
   function layout() {
     if (!root) return;
@@ -967,8 +982,9 @@ var FRAMES = (function (W) {
       var vh = W.innerHeight;
       var tl = union(extent('top-left'), cornerStuff('top-left')), tr = union(extent('top-right'), cornerStuff('top-right'));
       var bl = union(extent('bottom-left'), cornerStuff('bottom-left')), br = union(extent('bottom-right'), cornerStuff('bottom-right'));
-      fitRail('left', (tl ? Math.max(tl.bottom, top0) : top0) + 14, (bl ? Math.min(bl.top, vh - 10) : vh - 10) - 14);
-      fitRail('right', (tr ? Math.max(tr.bottom, top0) : top0) + 14, (br ? Math.min(br.top, vh - 10) : vh - 10) - 14);
+      var runs = state.runs || clearRuns(top0 + 14, vh - 24);
+      fitRail('left', Math.max((tl ? Math.max(tl.bottom, top0) : top0) + 14, runs.left.top), Math.min((bl ? Math.min(bl.top, vh - 10) : vh - 10) - 14, runs.left.bottom));
+      fitRail('right', Math.max((tr ? Math.max(tr.bottom, top0) : top0) + 14, runs.right.top), Math.min((br ? Math.min(br.top, vh - 10) : vh - 10) - 14, runs.right.bottom));
     }
     keepOffText(mobile);
     if (openDlg) place(openDlg);
