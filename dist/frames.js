@@ -686,6 +686,7 @@ var FRAMES = (function (W) {
   function mountAll() {
     state.off = false;
     root.removeAttribute('data-osof-off');
+    D.documentElement.setAttribute('data-osof-on', '');              // v0.1.4: the frame absorbs the ʻohana's pre-frame rail (#oflo 🌺 · #oviol 🎻) while it is on
     if (dot) { dot.remove(); dot = null; }
     makeSheetBtn();
     SLOTS.forEach(function (s) { data.slots[s].forEach(function (item, i) { if (!hiddenKind(item.kind)) mount(s, item, i); }); });
@@ -737,6 +738,7 @@ var FRAMES = (function (W) {
     if (state.off) return;
     prefs.on = false; savePrefs();
     unmountAll();
+    D.documentElement.removeAttribute('data-osof-on');                // ⚙ off: the page's own rail comes back
     state.off = true;
     root.setAttribute('data-osof-off', '');
     makeDot();
@@ -1693,6 +1695,9 @@ var FRAMES = (function (W) {
       F + ' *{box-sizing:border-box;margin:0;padding:0;border:0 solid;background:none;color:inherit;font:inherit;letter-spacing:inherit;text-transform:none;text-decoration:none;text-shadow:none;box-shadow:none;float:none;max-width:none;min-width:0;inset:auto}',
       F + ' [hidden]{display:none!important}',
       F + '[data-osof-asleep]{display:none!important}',
+      // v0.1.4 ABSORB: 76 doors of the ʻohana still carry the rail that came before the frame (🌺 all doors panel · 🎻 join · its panel);
+      // with the frame on they were two 🌺 and two 🎻 on one screen (Shaka, 23 Nov 2026). The frame carries those doors now.
+      'html[data-osof-on] #oflo,html[data-osof-on] #oflop,html[data-osof-on] #oviol{display:none!important}',
       // the zones are <nav>/<div>: a page's own "nav{position:fixed;left:0;right:0;display:grid;padding:…}" must not reach them
       // (publicinform.com, 22 Nov 2026: the right rail landed at x=0 over the left one) → every zone starts from a clean slate
       F + ' .osof-slot{all:unset;position:fixed;inset:auto;z-index:' + Z.frame + ';pointer-events:none;display:flex;flex-direction:column;box-sizing:border-box;margin:0;padding:0;border:0;background:none;width:auto;height:auto;min-height:0;max-height:none;transform:none;overflow:visible;font:inherit;color:inherit;direction:ltr}',

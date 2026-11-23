@@ -32,7 +32,7 @@ const NAVLEAK = PAGE('nav leak', `<div style="max-width:560px;margin:60px auto 0
   .replace('<style>', '<style>nav{position:fixed;top:0;left:0;right:0;z-index:50;display:grid;grid-template-columns:auto 1fr auto;padding:14px 32px;background:#000}nav::after{content:"";width:110px}')
   .replace('<main>', '<nav><a href="/">A page nav</a><span></span><a href="/x">Links</a></nav><main>');
 // 23 Nov 2026 (v0.1.4): a door's shell (bl-shell.js) opens another door in a full-screen <iframe> over this page
-const SHELL = NARROW.replace('</main>', `</main><script>
+const SHELL = NARROW.replace('</main>', `</main><div id="oflo" style="position:fixed;top:10px;left:10px;z-index:9999;width:40px;height:40px">🌺</div><div id="oflop" style="display:none;position:fixed;top:60px;left:10px;z-index:9999">panel</div><a id="oviol" href="/join" style="position:fixed;top:60px;left:10px;z-index:9999;width:40px;height:40px">🎻</a><script>
 window.openRoad = function (src) { var d = document.createElement('div'); d.id = 'blroad'; d.innerHTML = '<div style="position:fixed;inset:0;z-index:99990;background:#000;display:flex;flex-direction:column"><div style="flex:0 0 42px;color:#fff">✕ home</div><iframe src="' + src + '" style="flex:1;border:0;width:100%"></iframe></div>'; document.body.appendChild(d); };
 window.closeRoad = function () { var d = document.getElementById('blroad'); if (d) d.remove(); };
 </script>`);
@@ -403,6 +403,10 @@ const AUDIO_STUB = `window.__audioLog = []; window.Audio = class { constructor()
   const inner2 = p.frames().find((f) => f !== p.mainFrame() && /allow/.test(f.url()));
   const allowHas = inner2 ? await inner2.evaluate(() => !!document.querySelector('#oso-frames[data-osof-ready]')) : null;
   ok(allowHas === true, 'data-embed="allow" invites the frame into an iframe');
+  await p.evaluate(() => window.closeRoad()); await p.waitForTimeout(600);
+  // the frame absorbs the legacy rail: while the frame is on, #oflo/#oviol/#oflop are gone; ⚙ off brings them back
+  r = await p.evaluate(() => { const vis = (id) => { const e = document.getElementById(id); return !!e && e.getBoundingClientRect().width > 0; }; const a = { oflo: vis('oflo'), oviol: vis('oviol'), attr: document.documentElement.getAttribute('data-osof-on') }; window.OSOFrames.settings({ on: false }); const b = { oflo: vis('oflo'), oviol: vis('oviol'), attr: document.documentElement.getAttribute('data-osof-on') }; window.OSOFrames.settings({ on: true }); const c = { oflo: vis('oflo'), attr: document.documentElement.getAttribute('data-osof-on') }; return { a, b, c }; });
+  ok(!r.a.oflo && !r.a.oviol && r.a.attr === '' && r.b.oflo && r.b.oviol && r.b.attr === null && !r.c.oflo && r.c.attr === '', `the frame absorbs the page's legacy 🌺/🎻 rail while on (on: ${!r.a.oflo} · ⚙ off: back ${r.b.oflo} · on again: ${!r.c.oflo})`);
   ok(!errs.length, 'no errors on the shell' + (errs.length ? ' → ' + errs.join(' | ') : ''));
   await ctx.close();
 }
