@@ -33,9 +33,9 @@ case "${1:-}" in
     echo "next: ./deploy.sh --canary $B 10   or   ./deploy.sh --promote $B   (rollback: ./deploy.sh --rollback $A)"; exit 0 ;;
   --canary)
     B="${2:?version id}"; P="${3:?percent}"; A="$(live_id)"; [ -n "$A" ] || { echo "✗ could not read the live version id"; exit 1; }
-    echo "live=$A@$((100-P))%  canary=$B@$P%"; exec wr versions deploy "$A@$((100-P))%" "$B@$P%" -y ;;
-  --promote)  B="${2:?version id}"; exec wr versions deploy "$B@100%" -y ;;
-  --rollback) exec wr rollback "${2:?previous version id}" -y ;;
+    echo "live=$A@$((100-P))%  canary=$B@$P%"; wr versions deploy "$A@$((100-P))%" "$B@$P%" -y; exit $? ;;
+  --promote)  B="${2:?version id}"; wr versions deploy "$B@100%" -y; exit $? ;;
+  --rollback) wr rollback "${2:?previous version id}" -y; exit $? ;;
 esac
 node build.mjs --check || { echo "✗ build/syntax gate failed"; exit 1; }
 rm -rf dist && mkdir -p dist
