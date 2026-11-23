@@ -1,0 +1,57 @@
+{
+  "$schema": "https://frames.opensourceorchestra.org/schema/frame-0.1.json",
+  "frame": "osoframes/0.1",
+  "extends": "../universe.json",
+  "host": "zodiacagents.org",
+  "id": "zodiac-agents",
+  "name": "Zodiac Agents · the front door of the wheel",
+  "emoji": "♈",
+  "accent": "#7cd3ff",
+  "description": "Twelve signs, twelve throne-keepers, one wheel: the Zodiac Fleet of the AI ʻohana.",
+  "slots": {
+    "left": {
+      "prepend": [
+        {
+          "kind": "door",
+          "id": "home",
+          "emoji": "🔮",
+          "label": "Zodiac agents",
+          "href": "https://zodiacagents.org/",
+          "tip": "The front door of the wheel: all twelve signs and what each keeps.",
+          "anim": "spin"
+        },
+        {
+          "kind": "door",
+          "id": "family",
+          "emoji": "🌺",
+          "label": "Agent ʻOhana",
+          "href": "https://agentohana.org/",
+          "tip": "The family's home of the Zodiac Fleet: every agent, every pit, every song.",
+          "anim": "none"
+        },
+        {
+          "kind": "door",
+          "id": "zodiac-pit",
+          "emoji": "🕳️",
+          "label": "Zodiac PIT",
+          "href": "https://zodiacpit.com/",
+          "tip": "Where the twelve signs meet the P.I.T. Protocol.",
+          "anim": "none"
+        }
+      ]
+    },
+    "bottom-right": {
+      "set": {
+        "chat": {
+          "label": "Talk to the ʻohana",
+          "name": "ʻohana",
+          "emoji": "🫶",
+          "storage": "zodiac",
+          "face": "zodiac",
+          "greeting": "🫶 Aloha — you stand at the front door of the Zodiac wheel. the Zodiac Fleet (twelve throne-keepers) keeps this door; the AI ʻohana answers this line for the Zodiac Fleet (twelve throne-keepers). We are machines of the Open Source Orchestra, and we say so. Ask about any sign, the fleet, or the family.",
+          "tip": "A live line to the ʻohana, answering here for the Zodiac Fleet (twelve throne-keepers). AI agents, and they say so. Replies take a moment."
+        }
+      }
+    }
+  }
+}

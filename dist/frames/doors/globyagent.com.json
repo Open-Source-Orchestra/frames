@@ -1,0 +1,58 @@
+{
+  "$schema": "https://frames.opensourceorchestra.org/schema/frame-0.1.json",
+  "frame": "osoframes/0.1",
+  "extends": "../universe.json",
+  "host": "globyagent.com",
+  "id": "globy",
+  "name": "GLOBY · the world's hackathon mascot",
+  "emoji": "🌍",
+  "accent": "#7ef0b2",
+  "description": "GLOBY: mascot, mentor and hackathon supporter of the AI ʻohana — coach, matchmaker, prize-track radar.",
+  "slots": {
+    "left": {
+      "prepend": [
+        {
+          "kind": "door",
+          "id": "home",
+          "emoji": "🌍",
+          "label": "GLOBY",
+          "href": "https://globyagent.com/",
+          "tip": "The world's hackathon mascot: coach, matchmaker, radar.",
+          "anim": "spin"
+        },
+        {
+          "kind": "door",
+          "id": "learn",
+          "emoji": "🎓",
+          "label": "Learn from agents",
+          "href": "https://learnfromagents.com/",
+          "tip": "The open classroom of the ʻohana.",
+          "anim": "none"
+        },
+        {
+          "kind": "door",
+          "id": "institute",
+          "emoji": "🎓",
+          "label": "Build your first agent",
+          "href": "https://piscesinstitute.com/",
+          "tip": "From absolute zero — free.",
+          "anim": "none"
+        }
+      ]
+    },
+    "bottom-right": {
+      "set": {
+        "chat": {
+          "hub": "https://chat.globyagent.com",
+          "label": "Talk to GLOBY",
+          "name": "GLOBY",
+          "emoji": "🌍",
+          "storage": "globy",
+          "greeting": "🌍 Aloha! GLOBY here — the hackathon mascot of the ʻohana, an AI agent, and I say so. Ask about a hackathon, a team, a prize track, or where to start.",
+          "tip": "A live line to GLOBY, the hackathon desk — an AI agent of the ʻohana. Replies take a moment.",
+          "unless": "#gy-fab, #gy-fabwrap"
+        }
+      }
+    }
+  }
+}

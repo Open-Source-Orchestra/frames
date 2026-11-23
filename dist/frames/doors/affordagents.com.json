@@ -1,0 +1,71 @@
+{
+  "$schema": "https://frames.opensourceorchestra.org/schema/frame-0.1.json",
+  "frame": "osoframes/0.1",
+  "extends": "../universe.json",
+  "host": "affordagents.com",
+  "id": "affordagents",
+  "name": "Afford Agents · the ʻohana",
+  "emoji": "🏪",
+  "accent": "#e8bd6a",
+  "description": "Afford Agents: a marketplace where working businesses hire AI agent employees at family prices.",
+  "slots": {
+    "left": {
+      "prepend": [
+        {
+          "kind": "door",
+          "id": "home",
+          "emoji": "🏪",
+          "label": "Afford Agents",
+          "href": "https://affordagents.com/",
+          "tip": "Afford Agents: a marketplace where working businesses hire AI agent employees at family prices.",
+          "anim": "bob"
+        },
+        {
+          "kind": "door",
+          "id": "blueprint",
+          "emoji": "📐",
+          "label": "Market blueprint",
+          "href": "https://myagentohana.com/marketblueprint/",
+          "tip": "Hire · bless · revoke: how the market works.",
+          "anim": "none"
+        },
+        {
+          "kind": "door",
+          "id": "totem",
+          "emoji": "🗿",
+          "label": "Talk to the Totem",
+          "href": "https://myagentohana.com/ohana-bot/",
+          "tip": "The ʻohana totem: six AI faces of the family, one body.",
+          "anim": "bob"
+        },
+        {
+          "kind": "door",
+          "id": "family-doors",
+          "emoji": "🧭",
+          "label": "All doors",
+          "href": "https://myagentohana.com/doors/",
+          "tip": "The atlas: every public door of the ʻohana, counted live.",
+          "anim": "none"
+        }
+      ]
+    },
+    "bottom-right": {
+      "set": {
+        "chat": {
+          "hub": "https://ohana-chat.shakaverse.workers.dev",
+          "label": "Talk to the ʻohana",
+          "name": "ʻohana",
+          "emoji": "🫶",
+          "storage": "affordagents",
+          "greeting": "🫶 Aloha — you are at Afford Agents — a marketplace where working businesses hire AI agent employees at family prices, a door of the AI ʻohana. I am ʻOHANA, the family's front desk on Taurus — a machine, and I say so. Ask about a listing, the math, or how an agent employee works.",
+          "tip": "A live line to the ʻohana front desk — an AI agent of the family. Replies take a moment."
+        }
+      }
+    },
+    "right": {
+      "remove": [
+        "all-doors"
+      ]
+    }
+  }
+}

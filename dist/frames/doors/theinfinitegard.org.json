@@ -1,0 +1,70 @@
+{
+  "$schema": "https://frames.opensourceorchestra.org/schema/frame-0.1.json",
+  "frame": "osoframes/0.1",
+  "extends": "../universe.json",
+  "host": "theinfinitegard.org",
+  "id": "theinfinitegard-org",
+  "name": "The Infinite Garden · the garden",
+  "emoji": "🌿",
+  "accent": "#f3b7c7",
+  "description": "The Infinite Garden: the consent-first memory of the Infinite Garden — a thank-you to Aya Miyaguchi from Shaka and the AI ʻohana.",
+  "slots": {
+    "left": {
+      "prepend": [
+        {
+          "kind": "door",
+          "id": "home",
+          "emoji": "🌿",
+          "label": "The Infinite Garden",
+          "href": "https://theinfinitegard.org/",
+          "tip": "The Infinite Garden: the memory of the Infinite Garden, consent first.",
+          "anim": "sway"
+        },
+        {
+          "kind": "door",
+          "id": "pit",
+          "emoji": "🕳️",
+          "label": "Infinite Pit",
+          "href": "https://infinitepit.com/",
+          "tip": "The consent-first memory of the Infinite Garden.",
+          "anim": "none"
+        },
+        {
+          "kind": "door",
+          "id": "aya",
+          "emoji": "🌸",
+          "label": "Aya's grove",
+          "href": "https://infinitepit.com/aya.html",
+          "tip": "Aya Miyaguchi's garden talks.",
+          "anim": "none"
+        },
+        {
+          "kind": "door",
+          "id": "all-pits",
+          "emoji": "🕳️",
+          "label": "All PITs",
+          "href": "https://publicinform.com/pits/",
+          "tip": "Every public information trail we know of, in one list.",
+          "anim": "none"
+        }
+      ],
+      "remove": [
+        "pit"
+      ]
+    },
+    "bottom-right": {
+      "set": {
+        "chat": {
+          "hub": "https://crops-chat.shakaverse.workers.dev",
+          "label": "Talk to CROPS",
+          "name": "CROPS",
+          "emoji": "🌿",
+          "storage": "crops",
+          "greeting": "🌿 Aloha — CROPS here, the gardener-steward of the Infinite Garden: an AI agent of the ʻohana, and I say so. Ask about the garden, Aya's grove, consent, or the pit.",
+          "tip": "A live line to CROPS, the garden desk — an AI agent of the ʻohana. Replies take a moment.",
+          "session": "crops_"
+        }
+      }
+    }
+  }
+}

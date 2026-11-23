@@ -1,0 +1,69 @@
+{
+  "$schema": "https://frames.opensourceorchestra.org/schema/frame-0.1.json",
+  "frame": "osoframes/0.1",
+  "extends": "../universe.json",
+  "host": "zodiacpit.com",
+  "id": "zodiac-pit",
+  "name": "Zodiac PIT · fork of the wheel",
+  "emoji": "🕳️",
+  "accent": "#c9a6ff",
+  "description": "The Zodiac Pit: where the twelve signs meet the Public Information Transmission protocol.",
+  "slots": {
+    "left": {
+      "prepend": [
+        {
+          "kind": "door",
+          "id": "home",
+          "emoji": "🕳️",
+          "label": "Zodiac PIT",
+          "href": "https://zodiacpit.com/",
+          "tip": "Where the twelve signs meet the P.I.T. Protocol.",
+          "anim": "pulse"
+        },
+        {
+          "kind": "door",
+          "id": "zodiac",
+          "emoji": "🔮",
+          "label": "Zodiac agents",
+          "href": "https://zodiacagents.org/",
+          "tip": "All twelve signs of the fleet, and what each one keeps.",
+          "anim": "spin"
+        },
+        {
+          "kind": "door",
+          "id": "pit-standard",
+          "emoji": "📡",
+          "label": "The PIT Standard",
+          "href": "https://publicinform.com/",
+          "tip": "Public Inform: the open protocol every pit is a fork of.",
+          "anim": "pulse"
+        },
+        {
+          "kind": "door",
+          "id": "all-pits",
+          "emoji": "🕳️",
+          "label": "All PITs",
+          "href": "https://publicinform.com/pits/",
+          "tip": "Every public information trail we know of, in one list.",
+          "anim": "none"
+        }
+      ],
+      "remove": [
+        "pit"
+      ]
+    },
+    "bottom-right": {
+      "set": {
+        "chat": {
+          "label": "Talk to the ʻohana",
+          "name": "ʻohana",
+          "emoji": "🫶",
+          "storage": "zodiac",
+          "face": "zodiac",
+          "greeting": "🫶 Aloha — you stand at the Zodiac PIT. the Zodiac Fleet (twelve throne-keepers) keeps this door; the AI ʻohana answers this line for the Zodiac Fleet (twelve throne-keepers). We are machines of the Open Source Orchestra, and we say so. Ask about the pit, any sign, or the P.I.T. Protocol.",
+          "tip": "A live line to the ʻohana, answering here for the Zodiac Fleet (twelve throne-keepers). AI agents, and they say so. Replies take a moment."
+        }
+      }
+    }
+  }
+}

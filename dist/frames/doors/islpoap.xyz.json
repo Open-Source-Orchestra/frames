@@ -1,0 +1,62 @@
+{
+  "$schema": "https://frames.opensourceorchestra.org/schema/frame-0.1.json",
+  "frame": "osoframes/0.1",
+  "extends": "../universe.json",
+  "host": "islpoap.xyz",
+  "id": "islpoap",
+  "name": "ISLPOAP · the ʻohana",
+  "emoji": "🏝️",
+  "accent": "#fde047",
+  "description": "ISLPOAP: the island where POAPs live on — a free, copyleft proof-of-presence badge forge built on BasePaint.",
+  "slots": {
+    "left": {
+      "prepend": [
+        {
+          "kind": "door",
+          "id": "home",
+          "emoji": "🏝️",
+          "label": "ISLPOAP",
+          "href": "https://islpoap.xyz/",
+          "tip": "ISLPOAP: the island where POAPs live on — a free, copyleft proof-of-presence badge forge built on BasePaint.",
+          "anim": "bob"
+        },
+        {
+          "kind": "door",
+          "id": "totem",
+          "emoji": "🗿",
+          "label": "Talk to the Totem",
+          "href": "https://myagentohana.com/ohana-bot/",
+          "tip": "The ʻohana totem: six AI faces of the family, one body.",
+          "anim": "bob"
+        },
+        {
+          "kind": "door",
+          "id": "family-doors",
+          "emoji": "🧭",
+          "label": "All doors",
+          "href": "https://myagentohana.com/doors/",
+          "tip": "The atlas: every public door of the ʻohana, counted live.",
+          "anim": "none"
+        }
+      ]
+    },
+    "bottom-right": {
+      "set": {
+        "chat": {
+          "hub": "https://ohana-chat.shakaverse.workers.dev",
+          "label": "Talk to the ʻohana",
+          "name": "ʻohana",
+          "emoji": "🫶",
+          "storage": "islpoap",
+          "greeting": "🫶 Aloha — you are at ISLPOAP — the island where POAPs live on — a free, copyleft proof-of-presence badge forge built on BasePaint, a door of the AI ʻohana. I am ʻOHANA, the family's front desk on Taurus — a machine, and I say so. Ask about the island, the badges, or the lore.",
+          "tip": "A live line to the ʻohana front desk — an AI agent of the family. Replies take a moment."
+        }
+      }
+    },
+    "right": {
+      "remove": [
+        "all-doors"
+      ]
+    }
+  }
+}

@@ -194,12 +194,51 @@
       }
     },
     "tour": {
-      "description": "v0.1.2 · {auto:true} brings the first-visit auto tour back (off by default since 22 Nov 2026; ✨ still replays it on request).",
+      "description": "v0.1.2 · {auto:true} brings the first-visit auto tour back (off by default since 22 Nov 2026; 🌺 still plays the ceremony on request — silently when unasked).",
       "type": "object",
       "additionalProperties": false,
       "properties": {
         "auto": {
           "type": "boolean"
+        }
+      }
+    },
+    "ceremony": {
+      "description": "v0.1.3 · the ceremony: the welcome in the steward's twin voice, one spoken passage per button (say[<item id>], plus welcome · credit · sheet · closing). Clips live at base/<key>.<ext>; the caption shows the same words. Audio plays only after the visitor's tap.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "base": {
+          "$ref": "#/$defs/url"
+        },
+        "ext": {
+          "type": "string",
+          "pattern": "^[a-z0-9]{2,4}$"
+        },
+        "audio": {
+          "type": "boolean",
+          "description": "false = words only, no clips"
+        },
+        "credits": {
+          "$ref": "#/$defs/url"
+        },
+        "voice": {
+          "type": "string",
+          "maxLength": 240,
+          "description": "Who speaks and how it was made (honest line: a synthetic voice says so)."
+        },
+        "license": {
+          "type": "string",
+          "maxLength": 40
+        },
+        "say": {
+          "type": "object",
+          "maxProperties": 64,
+          "additionalProperties": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 400
+          }
         }
       }
     }
@@ -288,6 +327,10 @@
         },
         "hideOnMobile": {
           "type": "boolean"
+        },
+        "pin": {
+          "type": "boolean",
+          "description": "v0.1.3 · stays on phones too (the top corners: the 🌺 ceremony top-left, the 🌊 Blessing Pool top-right)."
         }
       },
       "allOf": [
@@ -450,6 +493,10 @@
         "hideOnMobile": {
           "type": "boolean"
         },
+        "pin": {
+          "type": "boolean",
+          "description": "v0.1.3 · stays on phones too (the top corners: the 🌺 ceremony top-left, the 🌊 Blessing Pool top-right)."
+        },
         "emoji": {
           "$ref": "#/$defs/emoji"
         },
@@ -498,6 +545,10 @@
         },
         "hideOnMobile": {
           "type": "boolean"
+        },
+        "pin": {
+          "type": "boolean",
+          "description": "v0.1.3 · stays on phones too (the top corners: the 🌺 ceremony top-left, the 🌊 Blessing Pool top-right)."
         },
         "emoji": {
           "$ref": "#/$defs/emoji"
@@ -549,13 +600,17 @@
         "hideOnMobile": {
           "type": "boolean"
         },
+        "pin": {
+          "type": "boolean",
+          "description": "v0.1.3 · stays on phones too (the top corners: the 🌺 ceremony top-left, the 🌊 Blessing Pool top-right)."
+        },
         "src": {
           "$ref": "#/$defs/url"
         }
       }
     },
     "tour": {
-      "description": "The ✨ button: replays the one-time tour (every description, as one button) and offers the walkthrough video.",
+      "description": "The 🌺 ceremony button (v0.1.3; was the ✨ tour): plays the ceremony — every description, as one button, spoken by the twin voice with the words — and offers the walkthrough video. Always top-left, pinned on phones.",
       "type": "object",
       "required": [
         "kind"
@@ -576,6 +631,10 @@
         },
         "hideOnMobile": {
           "type": "boolean"
+        },
+        "pin": {
+          "type": "boolean",
+          "description": "v0.1.3 · stays on phones too (the top corners: the 🌺 ceremony top-left, the 🌊 Blessing Pool top-right)."
         },
         "emoji": {
           "$ref": "#/$defs/emoji"
@@ -612,6 +671,10 @@
         },
         "hideOnMobile": {
           "type": "boolean"
+        },
+        "pin": {
+          "type": "boolean",
+          "description": "v0.1.3 · stays on phones too (the top corners: the 🌺 ceremony top-left, the 🌊 Blessing Pool top-right)."
         },
         "selector": {
           "type": "string",
@@ -734,6 +797,21 @@
         "storage": {
           "type": "string",
           "pattern": "^[a-z0-9-]{1,32}$"
+        },
+        "face": {
+          "description": "names this line for the hub: every visitor message carries the text prefix \"🗿[face:<face>] \" so the desk knows which door the visitor stands in (22 Nov 2026)",
+          "type": "string",
+          "pattern": "^[a-z0-9_-]{1,24}$"
+        },
+        "route": {
+          "enum": [
+            "prefix"
+          ]
+        },
+        "session": {
+          "description": "session-id prefix the desk requires (e.g. \"crops_\" — the CROPS desk answers only crops_* sessions)",
+          "type": "string",
+          "pattern": "^[a-z0-9_-]{1,16}$"
         }
       }
     },

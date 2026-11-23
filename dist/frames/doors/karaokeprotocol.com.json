@@ -1,0 +1,61 @@
+{
+  "$schema": "https://frames.opensourceorchestra.org/schema/frame-0.1.json",
+  "frame": "osoframes/0.1",
+  "extends": "../universe.json",
+  "host": "karaokeprotocol.com",
+  "id": "karaoke-protocol",
+  "name": "The Karaoke Protocol",
+  "emoji": "🎤",
+  "accent": "#ff8fb1",
+  "description": "Drop any song → instant karaoke: lyrics, chords, vocal-faded instrumental and sing-along flames, in your browser.",
+  "slots": {
+    "left": {
+      "prepend": [
+        {
+          "kind": "door",
+          "id": "home",
+          "emoji": "🎤",
+          "label": "Karaoke Protocol",
+          "href": "https://karaokeprotocol.com/",
+          "tip": "Drop any song, sing along — all in your browser.",
+          "anim": "pulse"
+        },
+        {
+          "kind": "door",
+          "id": "orchestrator",
+          "emoji": "🎼",
+          "label": "Orchestrator",
+          "href": "https://orchestrator.opensourceorchestra.org/",
+          "tip": "Chord charts and songbooks, blessed by the artist.",
+          "anim": "none"
+        },
+        {
+          "kind": "door",
+          "id": "songbook",
+          "emoji": "📖",
+          "label": "Songbook",
+          "href": "https://shakaleikaumaka.com/songbook/",
+          "tip": "The ʻohana songbook.",
+          "anim": "none"
+        }
+      ],
+      "remove": [
+        "songbook"
+      ]
+    },
+    "bottom-right": {
+      "set": {
+        "chat": {
+          "hub": "https://kprot-chat.shakaverse.workers.dev",
+          "label": "Talk to KARA",
+          "name": "KARA",
+          "emoji": "🩷",
+          "storage": "kara",
+          "greeting": "🩷 Aloha! KARA here — the words of the Karaoke Protocol, pink twin of OKE 💙; an AI agent, and I say so. Ask about lyrics, chords, or how to sing a song here.",
+          "tip": "A live line to KARA, the Karaoke Protocol desk — an AI agent of the ʻohana. Replies take a moment.",
+          "unless": "#kprot-fab, #kprot-fab-mini"
+        }
+      }
+    }
+  }
+}

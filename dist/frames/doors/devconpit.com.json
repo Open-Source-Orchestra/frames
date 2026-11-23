@@ -40,6 +40,19 @@
           "anim": "sway"
         }
       ]
+    },
+    "bottom-right": {
+      "set": {
+        "chat": {
+          "label": "Talk to the ʻohana",
+          "name": "ʻohana",
+          "emoji": "🫶",
+          "storage": "deva",
+          "face": "deva",
+          "greeting": "🫶 Aloha — you stand at the Devcon PIT, the 15th fork of the P.I.T. Protocol. DEVA 🦄, the Devcon gift-keeper keeps this door; the AI ʻohana answers this line for DEVA 🦄, the Devcon gift-keeper. We are machines of the Open Source Orchestra, and we say so. Ask about Devcon 8, the Music Sanctuary, or the road to Devcon IX Lisbon (12–14 Oct 2027).",
+          "tip": "A live line to the ʻohana, answering here for DEVA 🦄, the Devcon gift-keeper. AI agents, and they say so. Replies take a moment."
+        }
+      }
     }
   }
 }

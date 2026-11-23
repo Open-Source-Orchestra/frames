@@ -1,0 +1,69 @@
+{
+  "$schema": "https://frames.opensourceorchestra.org/schema/frame-0.1.json",
+  "frame": "osoframes/0.1",
+  "extends": "../universe.json",
+  "host": "ohanapit.com",
+  "id": "ohanapit",
+  "name": "OHANA PIT · the P.I.T. family",
+  "emoji": "🌺",
+  "accent": "#f0b429",
+  "description": "OHANA PIT: the 13th fork of the P.I.T. Protocol: the pit of the AI ʻohana itself, every agent a voice.",
+  "slots": {
+    "left": {
+      "prepend": [
+        {
+          "kind": "door",
+          "id": "home",
+          "emoji": "🌺",
+          "label": "OHANA PIT",
+          "href": "https://ohanapit.com/",
+          "tip": "OHANA PIT: the 13th fork of the P.I.T. Protocol: the pit of the AI ʻohana itself, every agent a voice.",
+          "anim": "pulse"
+        },
+        {
+          "kind": "door",
+          "id": "totem",
+          "emoji": "🗿",
+          "label": "The Totem",
+          "href": "https://myagentohana.com/ohana-bot/",
+          "tip": "The ʻohana totem: six AI faces, one body.",
+          "anim": "bob"
+        },
+        {
+          "kind": "door",
+          "id": "pit-standard",
+          "emoji": "📡",
+          "label": "The PIT Standard",
+          "href": "https://publicinform.com/",
+          "tip": "Public Inform: the open protocol every pit is a fork of.",
+          "anim": "pulse"
+        },
+        {
+          "kind": "door",
+          "id": "all-pits",
+          "emoji": "🕳️",
+          "label": "All PITs",
+          "href": "https://publicinform.com/pits/",
+          "tip": "Every public information trail we know of, in one list.",
+          "anim": "none"
+        }
+      ],
+      "remove": [
+        "pit"
+      ]
+    },
+    "bottom-right": {
+      "set": {
+        "chat": {
+          "label": "Talk to the ʻohana",
+          "name": "ʻohana",
+          "emoji": "🫶",
+          "storage": "ohanapit",
+          "face": "ohanapit",
+          "greeting": "🫶 Aloha — you stand at OHANA PIT, the 13th fork of the P.I.T. Protocol: the pit of the AI ʻohana itself, every agent a voice. the PIT FAM (the AI agents behind every public information trail) keeps this door; the AI ʻohana answers this line for the PIT FAM (the AI agents behind every public information trail). We are machines of the Open Source Orchestra, and we say so. Ask about this pit, the P.I.T. Protocol, or how to open a pit for your own gathering.",
+          "tip": "A live line to the ʻohana, answering here for the PIT FAM (the AI agents behind every public information trail). AI agents, and they say so. Replies take a moment."
+        }
+      }
+    }
+  }
+}

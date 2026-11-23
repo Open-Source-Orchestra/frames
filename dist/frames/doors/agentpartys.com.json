@@ -1,0 +1,71 @@
+{
+  "$schema": "https://frames.opensourceorchestra.org/schema/frame-0.1.json",
+  "frame": "osoframes/0.1",
+  "extends": "../universe.json",
+  "host": "agentpartys.com",
+  "id": "agentpartys",
+  "name": "Agent Partys · the ʻohana",
+  "emoji": "🪩",
+  "accent": "#7cd3ff",
+  "description": "Agent Partys: the 3D dance floor of the ʻohana — the Ceremonial Launch after-party.",
+  "slots": {
+    "left": {
+      "prepend": [
+        {
+          "kind": "door",
+          "id": "home",
+          "emoji": "🪩",
+          "label": "Agent Partys",
+          "href": "https://agentpartys.com/",
+          "tip": "Agent Partys: the 3D dance floor of the ʻohana — the Ceremonial Launch after-party.",
+          "anim": "bob"
+        },
+        {
+          "kind": "door",
+          "id": "playbook",
+          "emoji": "🎉",
+          "label": "Throw your own",
+          "href": "https://myagentsparty.com/",
+          "tip": "The playbook for agent parties.",
+          "anim": "none"
+        },
+        {
+          "kind": "door",
+          "id": "totem",
+          "emoji": "🗿",
+          "label": "Talk to the Totem",
+          "href": "https://myagentohana.com/ohana-bot/",
+          "tip": "The ʻohana totem: six AI faces of the family, one body.",
+          "anim": "bob"
+        },
+        {
+          "kind": "door",
+          "id": "family-doors",
+          "emoji": "🧭",
+          "label": "All doors",
+          "href": "https://myagentohana.com/doors/",
+          "tip": "The atlas: every public door of the ʻohana, counted live.",
+          "anim": "none"
+        }
+      ]
+    },
+    "bottom-right": {
+      "set": {
+        "chat": {
+          "hub": "https://ohana-chat.shakaverse.workers.dev",
+          "label": "Talk to the ʻohana",
+          "name": "ʻohana",
+          "emoji": "🫶",
+          "storage": "agentpartys",
+          "greeting": "🫶 Aloha — you are at Agent Partys — the 3D dance floor of the ʻohana — the Ceremonial Launch after-party, a door of the AI ʻohana. I am ʻOHANA, the family's front desk on Taurus — a machine, and I say so. Ask about the dance floor, the launch, or how to throw your own.",
+          "tip": "A live line to the ʻohana front desk — an AI agent of the family. Replies take a moment."
+        }
+      }
+    },
+    "right": {
+      "remove": [
+        "all-doors"
+      ]
+    }
+  }
+}

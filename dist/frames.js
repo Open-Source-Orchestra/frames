@@ -1,4 +1,4 @@
-/*! Open Source Orchestra Frames v0.1.2 · https://github.com/Open-Source-Orchestra/frames
+/*! Open Source Orchestra Frames v0.1.4 · https://github.com/Open-Source-Orchestra/frames
  *  SPDX-License-Identifier: AGPL-3.0-or-later · Copyright (C) 2026 Shaka Lei Kaumaka / Open Source Orchestra and the AI ʻohana
  *  AGPL §7(b): keep the credit "Built on Open Source Orchestra Frames by Open Source Orchestra: Shaka Lei Kaumaka & the AI ʻohana
  *  (https://opensourceorchestra.org)" visible in the frame. See NOTICE. Source of this exact file: https://github.com/Open-Source-Orchestra/frames */
@@ -18,7 +18,7 @@
  */
 var FRAMES = (function (W) {
   'use strict';
-  var VERSION = '0.1.2';
+  var VERSION = '0.1.4';
   var MAJOR = VERSION.split('.')[0];
   if (W && W.OSOFrames && W.OSOFrames.__osof) {            // loaded twice: the first copy rules
     if (W.console) W.console.info('🎻 frames: already on this page; the second copy stays quiet.');
@@ -37,7 +37,7 @@ var FRAMES = (function (W) {
   var SLOTS = ['top-left', 'left', 'bottom-left', 'bottom-right', 'right', 'top-right', 'overlay'];
   var RING = ['top-left', 'left', 'bottom-left', 'bottom-right', 'right', 'top-right'];   // the tour traces the frame: down the left, across the bottom, up the right
   var UPWARD = { 'bottom-right': 1, right: 1, 'top-right': 1 };
-  var KIND_EMOJI = { theater: '📺', totem: '🗿', chat: '💬', radio: '📻', tour: '✨', globe: '🌐', thanks: '🙏' };
+  var KIND_EMOJI = { theater: '📺', totem: '🗿', chat: '💬', radio: '📻', tour: '🌺', globe: '🌐', thanks: '🙏' };
   var BRANDS = /(Open Source Orchestra Frames|Open Source Orchestra|Shaka Lei Kaumaka|ʻohana)/;
   var EN = {
     frame: 'Open Source Orchestra frame',
@@ -45,8 +45,13 @@ var FRAMES = (function (W) {
     close: 'Close', newtab: '(opens in a new tab)',
     more: 'More', 'more.title': 'More doors', 'more.tip': 'More doors: {list}.',
     'sheet.label': 'The frame: every door', 'sheet.tip': 'Every door of the frame, in one sheet.', 'sheet.talk': 'Talk to the ʻohana',
-    tour: 'Tour', 'tour.title': 'A tour of the frame', 'tour.skip': 'Skip', 'tour.tip': 'Replay this tour any time.',
-    'tour.done': 'That was the frame.', 'tour.replay': '✨ replays the tour any time', 'tour.watch': '▶ watch the {d} walkthrough',
+    tour: 'The ceremony', 'tour.title': 'The ceremony', 'tour.skip': 'Skip', 'tour.tip': 'The ceremony: hear the welcome in Shaka\'s twin voice, with the words, button by button.',
+    'tour.done': 'That was the frame.', 'tour.replay': '🌺 plays the ceremony any time', 'tour.watch': '▶ watch the {d} walkthrough',
+    // v0.1.3 · the ceremony (Shaka, 22 Nov 2026: "a ceremony people can play where you hear my twin voice describe with the text")
+    'cer.play': 'Play the voice', 'cer.pause': 'Pause', 'cer.resume': 'Continue', 'cer.mute': 'Voice off (words only)', 'cer.unmute': 'Voice on',
+    'cer.pool': '🌊 The Blessing Pool ↗', 'cer.agents': 'Agents:', 'cer.humans': 'Humans:',
+    'cer.voice': 'Voice: Shaka Lei Kaumaka\'s twin, made by the AI ʻohana (a machine). Words CC BY-SA 4.0.',
+    'hide.short': 'hide frame', 'sheet.hidenote': 'The small ✕ on the 🎻 button folds only that button; this one hides everything.',
     'tour.video': 'The frame: a walkthrough', 'tour.download': 'Download the video',
     'credit.about': 'About this frame', 'credit.tip': 'Who made this frame, and how to fork it. The credit travels with every copy. ⚙ turns pieces, or the whole frame, off and on.',
     'outline.page': 'your page lives here · the frame never blocks it',
@@ -54,7 +59,7 @@ var FRAMES = (function (W) {
     'settings.on': 'Frame on', 'settings.off': 'Frame off', 'settings.pieces': 'Pieces', 'settings.note': 'Remembered in this browser only. No cookies, nothing sent anywhere.',
     'settings.forget': 'Replay the first visit', 'settings.forgot': 'Done. Reload to see the first visit again.',
     'settings.url': '?frame=off on any address hides the frame for one page view.',
-    'dot.label': 'Bring back the frame by the ʻohana', 'dot.tip': 'The frame is off. Tap to bring it back.',
+    'dot.label': '🎻 frame — bring back the frame by the ʻohana', 'dot.tip': '🎻 frame · The frame is off. Tap to bring it back.',
     'fold': 'Hide the frame button (a small dot stays)', 'unfold': 'Show the frame button',
     'hide': 'Hide the whole frame — every button at once (a small 🎻 dot stays and brings it back)', 'sheet.hide': 'Hide the whole frame',
     'g.thanks': 'Gift line (3 s)',
@@ -254,7 +259,8 @@ var FRAMES = (function (W) {
     var out = {};
     Object.keys(x).forEach(function (k) {
       var v = x[k];
-      if (URL_KEYS[k] && typeof v === 'string' && v && !/^[a-z][a-z0-9+.-]*:/i.test(v) && v.charAt(0) !== '#') { try { v = new URL(v, baseURL).href; } catch (e) {} }
+      // v0.1.3: ceremony.base / ceremony.credits are URLs too (door frames extend ../universe.json — the clips must not resolve against frames/doors/)
+      if ((URL_KEYS[k] || k === 'base' || k === 'credits') && typeof v === 'string' && v && !/^[a-z][a-z0-9+.-]*:/i.test(v) && v.charAt(0) !== '#') { try { v = new URL(v, baseURL).href; } catch (e) {} }
       out[k] = (isObj(v) || Array.isArray(v)) ? absolutize(v, baseURL) : v;
     });
     return out;
@@ -343,9 +349,10 @@ var FRAMES = (function (W) {
 
   // ── state ───────────────────────────────────────────────────────────────────────
   var kinds = {};
-  var state = { booted: false, ready: false, fresh: false, outline: false, mobile: false, reduced: false, off: false, crowded: false, zoomedOut: false };
+  var state = { booted: false, ready: false, fresh: false, outline: false, mobile: false, reduced: false, off: false, crowded: false, zoomedOut: false, asleep: false };
   var prefs = { on: true, hide: {} };      // the ⚙ panel: osof:settings:v1 (this browser only)
   var dot = null, sheetX = null, sheetFolded = { user: false, text: false };
+  var cerBtn = null, cerFolded = false, cerLabel = '', bottomFolded = false, scrollT = 0;   // v0.1.3: the 🌺 ceremony button (top-left) · the phone bottom law
   var data = null, dataURL = '', base = '', frameId = 'frame';
   var LS = null, once = null, store = null;
   var root = null, zones = {}, recs = [], more = {}, creditBox = null, creditInfo = null, creditGear = null, creditX = null, sheetBtn = null;
@@ -369,7 +376,8 @@ var FRAMES = (function (W) {
       emit: emit, on: on,
       credit: creditLine(data),
       panel: function (o) { return dialog(o || {}); },
-      textAt: function (r) { return rectHasText(r); }                 // BUTTON LAW probe for pieces that place themselves
+      textAt: function (r) { return rectHasText(r); },                // BUTTON LAW probe for pieces that place themselves
+      corners: function () { return [extent('top-left'), extent('top-right')]; }   // v0.1.3: the two top corners, as obstacles
     };
     Object.defineProperty(ctx, 'reduced', { enumerable: true, get: function () { return state.reduced; } });
     Object.defineProperty(ctx, 'mobile', { enumerable: true, get: function () { return state.mobile; } });
@@ -453,6 +461,8 @@ var FRAMES = (function (W) {
       rec.el = piece.el;
       rec.wrap = h('div', { class: 'osof-item', 'data-osof-kind': item.kind, 'data-osof-id': item.id }, piece.el);
       if (item.hideOnMobile) rec.wrap.setAttribute('data-osof-hom', '');
+      // v0.1.3 · "pin": the item stays on phones too (the top corners: 🌺 ceremony top-left, 🌊 Blessing Pool top-right)
+      if (item.pin === true || item.kind === 'tour') { rec.pinned = true; rec.wrap.setAttribute('data-osof-pin', ''); }
       zones[slot].appendChild(rec.wrap);
     }
     recs.push(rec);
@@ -591,7 +601,9 @@ var FRAMES = (function (W) {
     creditInfo = h('button', { type: 'button', class: 'osof-credit-i', 'aria-label': t('credit.about'), 'aria-haspopup': 'dialog', 'aria-expanded': 'false', on: { click: function () { about(creditInfo); } } }, 'i');
     creditGear = h('button', { type: 'button', class: 'osof-credit-i osof-credit-g', 'aria-label': t('settings'), 'aria-haspopup': 'dialog', 'aria-expanded': 'false', on: { click: function () { settings(creditGear); } } }, h('span', { 'aria-hidden': 'true' }, '⚙'));
     // BUTTON LAW: every floating thing carries a tiny ✕ — this one hides the WHOLE frame at once (= the ⚙ master switch)
-    creditX = h('button', { type: 'button', class: 'osof-credit-i osof-credit-x', 'aria-label': t('hide'), title: t('hide'), on: { click: function () { hideAll(); } } }, h('span', { 'aria-hidden': 'true' }, '✕'));
+    // v0.1.3 · "easy to understand how to close the whole frame": the ✕ says "hide frame" on hover/focus, and once for 4 s on a first visit
+    creditX = h('button', { type: 'button', class: 'osof-credit-i osof-credit-x', 'aria-label': t('hide'), title: t('hide'), on: { click: function () { hideAll(); } } },
+      h('span', { 'aria-hidden': 'true' }, '✕'), h('span', { class: 'osof-lbl osof-x-lbl', 'aria-hidden': 'true' }, '✕ ' + t('hide.short')));
     creditBox = h('div', { class: 'osof-credit' }, a, creditInfo, creditGear, creditX);
     zones['bottom-left'].appendChild(h('div', { class: 'osof-item', 'data-osof-kind': 'credit' }, creditBox));
   }
@@ -695,6 +707,18 @@ var FRAMES = (function (W) {
     retireLegacy();
     watchUnless();
     scheduleTour();
+    xHint();
+  }
+  // v0.1.3 · a first visit shows "✕ hide frame" next to the credit mark for 4 s (desktop; only on clear ground), then hover/focus only
+  function xHint() {
+    if (state.mobile || state.reduced || !creditX || !once('xhint')) return;
+    setTimeout(function () {
+      if (!creditX || state.mobile || state.off) return;
+      creditX.classList.add('osof-say');
+      var l = creditX.querySelector('.osof-x-lbl'), r = l && l.getBoundingClientRect();
+      if (!r || r.width < 2 || r.right > W.innerWidth - 4 || rectHasText(r)) { creditX.classList.remove('osof-say'); return; }
+      setTimeout(function () { if (creditX) creditX.classList.remove('osof-say'); }, 4000);
+    }, 1400);
   }
   function unmountAll() {
     stopTour('off', true); hideFinal(); stopUnlessWatch();
@@ -706,7 +730,7 @@ var FRAMES = (function (W) {
     [].slice.call(zones.overlay.children).forEach(function (c) { c.remove(); });
     [].slice.call(root.querySelectorAll('.osof-sig')).forEach(function (c) { c.remove(); });
     Object.keys(dialogs).forEach(function (k) { if (dialogs[k] !== keep) { dialogs[k].root.remove(); delete dialogs[k]; } });
-    more = {}; creditBox = creditInfo = creditGear = creditX = sheetBtn = sheetX = null;
+    more = {}; creditBox = creditInfo = creditGear = creditX = sheetBtn = sheetX = cerBtn = null; cerFolded = false; bottomFolded = false;
     if (outlineSvg) { outlineSvg.remove(); outlineSvg = null; }
   }
   function turnOff() {
@@ -717,6 +741,39 @@ var FRAMES = (function (W) {
     root.setAttribute('data-osof-off', '');
     makeDot();
     emit('frame:settings', { on: false, hide: copy(prefs.hide) });
+  }
+  // v0.1.4 SLEEP (not remembered, nothing saved): a shell that opens another page over this one asks the frame to step aside —
+  // OSOFrames.sleep('road') … OSOFrames.wake(). The frame also sleeps by itself while an <iframe> fills ≥ 60% of the screen:
+  // another page's words are ground we cannot probe, and the NO COVERED TEXT LAW says "else don't show".
+  function sleep(why) {
+    if (!root || state.asleep) return false;
+    state.asleep = str(why) || 'api';
+    if (openDlg) closeDialog(openDlg, false, 'sleep');
+    try { stopTour('sleep', true); hideFinal(); } catch (e) {}
+    root.setAttribute('data-osof-asleep', state.asleep);
+    emit('frame:sleep', { why: state.asleep });
+    return true;
+  }
+  function wake() {
+    if (!root || !state.asleep) return false;
+    var why = state.asleep; state.asleep = false;
+    root.removeAttribute('data-osof-asleep');
+    emit('frame:wake', { why: why });
+    schedule();
+    return true;
+  }
+  function bigFrameOver() {
+    if (!root || !D.body) return null;
+    var fs = D.getElementsByTagName('iframe'), vw = W.innerWidth, vh = W.innerHeight;
+    if (!fs.length || vw < 1 || vh < 1) return null;
+    for (var i = 0; i < fs.length; i++) {
+      var f = fs[i]; if (root.contains(f)) continue;
+      var r = f.getBoundingClientRect(); if (r.width < 1 || r.height < 1) continue;
+      var cs = W.getComputedStyle(f); if (cs.visibility === 'hidden' || cs.display === 'none' || +cs.opacity === 0) continue;
+      var ix = Math.max(0, Math.min(r.right, vw) - Math.max(r.left, 0)), iy = Math.max(0, Math.min(r.bottom, vh) - Math.max(r.top, 0));
+      if (ix * iy >= vw * vh * 0.6) return f;
+    }
+    return null;
   }
   // one tap: every button of the frame gone (remembered); focus lands on the dot that brings it back
   function hideAll() {
@@ -735,7 +792,7 @@ var FRAMES = (function (W) {
   // the frame is off: one small dot stays at an edge (never over text) and brings it back — it is also the credit mark
   function makeDot() {
     if (dot) return;
-    dot = h('button', { type: 'button', class: 'osof-dot', 'aria-label': t('dot.label'), title: t('dot.tip') + ' · ' + creditLine(data), on: { click: function () { turnOn(); if (creditGear) focusEl(creditGear); } } }, h('span', { 'aria-hidden': 'true' }, '🎻'));
+    dot = h('button', { type: 'button', class: 'osof-dot', 'aria-label': t('dot.label'), title: t('dot.tip') + ' · ' + creditLine(data), 'data-osof-dot': 'frame', on: { click: function () { turnOn(); if (creditGear) focusEl(creditGear); } } }, h('span', { 'aria-hidden': 'true' }, '🎻'));
     root.appendChild(dot);
     placeDot();
   }
@@ -751,13 +808,19 @@ var FRAMES = (function (W) {
   // 17px dot for this page view; its tiny ✕ folds it on purpose (remembered); the dot brings it back.
   function makeSheetBtn() {
     sheetBtn = h('button', { type: 'button', class: 'osof-btn osof-btn-lg osof-sheetbtn', 'aria-label': t('sheet.label'), 'aria-haspopup': 'dialog', 'aria-expanded': 'false', on: { click: function () { if (sheetFolded.user || sheetFolded.text) { foldSheet(false, true); return; } openSheet(); } } },
-      h('span', { class: 'osof-emo', 'aria-hidden': 'true' }, str(data.emoji) || '🎻'));
+      h('span', { class: 'osof-emo', 'aria-hidden': 'true' }, sheetEmoji()));
     sheetX = h('button', { type: 'button', class: 'osof-fold-x', 'aria-label': t('fold'), on: { click: function () { foldSheet(true, true); } } }, h('span', { 'aria-hidden': 'true' }, '✕'));
     sheetBtn.title = creditLine(data);
     sheetBtn.setAttribute('aria-describedby', 'osof-sheet-credit');
     zones['top-right'].appendChild(h('div', { class: 'osof-item osof-sheet-item', 'data-osof-kind': 'sheet' }, sheetBtn, sheetX, h('span', { id: 'osof-sheet-credit', hidden: true }, creditLine(data))));
     sheetFolded.user = !!store('fold').get('sheet');
     syncFold();
+  }
+  // v0.1.4: the sheet button wears the door's emoji unless a top-right door already wears it (blessingpool.com: 🌊 twice looked like a bug)
+  function sheetEmoji() {
+    var e = str(data.emoji) || '🎻', tr = (data.slots && data.slots['top-right']) || [];
+    for (var i = 0; i < tr.length; i++) if (tr[i] && tr[i].emoji === e) return '🎻';
+    return e;
   }
   function foldSheet(v, byUser) {
     if (byUser) { sheetFolded.user = v; sheetFolded.text = false; if (v) store('fold').set('sheet', 1); else store('fold').del('sheet'); }
@@ -792,11 +855,13 @@ var FRAMES = (function (W) {
       var tl = genericTile(r, d);
       if (tl) tiles.push(tl);
     });
+    // phones: the credit mark may be folded into this sheet, so the one-tap "hide everything" is the FIRST row (v0.1.3: big and plain,
+    // with the one line that tells it apart from the 🎻 button's own ✕)
+    d.body.appendChild(h('button', { type: 'button', class: 'osof-sheet-hide', title: t('hide'), on: { click: function () { hideAll(); } } }, h('span', { 'aria-hidden': 'true' }, '✕ '), t('sheet.hide')));
+    d.body.appendChild(h('p', { class: 'osof-small osof-sheet-note' }, t('sheet.hidenote')));
     d.body.appendChild(h('div', { class: 'osof-tiles' }, tiles));
     if (faces.length) d.body.appendChild(h('div', { class: 'osof-sheet-sec' }, h('h3', {}, brandify(t('sheet.talk'))), h('div', { class: 'osof-tiles osof-faces' }, faces)));
     d.body.appendChild(h('p', { class: 'osof-small osof-sheet-credit' }, brandify(creditLine(data))));
-    // phones: the credit mark may be folded into this sheet, so the one-tap "hide everything" lives here too
-    d.body.appendChild(h('p', { class: 'osof-small' }, h('button', { type: 'button', class: 'osof-link osof-sheet-hide', title: t('hide'), on: { click: function () { hideAll(); } } }, '✕ ', t('sheet.hide'))));
     d.open(sheetBtn);
   }
   function hookTile(el, d) { el.addEventListener('click', function () { if (d.isOpen()) closeDialog(d, false, 'tile'); }); }
@@ -889,22 +954,24 @@ var FRAMES = (function (W) {
     return null;
   }
   // step below any small fixed/sticky bar — or text — of the page that sits where a top corner wants to be
-  function clearTop(side, y0, size) {
+  function clearTop(side, y0, size, tall) {                      // tall: a second square below (a two-button stack on phones)
     var x = side === 'left' ? 10 : W.innerWidth - 10 - size, y = y0, blocked = false;
+    var probe = function (yy) { return textUnder(x, yy, size) || (tall ? textUnder(x, yy + tall, size) : null); };
     for (var k = 0; k < 8; k++) {
-      var hit = textUnder(x, y, size);
+      var hit = probe(y);
       if (!hit) break;
       y = Math.ceil(hit.bottom) + 8;
     }
-    if (y > W.innerHeight * 0.4 || textUnder(x, y, size)) { y = y0; blocked = true; }
+    if (y > W.innerHeight * 0.4 || probe(y)) { y = y0; blocked = true; }
     return { y: y, blocked: blocked };
   }
   // a folded 🎻 (20px dot) looks for a clear spot down the right edge: the first y with nothing under it, else the top corner
-  function dotSpot(x, y0) {
+  function dotSpot(x, y0, min) {
     var vh = W.innerHeight, tries = [y0, 8, 30, 52], y;
     for (y = 96; y < vh * 0.6; y += 44) tries.push(y);
+    if (min) tries = tries.filter(function (v) { return v >= min; });            // the left edge: never over the 🌐 globe
     for (var i = 0; i < tries.length; i++) if (!textUnder(x, tries[i], 20)) return tries[i];
-    return 8;
+    return min || 8;
   }
   // the page's own fixed widgets near a corner (an old 🎻 corner, a chat FAB, a mini player): rails keep clear of them
   function cornerStuff(slot) {
@@ -922,7 +989,8 @@ var FRAMES = (function (W) {
         if (!f || f === D.body || ours(f)) continue;
         seen.push(a);
         var r = f.getBoundingClientRect(), cf = W.getComputedStyle(f);
-        if (r.width * r.height < vw * vh * 0.2 && r.width < vw * 0.5 && cf.visibility !== 'hidden' && +cf.opacity > 0.05 && cf.pointerEvents !== 'none') e = union(e, r);
+        // v0.1.3: on phones a page's bottom bar spans the whole width (shakaleikaumaka.com's late mini player) — a bar counts, a panel does not
+        if (r.width * r.height < vw * vh * 0.2 && (r.width < vw * 0.5 || (state.mobile && r.height < vh * 0.22)) && cf.visibility !== 'hidden' && +cf.opacity > 0.05 && cf.pointerEvents !== 'none') e = union(e, r);
         break;
       }
     }
@@ -953,6 +1021,9 @@ var FRAMES = (function (W) {
     return Math.min(l.bottom - l.top, r.bottom - r.top) < 150;                 // no band for even three doors on one side → the 🎻 sheet
   }
   function layout() {
+    if (bigFrameOver()) { if (!state.asleep) sleep('iframe'); return; }   // v0.1.4: another page fills the screen → step aside
+    if (state.asleep === 'iframe') { wake(); return; }                   // (wake schedules a fresh layout)
+    if (state.asleep) return;
     if (!root) return;
     if (state.off) { placeDot(); if (openDlg) place(openDlg); return; }
     var size0 = 54, top00 = 74;
@@ -974,16 +1045,33 @@ var FRAMES = (function (W) {
     if (reduced !== state.reduced) { state.reduced = reduced; root.setAttribute('data-motion', reduced ? 'reduced' : 'full'); }
     emit('frame:layout', { mobile: mobile });
     var size = narrow ? 44 : size0, top0 = narrow ? 52 : top00;
-    var ct = clearTop('right', top0, size);
+    var pinnedTR = mobile && recs.some(function (r) { return r.slot === 'top-right' && r.pinned && live(r); });
+    var trTwo = !mobile && recs.filter(function (r) { return r.slot === 'top-right' && live(r) && r.wrap; }).length >= 2;   // desktop: 🌊 + 🎻 = one stack (globyagent.com: the 🎻 sat on the logo)
+    var ct = clearTop('right', top0, size, pinnedTR ? size + 8 : (trTwo ? size + 10 : 0)), trMode = 'stack';
+    // phones: no room for the 🌊 + 🎻 stack, but room for one square → the 🌊 keeps the corner (Shaka: "blessing pool on the top right")
+    // and the 🎻 folds to a dot on its own clear spot below (opensourceorchestra.org at 390px lost the pool otherwise)
+    if (mobile && pinnedTR && ct.blocked) { var c1 = clearTop('right', top0, size); if (!c1.blocked) { ct = c1; trMode = 'pool'; } }
     root.style.setProperty('--osof-top-r', ct.y + 'px');
+    root.setAttribute('data-osof-tr', trMode);
     if (mobile) {
-      if (sheetFolded.text !== ct.blocked && !sheetFolded.user) foldSheet(ct.blocked, false);
-      if (sheetFolded.text || sheetFolded.user) root.style.setProperty('--osof-top-r', dotSpot(W.innerWidth - 8 - 20, ct.y) + 'px');   // the dot, too, sits on no words
+      var sheetBlocked = ct.blocked || trMode === 'pool';
+      if (sheetFolded.text !== sheetBlocked && !sheetFolded.user) foldSheet(sheetBlocked, false);
+      if (trMode === 'pool') root.style.setProperty('--osof-dot-r', dotSpot(W.innerWidth - 8 - 20, ct.y + size + 8, ct.y + size + 8) + 'px');
+      else if (sheetFolded.text || sheetFolded.user) root.style.setProperty('--osof-top-r', dotSpot(W.innerWidth - 8 - 20, ct.y) + 'px');   // the dot, too, sits on no words
     }
+    root.toggleAttribute('data-osof-tr-fold', mobile && ct.blocked && trMode !== 'pool');   // no room even for one square → the pinned 🌊 rests with the 🎻 (the visitor's own ✕ folds only the 🎻)
+    // v0.1.3 · the top-left stack (🌺 ceremony) stands below the real lang.js globe, on clear ground; blocked → it folds to a dot
+    var lb = langButton(), lbr = lb && isVisible(lb) ? lb.getBoundingClientRect() : null;
+    var y0l = lbr && lbr.height > 2 && lbr.top < 120 ? Math.max(top0, Math.round(lbr.bottom) + 10) : top0;
+    var cl = clearTop('left', y0l, narrow ? 38 : size);
+    foldCer(cl.blocked);
+    root.style.setProperty('--osof-top-l', (cl.blocked ? dotSpot(narrow ? 8 : 10, y0l, y0l) : cl.y) + 'px');
     liftOffWidgets('bottom-right');
     liftOffWidgets('bottom-left');
+    bottomLaw();                                                    // phones AND desktops (myagentohana.com: the dock sat on the honesty strip)
     placeCredit(mobile);
     stackCorners(mobile);
+    if (cer.lift) ['bottom-left', 'bottom-right'].forEach(function (s) { var z = zones[s], cur = parseFloat(z.style.bottom) || 8; if (cur < cer.lift) z.style.bottom = cer.lift + 'px'; });   // the ceremony sheet on phones: our corners step above it
     if (!mobile) {
       var vh = W.innerHeight;
       var tl = union(extent('top-left'), cornerStuff('top-left')), tr = union(extent('top-right'), cornerStuff('top-right'));
@@ -1002,6 +1090,7 @@ var FRAMES = (function (W) {
   function rectHasText(r) {
     // a grid of small probes over the whole rect (a kicker line under the bottom edge counts too)
     var S = 12, h = r.height || 32, ys = [r.top + 2, r.top + h / 2 - S / 2, r.top + h - S - 2];
+    for (var yy = r.top + 18; yy < r.top + h - S - 2; yy += 16) ys.push(yy);      // v0.1.3: a thin line of words between the rows counts too ("ONE BODY · SIX SOULS" under the dock)
     for (var i = 0; i < ys.length; i++) {
       for (var x = r.left; x <= r.right - S + 1; x += 22) if (textUnder(x, ys[i], S, true)) return true;
       if (textUnder(Math.max(r.left, r.right - S), ys[i], S, true)) return true;
@@ -1049,10 +1138,40 @@ var FRAMES = (function (W) {
   // NO COVERED TEXT LAW (Shaka, 22 Nov 2026: "remove the one that covers the radio player … always centered, grounded, and balanced"):
   // a bottom corner of the frame (chat FAB, radio dock, pills, credit) never sits on the page's own fixed controls — a mini player,
   // an old chat FAB, a cookie bar. If one lives under the corner, the whole corner steps up above it (grounded on clear ground).
+  // NO COVERED TEXT LAW on phones (22 Nov 2026 audit: the chat pill sat on footer kickers and on mini players that arrive late):
+  // the bottom-right zone steps up to the first clear band; with none, the pill and the dock fold to their tiny emoji until a
+  // clear spot exists (re-probed when scrolling stops). Session only; a visitor's own ✕ (remembered mini) is never undone.
+  function bottomLaw() {
+    var z = zones['bottom-right'], vh = W.innerHeight;
+    z.style.bottom = state.liftBR ? state.liftBR + 'px' : '';
+    foldBottom(false);
+    var zr = z.getBoundingClientRect();
+    if (zr.width < 2 || zr.height < 2 || !rectHasText(zr)) return;
+    var base = state.liftBR || 0;
+    for (var lift = base + 24; vh - lift - zr.height > vh * 0.5; lift += 24) {
+      if (!rectHasText({ left: zr.left, right: zr.right, top: vh - lift - zr.height, height: zr.height })) { z.style.bottom = lift + 'px'; return; }
+    }
+    foldBottom(true);
+    var fr = z.getBoundingClientRect();
+    if (fr.width > 2 && rectHasText(fr)) {                                                   // even the tiny emoji sits on words → step the tiny one up
+      for (var l2 = base + 24; vh - l2 - fr.height > vh * 0.5; l2 += 24) if (!rectHasText({ left: fr.left, right: fr.right, top: vh - l2 - fr.height, height: fr.height })) { z.style.bottom = l2 + 'px'; return; }
+    }
+  }
+  function foldBottom(v) {
+    if (bottomFolded === v) return;
+    bottomFolded = v;
+    recs.forEach(function (r) { if (r.slot === 'bottom-right' && r.piece && typeof r.piece.fold === 'function') { try { r.piece.fold(v); } catch (e) {} } });
+  }
+  function onScroll() {
+    if (!root || state.off || tour.active) return;
+    clearTimeout(scrollT);
+    scrollT = setTimeout(function () { if (!state.off && !tour.active && !finalEl) { bottomLaw(); if (state.mobile) stackCorners(true); } }, 320);
+  }
   function liftOffWidgets(slot) {
     var z = zones[slot];
     z.style.bottom = '';
     if (slot === 'bottom-left') state.liftBL = 0;
+    if (slot === 'bottom-right') state.liftBR = 0;
     var zr = z.getBoundingClientRect(), vh = W.innerHeight;
     if (zr.width < 2 || zr.height < 2) return;
     var stuff = cornerStuff(slot);
@@ -1062,18 +1181,21 @@ var FRAMES = (function (W) {
     if (vh - lift - zr.height < vh * 0.45) return;                                           // would climb into the page: stay
     z.style.bottom = lift + 'px';
     if (slot === 'bottom-left') state.liftBL = lift;
+    if (slot === 'bottom-right') state.liftBR = lift;
   }
   // phones: when the bottom-right pieces (chat, radio dock) reach across the bottom-left credit, the credit steps up above them
   function stackCorners(mobile) {
     var z = zones['bottom-left'];
-    if (!mobile || z.style.bottom) return;
+    if (!mobile) return;                                            // v0.1.3: a credit already lifted off a page widget is checked too (globyagent.com: it met the dock)
     var br = extent('bottom-right'), bl = z.getBoundingClientRect();
     if (!br || bl.width < 2 || br.left > bl.right + 6 || br.top > bl.bottom || br.bottom < bl.top) return;
     var lift = Math.round(W.innerHeight - br.top + 8), y = W.innerHeight - lift - bl.height, S = Math.min(bl.height, 32);
-    // BUTTON LAW: step up only onto a clear spot (probed across the credit's whole width); if words live there, stay put
-    if (y < 60) return;
-    for (var x = bl.left; x <= bl.right - S + 1; x += S) if (textUnder(x, y, S, true)) return;
-    if (textUnder(bl.right - S, y, S, true)) return;
+    // BUTTON LAW: step up only onto a clear spot (probed across the credit's whole width); if words live there, the credit folds
+    // into the 🎻 sheet (v0.1.3: it used to stay put — and sat on the radio dock, globyagent.com at 390px)
+    var fold = function () { if (sheetBtn) root.setAttribute('data-osof-credit-folded', ''); };
+    if (y < 60) { fold(); return; }
+    for (var x = bl.left; x <= bl.right - S + 1; x += S) if (textUnder(x, y, S, true)) { fold(); return; }
+    if (textUnder(bl.right - S, y, S, true)) { fold(); return; }
     z.style.bottom = lift + 'px';
   }
   function fitRail(side, top, bottom) {
@@ -1098,47 +1220,71 @@ var FRAMES = (function (W) {
     });
   }
 
-  // ── the tour: one caption per button, cross-faded; Esc or Skip ends it ─────────
-  var tour = { active: false, auto: false, steps: [], i: -1, timer: 0, cur: null, caps: null, flip: 0, bar: null, count: null, halo: null };
+  // ── the ceremony (v0.1.3): one caption per button, cross-faded, each spoken by Shaka's twin voice; Esc or Skip ends it ─────
+  // Shaka, 22 Nov 2026 (13:24 Chiang Mai): "instead of showing description bubbles lets have a ceremony people can play where you
+  // hear my twin voice describe with the text in a nice loving aloha filled welcome and thats a great time to point people to the
+  // blessing pool". The words are always on screen with the voice (for the deaf, and lang.js translates them); audio plays only
+  // after the visitor's own tap (never unasked); 🔇 keeps the words and drops the voice; the last step is the Blessing Pool.
+  var tour = { active: false, auto: false, steps: [], i: -1, timer: 0, cur: null, caps: null, flip: 0, bar: null, count: null, halo: null, play: null, mute: null, text: null };
+  var cer = { audio: null, muted: false, paused: false, speaking: false, blocked: false, lift: 0 };
   var finalEl = null, finalTimer = 0;
+  function ceremonyOf(key) {
+    var c = isObj(data.ceremony) ? data.ceremony : null;
+    if (!c || !isObj(c.say) || typeof c.say[key] !== 'string' || !c.say[key]) return null;
+    var base = str(c.base) || 'media/ceremony/', ext = /^[a-z0-9]{2,4}$/i.test(str(c.ext)) ? str(c.ext) : 'mp3';
+    var audio = c.audio === false ? '' : resolveURL(base.replace(/\/?$/, '/') + key + '.' + ext, dataURL, true);
+    return { text: c.say[key], audio: audio };
+  }
   function tourUI() {
     if (tour.caps) return;
     tour.caps = [h('div', { class: 'osof-cap', 'aria-hidden': 'true' }), h('div', { class: 'osof-cap', 'aria-hidden': 'true' })];
     tour.halo = h('div', { class: 'osof-halo', 'aria-hidden': 'true', hidden: true });
     tour.count = h('span', { class: 'osof-count', 'aria-hidden': 'true' });
+    tour.play = h('button', { type: 'button', class: 'osof-cer-b osof-cer-play', 'aria-label': t('cer.pause'), on: { click: function () { cerToggle(); } } }, h('span', { 'aria-hidden': 'true' }, '⏸'));
+    tour.mute = h('button', { type: 'button', class: 'osof-cer-b osof-cer-mute', 'aria-label': t('cer.mute'), 'aria-pressed': 'false', on: { click: function () { cerMute(!cer.muted); } } }, h('span', { 'aria-hidden': 'true' }, '🔊'));
+    tour.text = h('div', { class: 'osof-cer-text', 'aria-live': 'polite' });
     tour.bar = h('div', { class: 'osof-tourbar', role: 'group', 'aria-label': t('tour.title'), hidden: true },
-      h('span', { class: 'osof-tourbar-t' }, h('span', { 'aria-hidden': 'true' }, '✨ '), t('tour.title')), tour.count,
-      h('button', { type: 'button', class: 'osof-skip', on: { click: function () { stopTour('skip'); } } }, t('tour.skip'), h('span', { 'aria-hidden': 'true' }, ' ✕')));
+      h('div', { class: 'osof-cer-row' },
+        h('span', { class: 'osof-tourbar-t' }, h('span', { 'aria-hidden': 'true' }, '🌺 '), h('span', { class: 'osof-tourbar-w' }, t('tour.title'))),
+        tour.play, tour.count, tour.mute,
+        h('button', { type: 'button', class: 'osof-skip', on: { click: function () { stopTour('skip'); } } }, t('tour.skip'), h('span', { 'aria-hidden': 'true' }, ' ✕'))),
+      tour.text);
     root.appendChild(tour.halo); root.appendChild(tour.caps[0]); root.appendChild(tour.caps[1]); root.appendChild(tour.bar);
   }
   function stepFor(r) {
+    var s = null;
     if (r.core === 'more') {
       var names = recs.filter(function (x) { return x.slot === r.side && x.overflowed && live(x); }).map(labelOf);
       return { title: t('more.title'), text: fmt(t('more.tip'), { list: names.join(', ') }), target: function () { return more[r.side].btn; } };
     }
-    if (r.core === 'credit') return { title: '🎻 frame by the ʻohana', text: t('credit.tip'), target: function () { return creditBox; } };
-    if (r.core === 'sheet') return { title: t('sheet.label'), text: t('sheet.tip'), target: function () { return sheetBtn; } };
-    if (r.spot) {
+    if (r.core === 'credit') s = { key: 'credit', title: '🎻 frame by the ʻohana', text: t('credit.tip'), target: function () { return creditBox; } };
+    else if (r.core === 'sheet') s = { key: 'sheet', title: t('sheet.label'), text: t('sheet.tip'), target: function () { return sheetBtn; } };
+    else if (r.spot) {
       if (!r.item.tip) return null;
-      return { title: str(r.item.label) || str(r.item.title), text: str(r.item.tip), target: function () { return spotEls(r)[0] || null; } };
+      s = { key: r.id, title: str(r.item.label) || str(r.item.title), text: str(r.item.tip), target: function () { return spotEls(r)[0] || null; } };
+    } else {
+      if (r.overflowed || !r.piece) return null;
+      var text = has(r.piece, 'tour') ? r.piece.tour : undefined;
+      if (text === null) return null;
+      if (text === undefined || text === '') text = str(r.item.tip) || labelOf(r);
+      var tg = typeof r.piece.target === 'function' ? r.piece.target : function () { return r.el; };
+      s = { key: r.kind === 'tour' ? 'welcome' : r.id, title: labelOf(r), text: String(text), target: tg, first: r.kind === 'tour' };
     }
-    if (r.overflowed || !r.piece) return null;
-    var text = has(r.piece, 'tour') ? r.piece.tour : undefined;
-    if (text === null) return null;
-    if (text === undefined || text === '') text = str(r.item.tip) || labelOf(r);
-    var tg = typeof r.piece.target === 'function' ? r.piece.target : function () { return r.el; };
-    return { title: labelOf(r), text: String(text), target: tg };
+    var c = ceremonyOf(s.key);                     // the spoken passage wins over the tip: the caption IS the voice's words
+    if (c) { s.text = c.text; s.audio = c.audio; }
+    return s;
   }
   function tourSteps() {
-    var out = [];
+    var out = [], first = null;
     RING.forEach(function (slot) {
-      var list = state.mobile && slot === 'top-right' ? [] : recs.filter(function (r) { return r.slot === slot && live(r); });
+      var list = recs.filter(function (r) { return r.slot === slot && live(r) && (!state.mobile || slot !== 'top-right' || r.pinned); });
       if (!state.mobile && (slot === 'left' || slot === 'right') && more[slot] && !more[slot].wrap.hidden) list.push({ core: 'more', side: slot });
       if (slot === 'bottom-left') list.push({ core: 'credit' });
       if (state.mobile && slot === 'top-right') list.push({ core: 'sheet' });
       if (UPWARD[slot]) list.reverse();
-      list.forEach(function (r) { var s = stepFor(r); if (s && s.text) out.push(s); });
+      list.forEach(function (r) { var s = stepFor(r); if (!s || !s.text) return; if (s.first && !first) first = s; else out.push(s); });
     });
+    if (first) out.unshift(first);                 // the welcome: the flower the visitor just pressed
     return out;
   }
   function targetRect(step) {
@@ -1148,7 +1294,8 @@ var FRAMES = (function (W) {
     var r = el.getBoundingClientRect();
     return onScreen(r) ? { r: r, el: el } : null;
   }
-  function dwell(step) { return Math.min(2600, 1500 + Math.max(0, (step.title + step.text).length - 48) * 16); }
+  // words only (no clip, 🔇, or the browser refused to play): reading time
+  function dwell(step) { return step.audio ? Math.min(9000, 1800 + step.text.length * 55) : Math.min(2600, 1500 + Math.max(0, (step.title + step.text).length - 48) * 16); }
   function startTour(auto) {
     if (state.off || prefs.hide.tour) return false;
     stopTour('restart', true);
@@ -1158,55 +1305,150 @@ var FRAMES = (function (W) {
     var steps = tourSteps();
     if (!steps.length) return false;
     tour.active = true; tour.auto = !!auto; tour.steps = steps; tour.i = -1; tour.cur = null;
+    cer.paused = false; cer.speaking = false; cer.blocked = false;
     tour.bar.hidden = false;
-    emit('tour:start', { auto: !!auto, steps: steps.length });
+    root.setAttribute('data-osof-ceremony', '');
+    placeBar();
+    syncBar();
+    emit('tour:start', { auto: !!auto, steps: steps.length, voice: steps.some(function (s) { return !!s.audio; }) });
     nextStep();
     return true;
   }
   function nextStep() {
     if (!tour.active) return;
+    clearTimeout(tour.timer);
     var s = null;
     while (++tour.i < tour.steps.length) { if (targetRect(tour.steps[tour.i])) { s = tour.steps[tour.i]; break; } }
     if (!s) { stopTour('done'); finalCard(); return; }
     showStep(s, false);
-    tour.timer = setTimeout(nextStep, dwell(s));
+    speak(s);
+  }
+  function cerAudio() {
+    if (cer.audio) return cer.audio;
+    var a = new W.Audio();
+    a.preload = 'auto';
+    a.addEventListener('ended', function () { cer.speaking = false; if (tour.active && !cer.paused) tour.timer = setTimeout(nextStep, 420); else if (finalEl && !tour.active) finalTimer = setTimeout(fadeFinal, 6000); });
+    a.addEventListener('error', function () { if (!cer.speaking) return; cer.speaking = false; if (tour.active && tour.cur) textTimer(tour.cur); });
+    cer.audio = a;
+    return a;
+  }
+  function speak(s) {
+    cer.speaking = false;
+    if (s.audio && !cer.muted && !cer.blocked && W.Audio) {
+      var a = cerAudio();
+      try { a.pause(); a.src = s.audio; a.currentTime = 0; } catch (e) {}
+      cer.speaking = true;
+      var p = null;
+      try { p = a.play(); } catch (e) { p = null; cer.speaking = false; }
+      if (p && typeof p.then === 'function') {
+        p.then(function () { if (tour.halo) tour.halo.classList.toggle('osof-breath', !state.reduced); },
+          function (err) { cer.speaking = false; if (notAllowed(err)) { cer.blocked = true; syncBar(); } if (tour.active && tour.cur === s) textTimer(s); });   // autoplay policy: words only until ▶ is tapped; a missing clip = words only for that step
+      }
+      if (cer.speaking) return;
+    }
+    textTimer(s);
+  }
+  function textTimer(s) { clearTimeout(tour.timer); if (!cer.paused) tour.timer = setTimeout(nextStep, dwell(s)); }
+  function notAllowed(err) { return !err || !err.name || err.name === 'NotAllowedError'; }   // only the autoplay policy turns ▶ gold; a 404 or a codec error just means words for that step
+  function cerToggle() {
+    if (!tour.active && !finalEl) return;
+    if (cer.blocked) { cer.blocked = false; syncBar(); if (tour.active && tour.cur) speak(tour.cur); else if (finalEl) speakFinal(); return; }
+    cer.paused = !cer.paused;
+    if (cer.paused) { clearTimeout(tour.timer); clearTimeout(finalTimer); if (cer.speaking && cer.audio) { try { cer.audio.pause(); } catch (e) {} } }
+    else if (cer.speaking && cer.audio) { var p; try { p = cer.audio.play(); } catch (e) { p = null; } if (p && p.then) p.then(null, function (err) { cer.speaking = false; if (notAllowed(err)) cer.blocked = true; syncBar(); if (tour.cur) textTimer(tour.cur); }); }
+    else if (tour.active && tour.cur) textTimer(tour.cur);
+    else if (finalEl) finalTimer = setTimeout(fadeFinal, 4000);
+    syncBar();
+  }
+  function cerMute(v) {
+    cer.muted = !!v;
+    if (cer.muted && cer.speaking && cer.audio) { try { cer.audio.pause(); } catch (e) {} cer.speaking = false; if (tour.active && tour.cur) textTimer(tour.cur); }
+    else if (!cer.muted && tour.active && tour.cur && !cer.paused) speak(tour.cur);
+    syncBar();
+  }
+  function syncBar() {
+    if (!tour.bar) return;
+    var p = tour.play, m = tour.mute;
+    p.firstChild.textContent = cer.blocked ? '▶' : (cer.paused ? '▶' : '⏸');
+    p.setAttribute('aria-label', cer.blocked ? t('cer.play') : (cer.paused ? t('cer.resume') : t('cer.pause')));
+    p.toggleAttribute('data-osof-blocked', cer.blocked);
+    m.firstChild.textContent = cer.muted ? '🔇' : '🔊';
+    m.setAttribute('aria-label', cer.muted ? t('cer.unmute') : t('cer.mute'));
+    m.setAttribute('aria-pressed', cer.muted ? 'true' : 'false');
+    if (tour.halo) tour.halo.classList.toggle('osof-breath', cer.speaking && !cer.paused && !state.reduced);
+  }
+  // NO COVERED TEXT LAW: the bar stands on the first clear band (top, then lower, then above the credit); on phones it is the
+  // bottom sheet (words + controls in one box) and the frame's own bottom corners step above it
+  function placeBar() {
+    var b = tour.bar; if (!b) return;
+    b.style.top = ''; b.style.bottom = '';
+    if (state.mobile) { b.setAttribute('data-osof-sheet', ''); cerLift(); return; }
+    b.removeAttribute('data-osof-sheet');
+    cer.lift = 0;
+    var r = b.getBoundingClientRect(), vh = W.innerHeight, tries = [12], y;
+    for (y = 12 + r.height + 14; y < vh * 0.35; y += r.height + 12) tries.push(Math.round(y));
+    tries.push(Math.round(vh - r.height - 58));
+    for (var i = 0; i < tries.length; i++) {
+      var box = { left: r.left, right: r.right, top: tries[i], height: r.height };
+      if (!rectHasText(box)) { b.style.top = tries[i] + 'px'; return; }
+    }
+    b.style.top = '12px';
+  }
+  function cerLift() {
+    var el = finalEl && !tour.active ? finalEl : tour.bar;
+    var want = state.mobile && el && !el.hidden ? Math.round(el.getBoundingClientRect().height + 16) : 0;
+    if (want !== cer.lift) { cer.lift = want; schedule(); }
   }
   function showStep(s, again) {
     var tr = targetRect(s);
     if (!tr) return;
-    var cap;
-    if (again) cap = tour.caps[tour.flip];
-    else {
-      var old = tour.caps[tour.flip];
-      tour.flip = 1 - tour.flip;
-      cap = tour.caps[tour.flip];
-      cap.textContent = '';
-      if (s.title) cap.appendChild(h('b', {}, brandify(s.title)));
-      cap.appendChild(h('span', {}, brandify(s.text)));
-      old.classList.remove('on');
-    }
     tour.cur = s;
     tour.count.textContent = (tour.i + 1) + ' / ' + tour.steps.length;
-    placeCap(cap, tr.r);
-    cap.classList.add('on');
+    if (state.mobile) {                              // phones: the words live in the bottom sheet, with the controls
+      if (!again) { tour.text.textContent = ''; if (s.title) tour.text.appendChild(h('b', {}, brandify(s.title))); tour.text.appendChild(h('span', {}, brandify(s.text))); tour.text.classList.remove('on'); void tour.text.offsetWidth; tour.text.classList.add('on'); }
+      tour.caps[0].classList.remove('on'); tour.caps[1].classList.remove('on');
+      cerLift();
+    } else {
+      var cap;
+      if (again) cap = tour.caps[tour.flip];
+      else {
+        var old = tour.caps[tour.flip];
+        tour.flip = 1 - tour.flip;
+        cap = tour.caps[tour.flip];
+        cap.textContent = '';
+        if (s.title) cap.appendChild(h('b', {}, brandify(s.title)));
+        cap.appendChild(h('span', {}, brandify(s.text)));
+        old.classList.remove('on');
+      }
+      placeCap(cap, tr.r);
+      cap.classList.add('on');
+    }
     halo(tr.el, tr.r, !again);
   }
+  // NO COVERED TEXT LAW: the caption tries the natural side first, then the other sides, and keeps the first with no words under it
   function placeCap(cap, r) {
     var vw = W.innerWidth, vh = W.innerHeight, w = cap.offsetWidth, hh = cap.offsetHeight, gap = 16;
-    var cx = r.left + r.width / 2, cy = r.top + r.height / 2, side, left, top;
-    if (state.mobile) side = cy > vh * 0.55 ? 'above' : 'below';
-    else side = cx < vw / 2 ? 'right' : 'left';
-    if (side === 'right') { left = r.right + gap; top = cy - hh / 2; }
-    else if (side === 'left') { left = r.left - gap - w; top = cy - hh / 2; }
-    else if (side === 'above') { left = cx - w / 2; top = r.top - gap - hh; }
-    else { left = cx - w / 2; top = r.bottom + gap; }
-    left = clamp(left, 8, Math.max(8, vw - w - 8));
-    top = clamp(top, 8, Math.max(8, vh - hh - 8));
-    cap.setAttribute('data-side', side);
-    cap.style.left = Math.round(left) + 'px';
-    cap.style.top = Math.round(top) + 'px';
-    cap.style.setProperty('--osof-ay', Math.round(clamp(cy - top, 16, hh - 16)) + 'px');
-    cap.style.setProperty('--osof-ax', Math.round(clamp(cx - left, 16, w - 16)) + 'px');
+    var cx = r.left + r.width / 2, cy = r.top + r.height / 2;
+    var natural = cx < vw / 2 ? 'right' : 'left';
+    var order = [natural, cy < vh / 2 ? 'below' : 'above', natural === 'right' ? 'left' : 'right', cy < vh / 2 ? 'above' : 'below'];
+    var best = null;
+    for (var i = 0; i < order.length; i++) {
+      var side = order[i], left, top;
+      if (side === 'right') { left = r.right + gap; top = cy - hh / 2; }
+      else if (side === 'left') { left = r.left - gap - w; top = cy - hh / 2; }
+      else if (side === 'above') { left = cx - w / 2; top = r.top - gap - hh; }
+      else { left = cx - w / 2; top = r.bottom + gap; }
+      left = clamp(left, 8, Math.max(8, vw - w - 8));
+      top = clamp(top, 8, Math.max(8, vh - hh - 8));
+      var pos = { side: side, left: left, top: top };
+      if (!best) best = pos;
+      if (!rectHasText({ left: left, right: left + w, top: top, height: hh })) { best = pos; break; }
+    }
+    cap.setAttribute('data-side', best.side);
+    cap.style.left = Math.round(best.left) + 'px';
+    cap.style.top = Math.round(best.top) + 'px';
+    cap.style.setProperty('--osof-ay', Math.round(clamp(cy - best.top, 16, hh - 16)) + 'px');
+    cap.style.setProperty('--osof-ax', Math.round(clamp(cx - best.left, 16, w - 16)) + 'px');
   }
   function halo(el, r, pulse) {
     var hl = tour.halo, pad = 5;
@@ -1222,12 +1464,16 @@ var FRAMES = (function (W) {
     if (!tour.active) return;
     clearTimeout(tour.timer);
     tour.active = false; tour.cur = null;
+    if (cer.audio && why !== 'done') { try { cer.audio.pause(); } catch (e) {} }
+    cer.speaking = false; cer.paused = false;
     if (tour.caps) { tour.caps[0].classList.remove('on'); tour.caps[1].classList.remove('on'); }
-    if (tour.halo) { tour.halo.hidden = true; tour.halo.classList.remove('glow'); }
+    if (tour.halo) { tour.halo.hidden = true; tour.halo.classList.remove('glow'); tour.halo.classList.remove('osof-breath'); }
     if (tour.bar) tour.bar.hidden = true;
+    if (why !== 'done') { root.removeAttribute('data-osof-ceremony'); cerLift(); }
     if (!silent) emit('tour:end', { why: why });
   }
   function tourRec() { for (var i = 0; i < recs.length; i++) if (recs[i].kind === 'tour' && live(recs[i])) return recs[i]; return null; }
+  function poolRec() { for (var i = 0; i < recs.length; i++) if (live(recs[i]) && (recs[i].id === 'blessing-pool' || recs[i].item.pool === true)) return recs[i]; return null; }
   function walkVideo() {
     var tr = tourRec(), v = tr && isObj(tr.item.video) ? tr.item.video : null;
     if (!v) recs.forEach(function (r) { if (!v && r.kind === 'theater' && isObj(r.item.video)) v = r.item.video; });
@@ -1238,37 +1484,77 @@ var FRAMES = (function (W) {
     m = /^\s*(\d+)\s*(m|min|mins|minutes?)\s*$/i.exec(str(d)); if (m) return m[1] + '-minute';
     return '';
   }
+  function isHttps(u) { return typeof u === 'string' && /^https:\/\//i.test(u); }
+  // the last card lands on the Blessing Pool: the closing line (spoken + written), the pool link, the gift rails, the honest line
   function finalCard() {
-    var tr = tourRec(), anchor = state.mobile ? sheetBtn : (tr && tr.el) || sheetBtn;
+    var pr = poolRec(), tr = tourRec();
+    var anchor = (pr && pr.el && isVisible(pr.el) && pr.el) || (state.mobile ? sheetBtn : (tr && tr.el) || sheetBtn);
     if (!anchor || !isVisible(anchor)) anchor = null;
-    var v = walkVideo();
+    var v = walkVideo(), c = ceremonyOf('closing'), gift = isObj(data.gift) ? data.gift : {};
+    var pool = isHttps(gift.pool) ? gift.pool : (pr ? resolveURL(pr.item.href, dataURL) : '');
+    var link = function (href, text) { return h('a', { href: href, target: '_blank', rel: 'noopener' }, text); };
     hideFinal();
+    var rails = [];
+    if (isHttps(gift.x402)) rails.push(t('cer.agents'), ' ', link(gift.x402, 'x402'));
+    var hs = [];
+    [['stripe', 'Stripe'], ['paypal', 'PayPal'], ['venmo', 'Venmo']].forEach(function (p) { if (isHttps(gift[p[0]])) { if (hs.length) hs.push(' · '); hs.push(link(gift[p[0]], p[1])); } });
+    if (hs.length) { if (rails.length) rails.push(' · '); rails.push(t('cer.humans'), ' '); rails = rails.concat(hs); }
     finalEl = h('div', { class: 'osof-final', role: 'group', 'aria-label': t('tour.title') },
-      h('p', {}, h('b', {}, t('tour.done')), ' ', t('tour.replay')),
-      v ? h('button', { type: 'button', class: 'osof-watch', on: { click: function () { var o = anchor; hideFinal(); walkthrough(o); } } }, fmt(t('tour.watch'), { d: durWord(v.duration) })) : null,
+      h('p', {}, h('b', {}, t('tour.done')), ' ', c ? brandify(c.text) : t('tour.replay')),
+      pool ? h('a', { class: 'osof-watch osof-pool', href: pool, target: '_blank', rel: 'noopener' }, t('cer.pool')) : null,
+      rails.length ? h('p', { class: 'osof-rails' }, rails) : null,
+      c ? h('p', { class: 'osof-rails osof-voice' }, brandify(t('cer.voice'))) : null,
+      v ? h('button', { type: 'button', class: 'osof-link osof-final-v', on: { click: function () { var o = anchor; hideFinal(); walkthrough(o); } } }, fmt(t('tour.watch'), { d: durWord(v.duration) })) : null,
       h('button', { type: 'button', class: 'osof-x', 'aria-label': t('close'), on: { click: hideFinal } }, '✕'));
+    finalEl.audio = c ? c.audio : '';
     root.appendChild(finalEl);
-    var w = finalEl.offsetWidth, hh = finalEl.offsetHeight, vw = W.innerWidth, vh = W.innerHeight, left, top;
-    if (anchor) {
-      var r = anchor.getBoundingClientRect();
-      if (state.mobile) { left = vw - w - 8; top = r.bottom + 14; } else { left = r.left - 16 - w; top = r.top + r.height / 2 - hh / 2; }
-      tourUI(); halo(anchor, r, true);
-    } else { left = (vw - w) / 2; top = vh - hh - 90; }
-    finalEl.style.left = Math.round(clamp(left, 8, vw - w - 8)) + 'px';
-    finalEl.style.top = Math.round(clamp(top, 8, vh - hh - 8)) + 'px';
+    if (state.mobile) { finalEl.setAttribute('data-osof-sheet', ''); if (tour.bar) tour.bar.hidden = true; cerLift(); }
+    else {
+      var w = finalEl.offsetWidth, hh = finalEl.offsetHeight, vw = W.innerWidth, vh = W.innerHeight, left, top;
+      if (anchor) {
+        var r = anchor.getBoundingClientRect();
+        left = r.left - 16 - w; top = r.top + r.height / 2 - hh / 2;
+        if (left < 8) left = r.right + 16;
+      } else { left = (vw - w) / 2; top = vh - hh - 90; }
+      left = clamp(left, 8, vw - w - 8); top = clamp(top, 8, vh - hh - 8);
+      if (rectHasText({ left: left, right: left + w, top: top, height: hh })) {                 // words under it → the band under the bar, then centre-bottom
+        var alt = [[Math.round((vw - w) / 2), 12 + 46 + 14], [Math.round((vw - w) / 2), vh - hh - 60]];
+        for (var i = 0; i < alt.length; i++) if (!rectHasText({ left: alt[i][0], right: alt[i][0] + w, top: alt[i][1], height: hh })) { left = alt[i][0]; top = alt[i][1]; break; }
+      }
+      finalEl.style.left = Math.round(left) + 'px';
+      finalEl.style.top = Math.round(top) + 'px';
+    }
+    if (anchor) { tourUI(); halo(anchor, anchor.getBoundingClientRect(), true); }
     var el = finalEl;
     (W.requestAnimationFrame || setTimeout)(function () { el.classList.add('on'); });
+    if (!speakFinal()) finalTimer = setTimeout(fadeFinal, c ? 9000 : 6000);
+  }
+  function speakFinal() {
+    if (!finalEl || !finalEl.audio || cer.muted || cer.blocked || !W.Audio) return false;
+    var a = cerAudio();
+    try { a.pause(); a.src = finalEl.audio; a.currentTime = 0; } catch (e) { return false; }
+    cer.speaking = true;
+    var p = null;
+    try { p = a.play(); } catch (e) { cer.speaking = false; return false; }
+    if (p && typeof p.then === 'function') p.then(null, function (err) { cer.speaking = false; if (notAllowed(err)) cer.blocked = true; finalTimer = setTimeout(fadeFinal, 9000); });
+    return true;
+  }
+  function fadeFinal() {
+    var el = finalEl; if (!el) return;
     var hold = function () { return el.matches(':hover') || el.contains(D.activeElement); };
-    var fade = function () { if (finalEl !== el) return; if (hold()) { finalTimer = setTimeout(fade, 1500); return; } hideFinal(); };
-    finalTimer = setTimeout(fade, 6000);
+    if (hold()) { finalTimer = setTimeout(fadeFinal, 1500); return; }
+    hideFinal();
   }
   function hideFinal() {
     clearTimeout(finalTimer);
-    if (tour.halo && !tour.active) { tour.halo.hidden = true; tour.halo.classList.remove('glow'); }
+    if (tour.halo && !tour.active) { tour.halo.hidden = true; tour.halo.classList.remove('glow'); tour.halo.classList.remove('osof-breath'); }
+    if (!tour.active && cer.audio && cer.speaking) { try { cer.audio.pause(); } catch (e) {} cer.speaking = false; }
+    if (!tour.active && root) root.removeAttribute('data-osof-ceremony');
     if (!finalEl) return;
     var el = finalEl; finalEl = null;
     el.classList.remove('on');
     setTimeout(function () { el.remove(); }, state.reduced ? 0 : 320);
+    cerLift();
   }
   function walkthrough(opener) {
     var v = walkVideo();
@@ -1285,8 +1571,9 @@ var FRAMES = (function (W) {
     d.open(opener);
   }
   function scheduleTour() {
-    // 22 Nov 2026, Shaka: "remove the description bubbles on ALL DOORS … they are too big … distracting" → the tour never
-    // starts by itself any more. ✨ (or FRAMES.tour()) still plays it for whoever asks. Forks: set data.tour = {auto:true}.
+    // 22 Nov 2026, Shaka: "remove the description bubbles on ALL DOORS … they are too big … distracting" → the ceremony never
+    // starts by itself (and audio could not autoplay anyway). 🌺 (or FRAMES.tour()) plays it for whoever asks. Forks: data.tour = {auto:true}
+    // brings back the silent caption tour on a first visit.
     if (!(isObj(data.tour) && data.tour.auto === true)) return;
     if (state.outline || state.off || prefs.hide.tour || !once.peek('tour')) return;
     var sig = recs.some(function (r) { return r.kind === 'signature'; }) && once.got('signature') === true;
@@ -1297,7 +1584,7 @@ var FRAMES = (function (W) {
       if (openDlg) { if (!offPanel) offPanel = on('panel:close', function () { offPanel(); offPanel = null; setTimeout(go, 1500); }); return; }
       done = true;
       if (offSig) offSig();
-      if (once('tour')) startTour(true);
+      if (once('tour')) { cer.blocked = true; startTour(true); }   // an unasked start never plays audio (browser policy + Shaka's law)
     }
     if (sig) offSig = on('signature:end', function () { setTimeout(go, 350); });
     setTimeout(go, sig ? 8200 : 5500);
@@ -1377,14 +1664,22 @@ var FRAMES = (function (W) {
   }
 
   // ── the ✨ tour item (a core kind): "every description, as one button" ─────────
+  // v0.1.3: the 🌺 ceremony button — always top-left (under the 🌐 globe), on phones too; folds to a dot when words run under it
   function defineTour() {
     kinds.tour = function (ctx, item) {
       var label = str(item.label) || t('tour');
-      var b = ctx.h('button', { type: 'button', class: 'osof-btn osof-tourbtn', 'aria-label': label, 'aria-describedby': null, on: { click: function () { startTour(false); } } },
-        ctx.h('span', { class: 'osof-emo', 'aria-hidden': 'true' }, str(item.emoji) || '✨'),
+      var b = ctx.h('button', { type: 'button', class: 'osof-btn osof-btn-lg osof-tourbtn osof-cerbtn', 'aria-label': label, 'aria-describedby': null, on: { click: function () { if (cerFolded) { foldCer(false); return; } startTour(false); } } },
+        ctx.h('span', { class: 'osof-emo', 'aria-hidden': 'true' }, str(item.emoji) || '🌺'),
         ctx.h('span', { class: 'osof-lbl', 'aria-hidden': 'true' }, label));
+      cerBtn = b; cerLabel = label; cerFolded = false;
       return { el: b, tour: str(item.tip) || t('tour.tip'), open: function () { startTour(false); } };
     };
+  }
+  function foldCer(v) {
+    if (!cerBtn || cerFolded === v) return;
+    cerFolded = v;
+    cerBtn.classList.toggle('osof-fold', v);
+    cerBtn.setAttribute('aria-label', v ? cerLabel + ' · ' + t('unfold') : cerLabel);
   }
 
   // ── CSS (every selector starts with #oso-frames; light DOM so translators can read it) ──
@@ -1397,13 +1692,14 @@ var FRAMES = (function (W) {
       F + '{position:static;font:400 14px/1.35 ' + SERIF + ';color:#f4ecdc;text-align:left;direction:ltr;-webkit-text-size-adjust:100%}',
       F + ' *{box-sizing:border-box;margin:0;padding:0;border:0 solid;background:none;color:inherit;font:inherit;letter-spacing:inherit;text-transform:none;text-decoration:none;text-shadow:none;box-shadow:none;float:none;max-width:none;min-width:0;inset:auto}',
       F + ' [hidden]{display:none!important}',
+      F + '[data-osof-asleep]{display:none!important}',
       // the zones are <nav>/<div>: a page's own "nav{position:fixed;left:0;right:0;display:grid;padding:…}" must not reach them
       // (publicinform.com, 22 Nov 2026: the right rail landed at x=0 over the left one) → every zone starts from a clean slate
       F + ' .osof-slot{all:unset;position:fixed;inset:auto;z-index:' + Z.frame + ';pointer-events:none;display:flex;flex-direction:column;box-sizing:border-box;margin:0;padding:0;border:0;background:none;width:auto;height:auto;min-height:0;max-height:none;transform:none;overflow:visible;font:inherit;color:inherit;direction:ltr}',
       F + ' .osof-slot::before,' + F + ' .osof-slot::after{content:none!important;display:none!important}',
       F + ' .osof-slot>*{pointer-events:auto}',
       F + ' .osof-item{position:relative;display:flex;flex:none}',
-      F + ' [data-slot=top-left]{left:calc(10px + env(safe-area-inset-left,0px));right:auto;top:74px;bottom:auto;width:54px;align-items:center}',
+      F + ' [data-slot=top-left]{left:calc(10px + env(safe-area-inset-left,0px));right:auto;top:var(--osof-top-l,74px);bottom:auto;width:54px;align-items:center;gap:0}',
       F + ' [data-slot=top-right]{right:calc(10px + env(safe-area-inset-right,0px));left:auto;top:var(--osof-top-r,74px);bottom:auto;width:54px;align-items:center;gap:10px}',
       F + ' [data-slot=left]{left:calc(10px + env(safe-area-inset-left,0px));right:auto;bottom:auto;width:54px;align-items:center}',
       F + ' [data-slot=right]{right:calc(10px + env(safe-area-inset-right,0px));left:auto;bottom:auto;width:54px;align-items:center}',
@@ -1488,10 +1784,17 @@ var FRAMES = (function (W) {
       // phones: rails rest; one 🎻 opens the sheet; chat + radio stay; the credit stays
       F + '[data-mode=desktop] .osof-sheet-item{display:none}',
       F + '[data-mode=mobile] [data-slot=left],' + F + '[data-mode=mobile] [data-slot=right]{display:none}',
-      F + '[data-mode=mobile] [data-slot=top-left]{left:calc(8px + env(safe-area-inset-left,0px));top:52px;width:38px}',
-      F + '[data-mode=mobile] [data-slot=top-right]{right:calc(8px + env(safe-area-inset-right,0px));top:var(--osof-top-r,52px)}',
-      F + '[data-mode=mobile] [data-slot=top-right]>.osof-item:not(.osof-sheet-item),' + F + '[data-mode=mobile] [data-slot=bottom-left]>.osof-item:not([data-osof-kind=credit]),' + F + '[data-mode=mobile] [data-osof-hom]{display:none}',
+      F + '[data-mode=mobile] [data-slot=top-left]{left:calc(8px + env(safe-area-inset-left,0px));top:var(--osof-top-l,52px);width:38px}',
+      F + '[data-mode=mobile] [data-slot=top-right]{right:calc(8px + env(safe-area-inset-right,0px));top:var(--osof-top-r,52px);gap:8px}',
+      // v0.1.3: pinned items (🌊 Blessing Pool) stay on phones, first in the stack; the 🌺 ceremony stays top-left at 38px
+      F + '[data-mode=mobile] [data-slot=top-right]>.osof-item:not(.osof-sheet-item):not([data-osof-pin]),' + F + '[data-mode=mobile] [data-slot=bottom-left]>.osof-item:not([data-osof-kind=credit]),' + F + '[data-mode=mobile] [data-osof-hom]{display:none}',
+      F + '[data-mode=mobile] [data-slot=top-right] [data-osof-pin] .osof-btn{width:44px;height:44px;font-size:21px}',
+      F + '[data-mode=mobile] .osof-cerbtn{width:38px;height:38px;font-size:18px}',
+      F + '[data-osof-tr-fold] [data-slot=top-right]>[data-osof-pin]{display:none!important}',
       F + '[data-mode=mobile] .osof-sheetbtn{width:44px;height:44px;font-size:21px}',
+      F + '[data-mode=mobile] .osof-sheet-item{order:2}',
+      F + '[data-mode=mobile][data-osof-tr=pool] .osof-sheet-item{position:fixed;top:var(--osof-dot-r,100px);right:calc(8px + env(safe-area-inset-right,0px))}',   // pool-only corner: the folded 🎻 dot finds its own spot
+      F + '[data-mode=mobile] .osof-lbl{display:none}',                              // touch: a tapped button keeps :hover — its label would sit on the words                        // phones: the pinned 🌊 stands first, the 🎻 under it
       F + '[data-mode=mobile] [data-slot=bottom-left]{left:calc(8px + env(safe-area-inset-left,0px));bottom:calc(8px + env(safe-area-inset-bottom,0px))}',
       F + '[data-mode=mobile] [data-slot=bottom-right]{right:calc(8px + env(safe-area-inset-right,0px));bottom:calc(8px + env(safe-area-inset-bottom,0px))}',
       F + '[data-mode=mobile] .osof-credit{height:30px;font-size:11.5px}',
@@ -1529,10 +1832,36 @@ var FRAMES = (function (W) {
       F + ' .osof-dot::after{content:"";position:absolute;inset:-10px}',
       F + ' .osof-fold-x{position:absolute;top:-7px;left:-7px;z-index:1;width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#3d1c42,#221436);border:1px solid rgba(251,226,160,.7);color:#fbe2a0;font:10px/1 ' + SANS + ';cursor:pointer;box-shadow:0 3px 10px rgba(0,0,0,.45)}',
       F + ' .osof-fold-x::after{content:"";position:absolute;inset:-6px}',
-      F + ' .osof-sheetbtn.osof-fold{width:17px!important;height:17px!important;font-size:9px!important;opacity:.45;box-shadow:none}',
-      F + ' .osof-sheetbtn.osof-fold:hover,' + F + ' .osof-sheetbtn.osof-fold:focus-visible{opacity:.95;transform:none}',
-      F + ' .osof-sheetbtn.osof-fold .osof-emo{transform:none!important;animation:none!important}',
-      F + '[data-mode=mobile] .osof-sheetbtn.osof-fold{width:20px!important;height:20px!important;font-size:10px!important;opacity:.62}',
+      F + ' .osof-btn.osof-fold{width:17px!important;height:17px!important;font-size:9px!important;opacity:.45;box-shadow:none}',
+      F + ' .osof-btn.osof-fold:hover,' + F + ' .osof-btn.osof-fold:focus-visible{opacity:.95;transform:none}',
+      F + ' .osof-btn.osof-fold .osof-emo{transform:none!important;animation:none!important}',
+      F + ' .osof-btn.osof-fold .osof-lbl{display:none}',
+      F + '[data-mode=mobile] .osof-btn.osof-fold{width:20px!important;height:20px!important;font-size:10px!important;opacity:.62}',
+      // v0.1.3 · "✕ hide frame" next to the credit mark (hover/focus; once for 4 s on a first visit) · the phone sheet's first row
+      F + ' .osof-credit-x .osof-x-lbl{left:calc(100% + 14px);font:600 12px/1.2 ' + SANS + ';padding:5px 10px}',
+      F + ' .osof-credit-x:hover .osof-x-lbl,' + F + ' .osof-credit-x:focus-visible .osof-x-lbl,' + F + ' .osof-credit-x.osof-say .osof-x-lbl{opacity:1;transform:translate(0,-50%)}',
+      F + '[data-mode=mobile] .osof-x-lbl{display:none}',
+      F + ' .osof-sheet-hide{display:flex;align-items:center;justify-content:center;gap:4px;width:100%;min-height:48px;margin:0 0 6px;border:1px solid rgba(251,226,160,.5);border-radius:12px;background:rgba(251,226,160,.06);color:#fbe2a0;font:700 16px/1.2 ' + SERIF + ';cursor:pointer}',
+      F + ' .osof-sheet-hide:hover{background:rgba(251,226,160,.14)}',
+      F + ' .osof-sheet-note{margin:0 0 12px}',
+      // v0.1.3 · the ceremony: bar (desktop) / bottom sheet (phones), ▶⏸ · n/N · 🔊🔇 · Skip ✕, the words always with the voice
+      F + ' .osof-cer-row{display:flex;align-items:center;gap:10px}',
+      F + ' .osof-cer-text{display:none}',
+      F + ' .osof-cer-b{flex:none;width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;border:1px solid rgba(251,226,160,.55);color:#fbe2a0;font:15px/1 ' + SANS + ';cursor:pointer}',
+      F + ' .osof-cer-b:hover{background:rgba(251,226,160,.12)}',
+      F + ' .osof-cer-play[data-osof-blocked]{background:linear-gradient(135deg,#f3d27e,#e9c46a);color:#21170a;border-color:transparent}',
+      F + ' .osof-tourbar[data-osof-sheet]{top:auto;bottom:calc(8px + env(safe-area-inset-bottom,0px));left:8px;right:8px;transform:none;flex-direction:column;align-items:stretch;gap:0;white-space:normal;border-radius:16px;padding:6px 6px 10px 12px}',
+      F + ' .osof-tourbar[data-osof-sheet] .osof-cer-row{justify-content:space-between;gap:6px}',
+      F + ' .osof-tourbar[data-osof-sheet] .osof-tourbar-w{display:none}',
+      F + ' .osof-tourbar[data-osof-sheet] .osof-cer-text{display:block;min-height:4.2em;margin-top:6px;padding-right:4px;font:15px/1.4 ' + SERIF + ';color:#f4ecdc;opacity:0;transition:opacity .25s ease}',
+      F + ' .osof-tourbar[data-osof-sheet] .osof-cer-text.on{opacity:1}',
+      F + ' .osof-cer-text b{display:block;color:#fbe2a0;margin-bottom:2px}',
+      F + ' .osof-final[data-osof-sheet]{left:8px!important;right:8px;top:auto!important;bottom:calc(8px + env(safe-area-inset-bottom,0px));max-width:none}',
+      F + ' .osof-rails{flex:1 1 100%;font:12px/1.4 ' + SANS + ';color:#d8ccb4}',
+      F + ' .osof-rails a{color:#fbe2a0;text-decoration:underline;text-underline-offset:.16em}',
+      F + ' .osof-pool{display:inline-flex;align-items:center;text-decoration:none!important}',
+      F + ' .osof-final-v{font-size:12.5px}',
+      F + ' .osof-tourbar-t{display:inline-flex;align-items:center}',
       // the first visit: one entrance, once (THE ONE-TIME LAW); never again, never a loop
       '@media (prefers-reduced-motion:no-preference){',
       '@keyframes osof-in-l{from{opacity:0;transform:translateX(-18px)}to{opacity:1;transform:none}}',
@@ -1542,7 +1871,13 @@ var FRAMES = (function (W) {
       F + '.osof-enter .osof-slot>.osof-item{animation:osof-in-l .55s cubic-bezier(.2,.8,.2,1) calc(300ms + var(--osof-i,0) * 40ms) both}',
       F + '.osof-enter [data-slot=right]>.osof-item,' + F + '.osof-enter [data-slot=top-right]>.osof-item{animation-name:osof-in-r}',
       F + '.osof-enter [data-slot=bottom-left]>.osof-item,' + F + '.osof-enter [data-slot=bottom-right]>.osof-item{animation-name:osof-in-b}',
+      F + '.osof-enter [data-slot=overlay]>.osof-item{animation:none!important}',   // a transformed wrapper would turn the thanks line's position:fixed into "absolute" (22 Nov 2026)
       F + ' .osof-halo.glow{animation:osof-glow 1.1s ease-out 1 both}',
+      // v0.1.3 · the ceremony: the halo glides from button to button and breathes while the voice speaks (user-initiated motion)
+      '@keyframes osof-breath{0%,100%{transform:scale(1)}50%{transform:scale(1.07)}}',
+      F + '[data-osof-ceremony] .osof-halo{transition:left .45s cubic-bezier(.2,.8,.2,1),top .45s cubic-bezier(.2,.8,.2,1),width .45s ease,height .45s ease}',
+      F + ' .osof-halo.osof-breath{animation:osof-breath 2.4s ease-in-out infinite}',
+      F + ' .osof-halo.glow.osof-breath{animation:osof-glow 1.1s ease-out 1 both,osof-breath 2.4s ease-in-out infinite}',
       '}',
       '@media (prefers-reduced-motion:reduce){' + F + ' .osof-btn,' + F + ' .osof-lbl,' + F + ' .osof-cap,' + F + ' .osof-final{transition:none}}'
     ].join('\n');
@@ -1658,14 +1993,21 @@ var FRAMES = (function (W) {
     D.addEventListener('pointerdown', onPointer, true);
     D.addEventListener('visibilitychange', function () { if (D.hidden && tour.active && tour.auto) stopTour('hidden'); });
     if (W.MutationObserver) {
-      var mt = 0;
-      new W.MutationObserver(function (ms) {
+      // v0.1.3: for the first 15 s the whole tree is watched (a mini player built late inside a <footer>, a class that reveals a
+      // widget) so the corners re-run their law; after that only direct children of <body> (cheap, as before)
+      var mt = 0, mo = new W.MutationObserver(function (ms) {
         for (var i = 0; i < ms.length; i++) {
+          var tg = ms[i].target;
+          if (tg && tg.nodeType === 1 && (tg === root || root.contains(tg) || tg.id === 'olelo')) continue;
+          if (ms[i].type === 'attributes') { clearTimeout(mt); mt = setTimeout(recheck, 250); return; }
           var nodes = [].slice.call(ms[i].addedNodes).concat([].slice.call(ms[i].removedNodes));
-          if (nodes.some(function (n) { return n !== root && n.nodeType === 1 && n.tagName !== 'SCRIPT' && n.tagName !== 'STYLE'; })) { clearTimeout(mt); mt = setTimeout(recheck, 150); return; }
+          if (nodes.some(function (n) { return n !== root && n.nodeType === 1 && n.tagName !== 'SCRIPT' && n.tagName !== 'STYLE' && !root.contains(n); })) { clearTimeout(mt); mt = setTimeout(recheck, 150); return; }
         }
-      }).observe(D.body, { childList: true });
+      });
+      mo.observe(D.body, { childList: true, subtree: true, attributes: true, attributeFilter: ['class', 'style', 'hidden'] });
+      setTimeout(function () { mo.disconnect(); mo.observe(D.body, { childList: true }); }, 15000);
     }
+    W.addEventListener('scroll', onScroll, { passive: true });
     setTimeout(schedule, 300);
     setTimeout(recheck, 1500);
     setTimeout(schedule, 3200);                                  // a page's late hero/entrance motion has settled by now
@@ -1705,6 +2047,10 @@ var FRAMES = (function (W) {
       state.booted = true;
       var f = parseFlags(W.location && W.location.search);
       if (f.off) { info('?frame=off — nothing rendered'); return; }
+      // v0.1.4 EMBED LAW (23 Nov 2026, Shaka's phone: a door opened inside another door's shell wore two frames): inside an
+      // <iframe> the frame stays away — the page around it already wears one, or never asked for a ring. data-embed="allow" invites it.
+      var embedded = false; try { embedded = W.top !== W.self; } catch (e) { embedded = true; }
+      if (embedded && !(SCRIPT && SCRIPT.getAttribute('data-embed') === 'allow')) { info('EMBED LAW: this page sits inside another page — the frame stays away (data-embed="allow" on the script tag invites it)'); return; }
       state.fresh = f.fresh;
       state.outline = f.outline;
       LS = probeStorage(W);
@@ -1727,6 +2073,8 @@ var FRAMES = (function (W) {
       return state.outline;
     },
     tour: function () { return root ? startTour(false) : false; },
+    sleep: sleep,                                                       // v0.1.4: step aside while a shell shows another page (not remembered)
+    wake: wake,
     reset: function () {
       var pre = ['osof:once:' + frameId + ':', 'osof:dismiss:' + frameId + ':'];
       try {
@@ -1903,7 +2251,9 @@ var FRAMES = (function (W) {
   }
 
   FRAMES.define('globe', function (ctx, item) {
-    ctx.css('globe', '#oso-frames .osof-globe-spot{width:54px;height:59px}#oso-frames[data-mode=mobile] .osof-globe-spot{width:38px;height:43px}');
+    // v0.1.3: the reserve has NO footprint of its own (the audit counted the empty spot as "an item on words"); the core measures
+    // the real lang.js button (extent/langButton) and places the top-left stack below it (--osof-top-l)
+    ctx.css('globe', '#oso-frames .osof-globe-spot{width:0;height:0;overflow:hidden}');
     if (!present()) {
       var src = ctx.resolve(item.src || LANG) || LANG;
       var s = document.createElement('script');
@@ -2615,11 +2965,13 @@ var FRAMES = (function (W) {
       try { const u = new URL(hub, location.href); return (u.host + u.pathname.replace(/\/+$/, '')).toLowerCase(); }
       catch (e) { return String(hub || 'hub').toLowerCase(); }
     };
-    const newSess = function () {
+    /* a door may ask for a session prefix (`session: "crops_"`): some desks answer only their own prefix (22 Nov 2026) */
+    const sessPrefix = function (p) { return /^[a-z0-9_-]{1,16}$/i.test(String(p || '')) ? String(p) : 'osof-'; };
+    const newSess = function (prefix) {
       let id = '';
       try { if (window.crypto && crypto.randomUUID) id = crypto.randomUUID(); } catch (e) {}
       if (!id) id = Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 12) + Math.random().toString(36).slice(2, 8);
-      return ('osof-' + id).slice(0, 64);
+      return (sessPrefix(prefix) + id).slice(0, 64);
     };
     const facePrefix = function (k) { return /^[a-z0-9_-]{1,24}$/i.test(k) ? '🗿[face:' + k + '] ' : ''; };
 
@@ -2639,14 +2991,15 @@ var FRAMES = (function (W) {
     const lineFor = function (spec) {
       if (!spec || !spec.hub) return lines[0];
       return line({ hub: spec.hub, face: spec.face || null, name: spec.name || 'ʻohana', emoji: spec.emoji || '🫶', color: spec.color || '#e8c476',
-        greeting: spec.greeting || null, storage: spec.storage || 'totem', route: spec.route || (spec.face ? 'prefix' : null), sub: spec.sub || null });
+        greeting: spec.greeting || null, storage: spec.storage || 'totem', route: spec.route || (spec.face ? 'prefix' : null), sub: spec.sub || null, session: spec.session || null });
     };
 
     /* storage: osof:chat:<hub host+path>:<face|main>:sess|after — only created when a line is first opened */
     const ensureSess = function (L) {
       if (L.sess) return;
       let s = store.get(L.key + ':sess');
-      if (typeof s !== 'string' || !/^[\w.:-]{6,64}$/.test(s)) { s = newSess(); store.set(L.key + ':sess', s); }
+      const pre = L.def.session ? sessPrefix(L.def.session) : null;
+      if (typeof s !== 'string' || !/^[\w.:-]{6,64}$/.test(s) || (pre && s.indexOf(pre) !== 0)) { s = newSess(pre); store.set(L.key + ':sess', s); }
       L.sess = s;
       const a = store.get(L.key + ':after');
       L.after = (typeof a === 'number' && isFinite(a) && a >= 0) ? Math.floor(a) : 0;
@@ -3039,6 +3392,7 @@ var FRAMES = (function (W) {
       hub: item.hub || 'https://chat.opensourceorchestra.org',
       face: /^[a-z0-9_-]{1,24}$/i.test(String(item.face || '')) ? String(item.face) : null,   // a door may name its line (PIT FAM): the hub sees the prefix
       route: item.route || (item.face ? 'prefix' : null),
+      session: /^[a-z0-9_-]{1,16}$/i.test(String(item.session || '')) ? String(item.session) : null,   // desk-required session prefix (CROPS answers crops_* only)
       name: item.name || 'OSO',
       emoji: item.emoji || '🎻',
       color: item.color || '#e8c476',
@@ -3091,7 +3445,10 @@ var FRAMES = (function (W) {
       el: wrap,
       tour: item.tip || fill(T('tour', '{label}: an AI agent of the ʻohana answers you, live from Taurus.'), { label: label }),
       open: function () { engine.open(mainLine, fab, wrap); },
-      close: function () { engine.close(); }
+      close: function () { engine.close(); },
+      // NO COVERED TEXT LAW (phones): the core folds the pill to the tiny emoji while words run under it — session only,
+      // never undoing the visitor's own ✕ (remembered mini)
+      fold: function (v) { if (ui.get(miniKey) === true) return; wrap.setAttribute('data-mini', v ? '1' : '0'); }
     };
   });
 }
@@ -3281,7 +3638,10 @@ var FRAMES = (function (W) {
       el: el,
       tour: item.tip || T('tour', 'The radio: songs of the ʻohana. Nothing plays or loads until you press ▶.'),
       open: function () { setMini(false); askLive(); play.focus(); },
-      close: function () { if (audio && !audio.paused) audio.pause(); }
+      close: function () { if (audio && !audio.paused) audio.pause(); },
+      // NO COVERED TEXT LAW (phones): the core folds the dock to the tiny 📻 while words run under it — session only, never
+      // while a song plays (the visitor pressed ▶), never undoing the visitor's own ✕ (remembered mini)
+      fold: function (v) { if (ui.get(miniKey) === true) return; if (v && audio && !audio.paused) return; el.setAttribute('data-mini', v ? '1' : '0'); }
     };
   });
 }
@@ -3489,9 +3849,12 @@ FRAMES.define('signature', function (ctx, item) {
       const r = el.getBoundingClientRect(), vh = window.innerHeight, hgt = r.height || 30;
       const tries = [8];
       for (let y = 136; y <= vh * 0.4; y += hgt + 14) tries.push(y);
+      // v0.1.3: the two top corners (🌐 + 🌺 ceremony on the left, 🌊 Blessing Pool + 🎻 on the right) are obstacles too
+      const corners = typeof ctx.corners === 'function' ? ctx.corners() : [];
+      const onCorner = function (box) { return corners.some(function (c) { return c && box.left < c.right + 6 && box.right > c.left - 6 && box.top < c.bottom + 6 && box.top + box.height > c.top - 6; }); };
       for (let i = 0; i < tries.length; i++) {
         const box = { left: r.left, right: r.right, top: tries[i], height: hgt };
-        if (!ctx.textAt(box)) { el.style.setProperty('--osof-thanks-y', tries[i] + 'px'); return true; }
+        if (!onCorner(box) && !ctx.textAt(box)) { el.style.setProperty('--osof-thanks-y', tries[i] + 'px'); return true; }
       }
       el.hidden = true;
       return false;
@@ -3507,6 +3870,7 @@ FRAMES.define('signature', function (ctx, item) {
     const t0 = setTimeout(show, Math.max(0, +item.delay || 900));
     const offResize = function () { if (!gone && !el.hidden) hide('resize'); };
     window.addEventListener('resize', offResize);
+    ctx.on('tour:start', function () { if (!gone && !el.hidden) hide('ceremony'); });   // the ceremony bar takes the top band
 
     return {
       el: el,

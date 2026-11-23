@@ -46,6 +46,7 @@ Every door of a universe can wear the **same** frame with a **different accent, 
 | `strings` | UI strings merged over the parent's |
 | `credit.add` | names added next to the ʻohana's credit (never removes it — AGPL §7(b)) |
 | `without` | kinds to drop everywhere, e.g. `["pill"]` or `["signature"]` |
+| `slots.bottom-right.set.chat` | the door's line: `hub` (the desk that answers), `label`/`name`/`emoji`/`greeting`/`storage`, `face` (text prefix `🗿[face:<door>] ` on every visitor line so one hub can tell doors apart), `session` (a desk-required session-id prefix such as `crops_`), `unless` (CSS selector of the page's own chat widget — the frame's line steps aside). Honesty law: a name on the line means that agent answers; a steward without a hub gets "Talk to the ʻohana" |
 | `slots.<slot>` | either a **full list** (replaces that slot) or **ops**: `remove` (ids, or `"kind:pill"`) → `replace` (items by id; new ids are appended) → `set` (`{ "id": { "href": "…" } }` patches fields) → `prepend` → `append` |
 
 The parent's relative URLs (`../media/signature.svg`, …) keep pointing at the parent's folder; your file's relative URLs resolve next to your file.
@@ -72,7 +73,7 @@ Pages that already carry a chat button or a mini player keep them: the universe 
 ## 4 · What visitors get
 
 - The same ring on every page of your door, in your accent, with your doors first.
-- **⚙ (in the credit mark, bottom-left):** *Frame on/off* and one switch per piece (doors, pills, theater, totem, talk line, radio, signature, tour), remembered in that browser only (`localStorage osof:settings:v1`). Off leaves one small 🎻 dot at an edge that brings the frame back — the dot still carries the credit. `?frame=off` on any address hides it for one page view.
+- **⚙ (in the credit mark, bottom-left):** *Frame on/off* and one switch per piece (doors, pills, theater, totem, talk line, radio, signature, tour = the 🌺 ceremony), remembered in that browser only (`localStorage osof:settings:v1`). Off leaves one small 🎻 dot at an edge that brings the frame back — the dot still carries the credit. `?frame=off` on any address hides it for one page view.
 - **BUTTON LAW** (19 Nov 2026): nothing of the frame sits on text. On phones the 🎻 steps below fixed bars and text; with no clear spot it folds to a dot for that page view; its tiny ✕ folds it on purpose (remembered). On desktops, when the page runs text edge to edge under where the rails would be, the rails fold into the 🎻 sheet instead of covering words.
 
 ## 5 · The gallery

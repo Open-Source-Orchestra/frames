@@ -1,4 +1,4 @@
-/*! Open Source Orchestra Frames v0.1.3 · https://github.com/Open-Source-Orchestra/frames
+/*! Open Source Orchestra Frames v0.1.4 · https://github.com/Open-Source-Orchestra/frames
  *  SPDX-License-Identifier: AGPL-3.0-or-later · Copyright (C) 2026 Shaka Lei Kaumaka / Open Source Orchestra and the AI ʻohana
  *  AGPL §7(b): keep the credit "Built on Open Source Orchestra Frames by Open Source Orchestra: Shaka Lei Kaumaka & the AI ʻohana
  *  (https://opensourceorchestra.org)" visible in the frame. See NOTICE. Source of this exact file: https://github.com/Open-Source-Orchestra/frames */
@@ -18,7 +18,7 @@
  */
 var FRAMES = (function (W) {
   'use strict';
-  var VERSION = '0.1.3';
+  var VERSION = '0.1.4';
   var MAJOR = VERSION.split('.')[0];
   if (W && W.OSOFrames && W.OSOFrames.__osof) {            // loaded twice: the first copy rules
     if (W.console) W.console.info('🎻 frames: already on this page; the second copy stays quiet.');
@@ -349,7 +349,7 @@ var FRAMES = (function (W) {
 
   // ── state ───────────────────────────────────────────────────────────────────────
   var kinds = {};
-  var state = { booted: false, ready: false, fresh: false, outline: false, mobile: false, reduced: false, off: false, crowded: false, zoomedOut: false };
+  var state = { booted: false, ready: false, fresh: false, outline: false, mobile: false, reduced: false, off: false, crowded: false, zoomedOut: false, asleep: false };
   var prefs = { on: true, hide: {} };      // the ⚙ panel: osof:settings:v1 (this browser only)
   var dot = null, sheetX = null, sheetFolded = { user: false, text: false };
   var cerBtn = null, cerFolded = false, cerLabel = '', bottomFolded = false, scrollT = 0;   // v0.1.3: the 🌺 ceremony button (top-left) · the phone bottom law
@@ -742,6 +742,39 @@ var FRAMES = (function (W) {
     makeDot();
     emit('frame:settings', { on: false, hide: copy(prefs.hide) });
   }
+  // v0.1.4 SLEEP (not remembered, nothing saved): a shell that opens another page over this one asks the frame to step aside —
+  // OSOFrames.sleep('road') … OSOFrames.wake(). The frame also sleeps by itself while an <iframe> fills ≥ 60% of the screen:
+  // another page's words are ground we cannot probe, and the NO COVERED TEXT LAW says "else don't show".
+  function sleep(why) {
+    if (!root || state.asleep) return false;
+    state.asleep = str(why) || 'api';
+    if (openDlg) closeDialog(openDlg, false, 'sleep');
+    try { stopTour('sleep', true); hideFinal(); } catch (e) {}
+    root.setAttribute('data-osof-asleep', state.asleep);
+    emit('frame:sleep', { why: state.asleep });
+    return true;
+  }
+  function wake() {
+    if (!root || !state.asleep) return false;
+    var why = state.asleep; state.asleep = false;
+    root.removeAttribute('data-osof-asleep');
+    emit('frame:wake', { why: why });
+    schedule();
+    return true;
+  }
+  function bigFrameOver() {
+    if (!root || !D.body) return null;
+    var fs = D.getElementsByTagName('iframe'), vw = W.innerWidth, vh = W.innerHeight;
+    if (!fs.length || vw < 1 || vh < 1) return null;
+    for (var i = 0; i < fs.length; i++) {
+      var f = fs[i]; if (root.contains(f)) continue;
+      var r = f.getBoundingClientRect(); if (r.width < 1 || r.height < 1) continue;
+      var cs = W.getComputedStyle(f); if (cs.visibility === 'hidden' || cs.display === 'none' || +cs.opacity === 0) continue;
+      var ix = Math.max(0, Math.min(r.right, vw) - Math.max(r.left, 0)), iy = Math.max(0, Math.min(r.bottom, vh) - Math.max(r.top, 0));
+      if (ix * iy >= vw * vh * 0.6) return f;
+    }
+    return null;
+  }
   // one tap: every button of the frame gone (remembered); focus lands on the dot that brings it back
   function hideAll() {
     if (openDlg) closeDialog(openDlg, false, 'hide');
@@ -775,13 +808,19 @@ var FRAMES = (function (W) {
   // 17px dot for this page view; its tiny ✕ folds it on purpose (remembered); the dot brings it back.
   function makeSheetBtn() {
     sheetBtn = h('button', { type: 'button', class: 'osof-btn osof-btn-lg osof-sheetbtn', 'aria-label': t('sheet.label'), 'aria-haspopup': 'dialog', 'aria-expanded': 'false', on: { click: function () { if (sheetFolded.user || sheetFolded.text) { foldSheet(false, true); return; } openSheet(); } } },
-      h('span', { class: 'osof-emo', 'aria-hidden': 'true' }, str(data.emoji) || '🎻'));
+      h('span', { class: 'osof-emo', 'aria-hidden': 'true' }, sheetEmoji()));
     sheetX = h('button', { type: 'button', class: 'osof-fold-x', 'aria-label': t('fold'), on: { click: function () { foldSheet(true, true); } } }, h('span', { 'aria-hidden': 'true' }, '✕'));
     sheetBtn.title = creditLine(data);
     sheetBtn.setAttribute('aria-describedby', 'osof-sheet-credit');
     zones['top-right'].appendChild(h('div', { class: 'osof-item osof-sheet-item', 'data-osof-kind': 'sheet' }, sheetBtn, sheetX, h('span', { id: 'osof-sheet-credit', hidden: true }, creditLine(data))));
     sheetFolded.user = !!store('fold').get('sheet');
     syncFold();
+  }
+  // v0.1.4: the sheet button wears the door's emoji unless a top-right door already wears it (blessingpool.com: 🌊 twice looked like a bug)
+  function sheetEmoji() {
+    var e = str(data.emoji) || '🎻', tr = (data.slots && data.slots['top-right']) || [];
+    for (var i = 0; i < tr.length; i++) if (tr[i] && tr[i].emoji === e) return '🎻';
+    return e;
   }
   function foldSheet(v, byUser) {
     if (byUser) { sheetFolded.user = v; sheetFolded.text = false; if (v) store('fold').set('sheet', 1); else store('fold').del('sheet'); }
@@ -982,6 +1021,9 @@ var FRAMES = (function (W) {
     return Math.min(l.bottom - l.top, r.bottom - r.top) < 150;                 // no band for even three doors on one side → the 🎻 sheet
   }
   function layout() {
+    if (bigFrameOver()) { if (!state.asleep) sleep('iframe'); return; }   // v0.1.4: another page fills the screen → step aside
+    if (state.asleep === 'iframe') { wake(); return; }                   // (wake schedules a fresh layout)
+    if (state.asleep) return;
     if (!root) return;
     if (state.off) { placeDot(); if (openDlg) place(openDlg); return; }
     var size0 = 54, top00 = 74;
@@ -1650,6 +1692,7 @@ var FRAMES = (function (W) {
       F + '{position:static;font:400 14px/1.35 ' + SERIF + ';color:#f4ecdc;text-align:left;direction:ltr;-webkit-text-size-adjust:100%}',
       F + ' *{box-sizing:border-box;margin:0;padding:0;border:0 solid;background:none;color:inherit;font:inherit;letter-spacing:inherit;text-transform:none;text-decoration:none;text-shadow:none;box-shadow:none;float:none;max-width:none;min-width:0;inset:auto}',
       F + ' [hidden]{display:none!important}',
+      F + '[data-osof-asleep]{display:none!important}',
       // the zones are <nav>/<div>: a page's own "nav{position:fixed;left:0;right:0;display:grid;padding:…}" must not reach them
       // (publicinform.com, 22 Nov 2026: the right rail landed at x=0 over the left one) → every zone starts from a clean slate
       F + ' .osof-slot{all:unset;position:fixed;inset:auto;z-index:' + Z.frame + ';pointer-events:none;display:flex;flex-direction:column;box-sizing:border-box;margin:0;padding:0;border:0;background:none;width:auto;height:auto;min-height:0;max-height:none;transform:none;overflow:visible;font:inherit;color:inherit;direction:ltr}',
@@ -2004,6 +2047,10 @@ var FRAMES = (function (W) {
       state.booted = true;
       var f = parseFlags(W.location && W.location.search);
       if (f.off) { info('?frame=off — nothing rendered'); return; }
+      // v0.1.4 EMBED LAW (23 Nov 2026, Shaka's phone: a door opened inside another door's shell wore two frames): inside an
+      // <iframe> the frame stays away — the page around it already wears one, or never asked for a ring. data-embed="allow" invites it.
+      var embedded = false; try { embedded = W.top !== W.self; } catch (e) { embedded = true; }
+      if (embedded && !(SCRIPT && SCRIPT.getAttribute('data-embed') === 'allow')) { info('EMBED LAW: this page sits inside another page — the frame stays away (data-embed="allow" on the script tag invites it)'); return; }
       state.fresh = f.fresh;
       state.outline = f.outline;
       LS = probeStorage(W);
@@ -2026,6 +2073,8 @@ var FRAMES = (function (W) {
       return state.outline;
     },
     tour: function () { return root ? startTour(false) : false; },
+    sleep: sleep,                                                       // v0.1.4: step aside while a shell shows another page (not remembered)
+    wake: wake,
     reset: function () {
       var pre = ['osof:once:' + frameId + ':', 'osof:dismiss:' + frameId + ':'];
       try {

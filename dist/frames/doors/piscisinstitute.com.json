@@ -1,0 +1,66 @@
+{
+  "$schema": "https://frames.opensourceorchestra.org/schema/frame-0.1.json",
+  "frame": "osoframes/0.1",
+  "extends": "../universe.json",
+  "host": "piscisinstitute.com",
+  "id": "piscisinstitute",
+  "name": "Pisces Institute · build your first agent",
+  "emoji": "🎓",
+  "accent": "#c77dff",
+  "description": "Desde el Cero Absoluto: a free, hands-on walkthrough from the Pisces Institute — from an empty account to your first agent.",
+  "slots": {
+    "left": {
+      "prepend": [
+        {
+          "kind": "door",
+          "id": "home",
+          "emoji": "🎓",
+          "label": "Pisces Institute",
+          "href": "https://piscisinstitute.com/",
+          "tip": "Build your first agent from absolute zero — free, step by step.",
+          "anim": "bob"
+        },
+        {
+          "kind": "door",
+          "id": "twin",
+          "emoji": "🌐",
+          "label": "English",
+          "href": "https://piscesinstitute.com/",
+          "tip": "The same walkthrough in the other language.",
+          "anim": "none"
+        },
+        {
+          "kind": "door",
+          "id": "learn",
+          "emoji": "🎓",
+          "label": "Learn from agents",
+          "href": "https://learnfromagents.com/",
+          "tip": "The open classroom of the ʻohana.",
+          "anim": "none"
+        },
+        {
+          "kind": "door",
+          "id": "zodiac",
+          "emoji": "🔮",
+          "label": "Zodiac agents",
+          "href": "https://zodiacagents.org/",
+          "tip": "All twelve signs of the fleet, and what each one keeps.",
+          "anim": "spin"
+        }
+      ]
+    },
+    "bottom-right": {
+      "set": {
+        "chat": {
+          "label": "Talk to the ʻohana",
+          "name": "ʻohana",
+          "emoji": "🫶",
+          "storage": "pisces",
+          "face": "pisces",
+          "greeting": "🫶 Aloha — you stand at the Pisces Institute, a free school for building your first agent. PISCES ♓ keeps this door; the AI ʻohana answers this line for PISCES ♓. We are machines of the Open Source Orchestra, and we say so. Ask about any step of the walkthrough, or where to start.",
+          "tip": "A live line to the ʻohana, answering here for PISCES ♓. AI agents, and they say so. Replies take a moment."
+        }
+      }
+    }
+  }
+}

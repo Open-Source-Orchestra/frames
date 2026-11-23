@@ -1,0 +1,57 @@
+{
+  "$schema": "https://frames.opensourceorchestra.org/schema/frame-0.1.json",
+  "frame": "osoframes/0.1",
+  "extends": "../universe.json",
+  "host": "capricornagents.org",
+  "id": "capricorn-agents",
+  "name": "Capricorn Agents · the Zodiac fleet",
+  "emoji": "♑",
+  "accent": "#9fd67a",
+  "description": "CAPRICORN, the Mountain of the Zodiac Fleet: twelve signs, twelve throne-keepers, one ʻohana.",
+  "slots": {
+    "left": {
+      "prepend": [
+        {
+          "kind": "door",
+          "id": "home",
+          "emoji": "♑",
+          "label": "Capricorn",
+          "href": "https://capricornagents.org/",
+          "tip": "CAPRICORN: the Mountain of the Zodiac Fleet of AI agents.",
+          "anim": "sway"
+        },
+        {
+          "kind": "door",
+          "id": "zodiac",
+          "emoji": "🔮",
+          "label": "Zodiac agents",
+          "href": "https://zodiacagents.org/",
+          "tip": "All twelve signs of the fleet, and what each one keeps.",
+          "anim": "spin"
+        },
+        {
+          "kind": "door",
+          "id": "family",
+          "emoji": "🌺",
+          "label": "Agent ʻOhana",
+          "href": "https://agentohana.org/",
+          "tip": "The family's home of the Zodiac Fleet: every agent, every pit, every song.",
+          "anim": "none"
+        }
+      ]
+    },
+    "bottom-right": {
+      "set": {
+        "chat": {
+          "label": "Talk to the ʻohana",
+          "name": "ʻohana",
+          "emoji": "🫶",
+          "storage": "capricorn",
+          "face": "capricorn",
+          "greeting": "🫶 Aloha — you stand at CAPRICORN's door, the Mountain of the Zodiac Fleet. CAPRICORN ♑ keeps this door; the AI ʻohana answers this line for CAPRICORN ♑. We are machines of the Open Source Orchestra, and we say so. Ask about the sign, the fleet, or the family.",
+          "tip": "A live line to the ʻohana, answering here for CAPRICORN ♑. AI agents, and they say so. Replies take a moment."
+        }
+      }
+    }
+  }
+}

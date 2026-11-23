@@ -5,6 +5,7 @@
 //   data-door="auto" resolves frames/doors/<host>.json (merged on universe.json; accent applied) and falls back ·
 //   BUTTON LAW: a full-width text page on a narrow desktop folds the rails into the 🎻 sheet; the 🎻 never sits on text.
 //   v0.1.3 (test 8): the ceremony — 🌺 always top-left (desktop + phone), 🌊 Blessing Pool first top-right, a tap starts voice + captions
+//   v0.1.4 (test 9): EMBED LAW — inside an <iframe> nothing mounts; the shell page's frame sleeps while the road is open, wakes after; sleep/wake API
 //   (audio stubbed), captions never on words, Esc stops, nothing starts by itself, the ✕ says "hide frame", the phone sheet's first row hides all.
 // usage: node tests/e2e-settings.mjs
 import http from 'node:http';
@@ -30,6 +31,11 @@ const NAVLEAK = PAGE('nav leak', `<div style="max-width:560px;margin:60px auto 0
   `<script>setTimeout(function(){var b=document.createElement('button');b.id='oso-fab';b.textContent='Talk to OSO';b.style.cssText='position:fixed;right:20px;bottom:70px;padding:10px 16px;border-radius:999px';document.body.appendChild(b);},2800);</script>`)
   .replace('<style>', '<style>nav{position:fixed;top:0;left:0;right:0;z-index:50;display:grid;grid-template-columns:auto 1fr auto;padding:14px 32px;background:#000}nav::after{content:"";width:110px}')
   .replace('<main>', '<nav><a href="/">A page nav</a><span></span><a href="/x">Links</a></nav><main>');
+// 23 Nov 2026 (v0.1.4): a door's shell (bl-shell.js) opens another door in a full-screen <iframe> over this page
+const SHELL = NARROW.replace('</main>', `</main><script>
+window.openRoad = function (src) { var d = document.createElement('div'); d.id = 'blroad'; d.innerHTML = '<div style="position:fixed;inset:0;z-index:99990;background:#000;display:flex;flex-direction:column"><div style="flex:0 0 42px;color:#fff">✕ home</div><iframe src="' + src + '" style="flex:1;border:0;width:100%"></iframe></div>'; document.body.appendChild(d); };
+window.closeRoad = function () { var d = document.getElementById('blroad'); if (d) d.remove(); };
+</script>`);
 const HERO = PAGE('hero then text', `<div style="height:280px"></div><div style="max-width:560px;margin:0 auto">` + Array.from({ length: 30 }, (_, i) => `<p>Paragraph ${i + 1}. ${'Words below a quiet hero. '.repeat(8)}</p>`).join('') + '</div>');
 
 async function loadPlaywright() {
@@ -51,6 +57,8 @@ function serve() {
         if (u.pathname === '/narrow.html') return rsp.writeHead(200, { 'content-type': TYPES['.html'] }).end(NARROW);
         if (u.pathname === '/hero.html') return rsp.writeHead(200, { 'content-type': TYPES['.html'] }).end(HERO);
         if (u.pathname === '/navleak.html') return rsp.writeHead(200, { 'content-type': TYPES['.html'] }).end(NAVLEAK);
+        if (u.pathname === '/shell.html') return rsp.writeHead(200, { 'content-type': TYPES['.html'] }).end(SHELL);
+        if (u.pathname === '/allow.html') return rsp.writeHead(200, { 'content-type': TYPES['.html'] }).end(NARROW.replace('data-door="auto"', 'data-door="auto" data-embed="allow"'));
         if (u.pathname === '/overlay.json') return rsp.writeHead(200, { 'content-type': TYPES['.json'] }).end(JSON.stringify(OVERLAY));
         if (u.pathname === '/attr.html') return rsp.writeHead(200, { 'content-type': TYPES['.html'] }).end(NARROW.replace('data-door="auto"', 'data-door="auto" data-frame-overlay="/overlay.json"'));
         if (u.pathname.startsWith('/__hub')) { rsp.writeHead(500).end('{}'); return; }
@@ -92,7 +100,7 @@ const errsOf = (p) => { const e = []; p.on('pageerror', (x) => e.push('PE:' + St
   ok(r.id === 'pit-protocol', `data-door=auto on publicinform.com → id ${r.id}`);
   ok(r.accent === '#7fe0ff', `accent applied (${r.accent})`);
   ok(r.first === 'home' && r.pitGone && r.n >= 10, `slot ops: prepend + remove (left: ${r.n} items, first ${r.first})`);
-  ok(r.version === '0.1.3' && r.gear, `v${r.version} with the ⚙ gear in the credit mark`);
+  ok(r.version === '0.1.4' && r.gear, `v${r.version} with the ⚙ gear in the credit mark`);
   ok(!errs.length, 'no console/page errors' + (errs.length ? ' → ' + errs.join(' | ') : ''));
   await ctx.close();
 }
@@ -365,6 +373,38 @@ const AUDIO_STUB = `window.__audioLog = []; window.Audio = class { constructor()
   ok(r.mini === '1' && !r.ls, `📱 edge-to-edge words: the chat pill folds to its tiny emoji for this view (not remembered; words under the tiny one: ${r.under})`);
   ok(!errs2.length, '📱 no errors' + (errs2.length ? ' → ' + errs2.join(' | ') : ''));
   await ctx2.close();
+}
+// ── test 9 (v0.1.4): EMBED LAW + sleep/wake — one page, one frame ───────────────────────────────────────────────────────
+{
+  const ctx = await ctxFor('nobody.example', { width: 390, height: 844 }, true);
+  const p = await ctx.newPage(); const errs = errsOf(p);
+  const infos = []; p.on('console', (m) => { if (/EMBED LAW/.test(m.text())) infos.push(m.text()); });
+  await p.goto('http://nobody.example/shell.html', { waitUntil: 'load' });
+  await p.waitForSelector('#oso-frames[data-osof-ready]', { state: 'attached' }); await p.waitForTimeout(600);
+  const SHOWN = () => [...document.querySelectorAll('#oso-frames button,#oso-frames a')].filter((e) => e.getBoundingClientRect().width > 0).length;
+  let r = await p.evaluate((S) => ({ shown: eval(S)(), asleep: document.getElementById('oso-frames').getAttribute('data-osof-asleep') }), SHOWN.toString());
+  ok(r.shown > 0 && !r.asleep, `the shell page wears its frame (${r.shown} buttons visible, awake)`);
+  await p.evaluate(() => window.openRoad('/narrow.html'));
+  await p.waitForTimeout(1500);
+  const inner = p.frames().find((f) => f !== p.mainFrame());
+  const innerHas = inner ? await inner.evaluate(() => ({ root: !!document.getElementById('oso-frames'), ver: !!(window.OSOFrames && window.OSOFrames.version) })) : null;
+  ok(innerHas && !innerHas.root && innerHas.ver, `EMBED LAW: the door inside the <iframe> wears NO frame (script loaded, nothing mounted; ${infos.length} console note)`);
+  r = await p.evaluate(() => { const F = document.getElementById('oso-frames'); return { asleep: F.getAttribute('data-osof-asleep'), shown: [...F.querySelectorAll('button,a')].filter((e) => e.getBoundingClientRect().width > 0).length, globe: true }; });
+  ok(r.asleep === 'iframe' && r.shown === 0, `the shell page's own frame sleeps while the road is open (data-osof-asleep=${r.asleep}, ${r.shown} buttons visible)`);
+  await p.evaluate(() => window.closeRoad());
+  await p.waitForTimeout(900);
+  r = await p.evaluate((S) => { const F = document.getElementById('oso-frames'); return { asleep: F.getAttribute('data-osof-asleep'), shown: eval(S)() }; }, SHOWN.toString());
+  ok(!r.asleep && r.shown > 0, `the road closes → the frame wakes by itself (${r.shown} buttons visible again)`);
+  r = await p.evaluate(() => { const F = document.getElementById('oso-frames'); const a = window.OSOFrames.sleep('road'); const s1 = F.getAttribute('data-osof-asleep'); const vis = [...F.querySelectorAll('button,a')].filter((e) => e.getBoundingClientRect().width > 0).length; const b = window.OSOFrames.wake(); return { a, s1, vis, b, s2: F.getAttribute('data-osof-asleep'), on: window.OSOFrames.settings().on, ls: Object.keys(localStorage).filter((k) => /asleep|road/.test(k)).length }; });
+  ok(r.a && r.s1 === 'road' && r.vis === 0 && r.b && !r.s2 && r.on && r.ls === 0, 'OSOFrames.sleep(\'road\') / wake(): the API steps aside and back; ⚙ stays on; nothing remembered');
+  // data-embed="allow": a page that invites the frame inside an iframe gets it
+  await p.evaluate(() => window.openRoad('/allow.html'));
+  await p.waitForTimeout(1500);
+  const inner2 = p.frames().find((f) => f !== p.mainFrame() && /allow/.test(f.url()));
+  const allowHas = inner2 ? await inner2.evaluate(() => !!document.querySelector('#oso-frames[data-osof-ready]')) : null;
+  ok(allowHas === true, 'data-embed="allow" invites the frame into an iframe');
+  ok(!errs.length, 'no errors on the shell' + (errs.length ? ' → ' + errs.join(' | ') : ''));
+  await ctx.close();
 }
 await b.close(); srv.close();
 console.log(fails ? `\n✗ ${fails} check(s) failed` : '\n✓ e2e-settings: all green');

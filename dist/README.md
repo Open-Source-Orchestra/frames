@@ -53,7 +53,7 @@ One tag for **every page of every door** — the frame picks the door's own smal
 | 🗿 totem | a stack of AI agents; tap a face to talk (machines, and they say so) |
 | 💬 talk line | live chat on the open PIT chat protocol (connects only when opened) |
 | 📻 radio | consented songs; nothing loads before you press play |
-| ✨ tour | first visit: every button says what it does, once, then rests — ✨ replays it |
+| 🌺 ceremony | top-left, always: the welcome in Shaka's twin voice (a machine, and it says so) with the same words as captions, button by button, ending at the 🌊 Blessing Pool (top-right, always). Plays only when tapped; ▶⏸ · 🔇 · Skip ✕ |
 | ✍️ signature | the steward signs the page in real time, once, then the ink fades |
 | doors & pills | emoji links down both edges + small pills for what's next |
 
@@ -64,7 +64,7 @@ One tag for **every page of every door** — the frame picks the door's own smal
 - **Machines say they are machines.** **Consent before people.** **Keyboard, screen readers, reduced motion and small screens are first-class.**
 - **A floating button never covers text** (BUTTON LAW, 19 Nov 2026) — the frame steps aside, folds to a dot, or folds its rails into the 🎻 sheet rather than sit on a word; and it always has a tiny ✕ or ⚙ to go away.
 - **NO COVERED TEXT LAW** (22 Nov 2026, v0.1.2 · SPEC §11): *centered, grounded, balanced.* Nothing of the frame sits on the page's words, on the page's own controls, or on another piece — phones and desktops. Pieces probe the ground under them and step aside, lift, fold, or do not show. Page CSS cannot drag a rail across the screen; a page widget built late is adopted late. The credit mark's ✕ hides every button at once; one 🎻 dot stays and brings it back.
-- **No description bubbles** (22 Nov 2026): the tour never starts by itself; ✨ replays it on request. One 3-second line at the top says thank you for every gift (x402 for agents · Stripe, PayPal, Venmo for humans) and leaves.
+- **No description bubbles** (22 Nov 2026): the tour never starts by itself; since v0.1.3 the 🌺 ceremony plays it on request, spoken. One 3-second line at the top says thank you for every gift (x402 for agents · Stripe, PayPal, Venmo for humans) and leaves.
 
 ## Develop
 
