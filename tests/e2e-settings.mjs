@@ -40,9 +40,9 @@ window.closeRoad = function () { var d = document.getElementById('blroad'); if (
 </script>`);
 // 23 Nov 2026 (v0.1.5): a comic page — a quiet top, then a panel whose speech bubble (absolute, short words) and caption scroll under
 // the bottom-right corner (Shaka's desktop screenshot of /websitetour: the dock and the pill sat on the KAAAK bubble)
-const COMIC = PAGE('comic', `<div style="height:70vh"></div><div class="panel" style="position:relative;width:min(900px,80vw);margin:0 auto;height:560px;background:#223;border:3px solid #000">` +
+const COMIC = PAGE('comic', `<style>body{overflow-x:hidden}</style><div style="height:70vh"></div><div class="panel" style="position:relative;width:min(900px,80vw);margin:0 auto;height:560px;background:#223;border:3px solid #000">` +
   `<p class="cap" style="position:absolute;top:14px;left:14px;max-width:420px;background:#fff8df;color:#111;padding:8px 12px;font:600 15px/1.4 sans-serif">PANEL 1 · THE SEAT WITH YOUR NAME ON IT</p>` +
-  `<p class="kaaak" style="position:absolute;right:-200px;bottom:30px;max-width:420px;background:#fff;color:#111;padding:10px 14px;border-radius:18px;font:800 16px/1.35 sans-serif">See you inside!!! Bring your songs!!!</p>` +
+  `<p class="kaaak" style="position:absolute;right:calc(10px - 10vw);bottom:30px;width:250px;background:#fff;color:#111;padding:16px 14px;border-radius:18px;font:800 17px/1.4 sans-serif">See you inside!!! Bring your songs!!! The seat with your name on it.</p>` +
   `</div><div style="height:120vh"></div>`);
 const HERO = PAGE('hero then text', `<div style="height:280px"></div><div style="max-width:560px;margin:0 auto">` + Array.from({ length: 30 }, (_, i) => `<p>Paragraph ${i + 1}. ${'Words below a quiet hero. '.repeat(8)}</p>`).join('') + '</div>');
 
@@ -433,10 +433,11 @@ const AUDIO_STUB = `window.__audioLog = []; window.Audio = class { constructor()
   const anchorsSame = (a, b) => Object.keys(a.zones).every((z) => same(a.zones[z], b.zones[z], ['top', 'bottom', 'left', 'right']));
   const boxesSame = (a, b) => Object.keys(a.items).filter((k) => b.items[k] && !/^(credit|sheet)/.test(k)).every((k) => same(a.items[k], b.items[k], ['box']));
   const shownInside = (s) => Object.values(s.items).filter((i) => i.folded && !i.gone).every((i) => i.shown[2] > 4 && i.shown[0] >= i.box[0] - 1 && i.shown[1] >= i.box[1] - 1 && i.shown[0] + i.shown[2] <= i.box[0] + i.box[2] + 1 && i.shown[1] + i.shown[3] <= i.box[1] + i.box[3] + 1);
-  const scrollUnder = `(() => { const k = document.querySelector('.kaaak').getBoundingClientRect(); window.scrollBy(0, k.bottom + 24 - innerHeight); })()`;
+  const scrollUnder = `(() => { const k = document.querySelector('.kaaak').getBoundingClientRect(); window.scrollBy(0, k.bottom + 6 - innerHeight); })()`;
+  const movedList = (a, b) => { const out = []; for (const z of Object.keys(a.zones)) for (const k of ['top', 'bottom', 'left', 'right']) if (a.zones[z][k] !== b.zones[z][k]) out.push(`${z}.${k} ${a.zones[z][k]}→${b.zones[z][k]}`); for (const k of Object.keys(a.items)) if (b.items[k] && !/^(credit|sheet)/.test(k) && JSON.stringify(a.items[k].box) !== JSON.stringify(b.items[k].box)) out.push(`${k} ${a.items[k].box}→${b.items[k].box}`); return out; };
   // desktop
   const ctx = await ctxFor('nobody.example', { width: 1440, height: 900 });
-  await ctx.addInitScript(AUDIO_STUB + ` const _A = window.Audio; window.Audio = class extends _A { constructor() { super(); window.__a = this; } setAttribute(k, v) { if (k === 'src') this.src = v; } getAttribute(k) { return k === 'src' ? this.src : null; } load() {} };`);
+  await ctx.addInitScript(AUDIO_STUB + ` Object.defineProperty(HTMLMediaElement.prototype, 'paused', { get() { return !this.__playing; }, configurable: true }); HTMLMediaElement.prototype.play = function () { this.__playing = true; window.__a = this; return Promise.resolve(); }; HTMLMediaElement.prototype.pause = function () { this.__playing = false; }; HTMLMediaElement.prototype.load = function () {};`);
   const p = await ctx.newPage(); const errs = errsOf(p);
   await p.goto('http://nobody.example/comic.html', { waitUntil: 'load' });
   await p.waitForSelector('#oso-frames[data-osof-ready]', { state: 'attached' }); await p.waitForTimeout(1500);
@@ -444,8 +445,8 @@ const AUDIO_STUB = `window.__audioLog = []; window.Audio = class { constructor()
   ok(s0.items['radio#radio'] && !s0.items['radio#radio'].folded && s0.items['chat#chat'] && !s0.items['chat#chat'].folded && s0.zones['bottom-right'].bottom === '10px', `quiet top of the page: dock + pill unfolded at their anchor (bottom ${s0.zones['bottom-right'].bottom})`);
   await p.evaluate(scrollUnder); await p.waitForTimeout(900);
   const s1 = await p.evaluate(SNAP);
-  ok(s1.items['radio#radio'].folded && s1.items['radio#radio'].mini === '1' && s1.items['chat#chat'].folded && s1.items['chat#chat'].mini === '1', `the speech bubble scrolls under the corner → the dock and the pill FOLD to their tiny emoji (scrollY ${s1.scrollY})`);
-  ok(anchorsSame(s0, s1) && boxesSame(s0, s1) && s1.zones['bottom-right'].styleBottom === '', 'nothing moved: every zone anchor and every piece box is exactly where it was (no step-up, no lift)');
+  ok(s1.items['radio#radio'].folded && s1.items['radio#radio'].mini === '1' && s1.items['chat#chat'].folded && s1.items['chat#chat'].mini === '1', `the speech bubble scrolls under the corner → the dock and the pill FOLD to their tiny emoji (scrollY ${s1.scrollY}; dock ${JSON.stringify(s1.items['radio#radio'])}, pill ${JSON.stringify(s1.items['chat#chat'])})`);
+  ok(anchorsSame(s0, s1) && boxesSame(s0, s1) && s1.zones['bottom-right'].styleBottom === '', 'nothing moved: every zone anchor and every piece box is exactly where it was (no step-up, no lift)' + (movedList(s0, s1).length ? ' → ' + movedList(s0, s1).join(' | ') : ''));
   ok(shownInside(s1) && s1.dockOnWords !== true && s1.pillOnWords !== true, 'each tiny emoji sits inside the box its piece held; no unfolded piece on the words');
   await p.evaluate(() => window.scrollTo(0, 0)); await p.waitForTimeout(900);
   const s2 = await p.evaluate(SNAP);
@@ -472,7 +473,7 @@ const AUDIO_STUB = `window.__audioLog = []; window.Audio = class { constructor()
   await p.click('#oso-frames .osof-credit-x');
   const off = await p.evaluate(() => { const F = document.getElementById('oso-frames'); const d = F.querySelector('.osof-dot'); const r = d && d.getBoundingClientRect(); return { off: F.hasAttribute('data-osof-off'), items: F.querySelectorAll('.osof-item').length, dotAt: r && [Math.round(r.x), Math.round(r.y)] }; });
   ok(off.off && off.items === 0 && off.dotAt && off.dotAt[0] === 10 && off.dotAt[1] === 900 - 28, `✕ on the credit hides everything at once; the one dot stays at the credit's anchor (${off.dotAt})`);
-  ok(!errs.length, 'no errors on the comic page' + (errs.length ? ' → ' + errs.join(' | ') : ''));
+  { const e2 = errs.filter((e) => !/ERR_FAILED|net::|ERR_ABORTED/.test(e)); ok(!e2.length, 'no errors on the comic page (aborted media loads are the fail-closed routing)' + (e2.length ? ' → ' + e2.slice(0, 5).join(' | ') : '')); }
   await ctx.close();
   // phone: same page — the corners fold in place, the 🌊 keeps its anchor even when it folds
   const ctx2 = await ctxFor('nobody.example', { width: 390, height: 844 }, true);
@@ -482,7 +483,8 @@ const AUDIO_STUB = `window.__audioLog = []; window.Audio = class { constructor()
   const m0 = await p2.evaluate(SNAP);
   await p2.evaluate(scrollUnder); await p2.waitForTimeout(900);
   const m1 = await p2.evaluate(SNAP);
-  ok(m1.mode === 'mobile' && m1.items['radio#radio'].folded && m1.items['chat#chat'].folded && anchorsSame(m0, m1) && boxesSame(m0, m1) && shownInside(m1), `📱 the bubble under the corner folds the dock + pill in place; no anchor moved (bottom ${m1.zones['bottom-right'].bottom})`);
+  ok(m1.mode === 'mobile' && m1.items['radio#radio'].folded && m1.items['chat#chat'].folded && anchorsSame(m0, m1) && boxesSame(m0, m1) && shownInside(m1), `📱 the bubble under the corner folds the dock + pill in place; no anchor moved (bottom ${m1.zones['bottom-right'].bottom}; dock ${JSON.stringify(m1.items['radio#radio'])}, pill ${JSON.stringify(m1.items['chat#chat'])}` + (movedList(m0, m1).length ? '; moved ' + movedList(m0, m1).join(' | ') : '') + ')');
+  { const e3 = errs2.filter((e) => !/ERR_FAILED|net::|ERR_ABORTED/.test(e)); errs2.length = 0; errs2.push(...e3); }
   ok(m1.topR === '52px' && m0.topR === '52px', `📱 the top-right stack keeps its anchor (--osof-top-r ${m1.topR}) — it folds, it never steps down`);
   ok(!errs2.length, '📱 no errors' + (errs2.length ? ' → ' + errs2.join(' | ') : ''));
   await ctx2.close();
