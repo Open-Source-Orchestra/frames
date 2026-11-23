@@ -992,7 +992,7 @@ var FRAMES = (function (W) {
   // (a kicker line between the rows counts, a sliver of a link row under one edge counts)
   function rectHasText(r, textOnly) {
     if (textOnly === undefined) textOnly = true;
-    var S = 12, h = r.height || 32, ys = [r.top + 2, r.top + h / 2 - S / 2, r.top + h - S - 2];
+    var S = 12, h = r.height || 32, ys = [r.top, r.top + h / 2 - S / 2, r.top + h - S];   // v0.1.5: edge-inclusive rows (a caption 2 px under the bottom edge counts)
     for (var yy = r.top + 18; yy < r.top + h - S - 2; yy += 16) ys.push(yy);
     for (var i = 0; i < ys.length; i++) {
       for (var x = r.left; x <= r.right - S + 1; x += 22) if (textUnder(x, ys[i], S, textOnly)) return true;

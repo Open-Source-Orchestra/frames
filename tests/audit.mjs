@@ -90,8 +90,11 @@ const PROBE = `(() => {
   }
   const rects = [];
   for (const w of root.querySelectorAll('.osof-slot > .osof-item')) {
-    if (w.hidden || w.getAttribute('data-osof-kind') === 'globe' || !w.getClientRects().length) continue;
+    if (w.hidden || w.getAttribute('data-osof-kind') === 'globe' || w.getAttribute('data-osof-kind') === 'sheet' || !w.getClientRects().length) continue;   // the 🎻 sheet button is probed below (it folds by class)
     const box = R(w); if (box.w < 2 || box.h < 2) continue;
+    const credit = w.querySelector('.osof-credit');
+    // the credit mark folds by class (icons → dot); its dot is the one piece allowed on a page control: it carries the ✕ for all
+    if (credit && (credit.classList.contains('osof-credit-dot') || root.hasAttribute('data-osof-credit-folded'))) { out.items.push({ kind: 'credit', id: '', box, folded: true, gone: false, shown: R(credit) }); continue; }
     const folded = w.hasAttribute('data-osof-folded'), gone = w.hasAttribute('data-osof-gone');
     const shown = gone ? null : folded ? (w.querySelector('.osof-idot') && getComputedStyle(w.querySelector('.osof-idot')).display !== 'none' ? w.querySelector('.osof-idot') : (w.querySelector('[data-mini="1"] .osof-rd-mini, [data-mini="1"] .osof-fab-mini') || null)) : (w.querySelector('.osof-btn, .osof-credit, .osof-pillbox, .osof-totem, .osof-tv, .osof-chatwrap, .osof-radio, button, a') || w);
     const sr = shown ? R(shown) : null;
@@ -124,13 +127,17 @@ const results = [];
 const jsonl = OUT + '/audit.jsonl'; writeFileSync(jsonl, '');
 function diffProbes(p0, p1) {
   const moved = [];
-  for (const s of Object.keys(p0.zones || {})) { const A = p0.zones[s], B = p1.zones[s]; if (!B || !A.kids || !B.kids) continue; for (const k of ['top', 'bottom', 'left', 'right']) if (A[k] !== B[k]) moved.push(`${s}.${k} ${A[k]}→${B[k]}`); }
+  const ANCH = { 'top-left': ['top', 'left'], 'top-right': ['top', 'right'], left: ['top', 'left'], right: ['top', 'right'], 'bottom-left': ['bottom', 'left'], 'bottom-right': ['bottom', 'right'] };   // only a zone's anchored sides are anchors: a zone whose pieces fold may change size, never its anchor
+  for (const s of Object.keys(p0.zones || {})) { const A = p0.zones[s], B = p1.zones[s]; if (!B || !A.kids || !B.kids) continue; for (const k of (ANCH[s] || ['top', 'left'])) if (A[k] !== B[k]) moved.push(`${s}.${k} ${A[k]}→${B[k]}`); }
   const by = {}; for (const it of p0.items || []) by[it.kind + '#' + it.id] = it;
   for (const it of p1.items || []) { const o = by[it.kind + '#' + it.id]; if (!o || it.kind === 'credit' || it.kind === 'sheet') continue; const a = o.box, c = it.box; if (Math.abs(a.x - c.x) > 2 || Math.abs(a.y - c.y) > 2 || Math.abs(a.w - c.w) > 2 || Math.abs(a.h - c.h) > 2) moved.push(`${it.kind}#${it.id} ${a.x},${a.y},${a.w},${a.h}→${c.x},${c.y},${c.w},${c.h}`); }
   return moved;
 }
 async function one(host, v) {
-  const ctx = await b.newContext({ viewport: { width: v.w, height: v.h }, isMobile: !!v.mobile, hasTouch: !!v.mobile, deviceScaleFactor: 1, userAgent: v.mobile ? 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1 ohana-frames-audit' : undefined, extraHTTPHeaders: OVERRIDE ? { 'Cloudflare-Workers-Version-Overrides': OVERRIDE } : {} });
+  const ctx = await b.newContext({ viewport: { width: v.w, height: v.h }, isMobile: !!v.mobile, hasTouch: !!v.mobile, deviceScaleFactor: 1, userAgent: v.mobile ? 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1 ohana-frames-audit' : undefined });
+  // the staged-version header is added at the network layer, only for the frames host: a custom header set by the page itself would
+  // force a CORS preflight on every frames/*.json fetch (the assets Worker answers none) and the frame would stay away
+  if (OVERRIDE) await ctx.route('https://frames.opensourceorchestra.org/**', (route) => route.continue({ headers: { ...route.request().headers(), 'Cloudflare-Workers-Version-Overrides': OVERRIDE } }));
   const page = await ctx.newPage();
   const rec = { host, view: v.name, status: null, error: null };
   const errs = []; page.on('pageerror', (e) => errs.push(String(e).slice(0, 120)));
@@ -162,6 +169,7 @@ async function one(host, v) {
   await ctx.close();
   appendFileSync(jsonl, JSON.stringify(rec) + '\n');
   results.push(rec);
+  if (rec.noFrame && rec.pageErrors && rec.pageErrors.length) rec.error = 'no frame: ' + rec.pageErrors[0];
   const mark = rec.error ? '⚠' : rec.noFrame ? '·' : rec.flag ? '✗' : '✓';
   console.log(`${mark} ${host} ${v.name} v${rec.ver || '-'} mode=${rec.mode || '-'} moved=${(rec.moved || []).length} text=${(rec.textHits || []).length} ctrl=${(rec.ctrlHits || []).length} self=${(rec.selfHits || []).length} side=${(rec.sideLeaks || []).length} folded=${rec.folded ? rec.folded.top + '→' + rec.folded.scrolled : '-'}${rec.error ? ' ' + rec.error : ''}`);
   if (rec.flag) { for (const m of rec.moved) console.log('    MOVED ' + m); for (const t of rec.textHits) console.log(`    TEXT  ${t.item} @${t.at} on “${t.under.text}”`); for (const t of rec.ctrlHits) console.log(`    CTRL  ${t.item} @${t.at} on ${t.under.tag}#${t.under.id}`); for (const s of rec.selfHits) console.log('    SELF  ' + s); for (const s of rec.sideLeaks) console.log('    SIDE  ' + s); }
