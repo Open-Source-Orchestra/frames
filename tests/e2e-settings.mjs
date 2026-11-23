@@ -7,6 +7,8 @@
 //   v0.1.3 (test 8): the ceremony — 🌺 always top-left (desktop + phone), 🌊 Blessing Pool first top-right, a tap starts voice + captions
 //   v0.1.4 (test 9): EMBED LAW — inside an <iframe> nothing mounts; the shell page's frame sleeps while the road is open, wakes after; sleep/wake API
 //   (audio stubbed), captions never on words, Esc stops, nothing starts by itself, the ✕ says "hide frame", the phone sheet's first row hides all.
+//   v0.1.5 (test 10): STAY-IN-PLACE — a speech bubble under the dock folds it in place (anchors never move), clear ground unfolds, a song keeps
+//   playing through a fold, the tiny ✕ folds a rail door on purpose, hide-all ✕; phones too.
 // usage: node tests/e2e-settings.mjs
 import http from 'node:http';
 import { readFile } from 'node:fs/promises';
@@ -36,6 +38,12 @@ const SHELL = NARROW.replace('</main>', `</main><div id="oflo" style="position:f
 window.openRoad = function (src) { var d = document.createElement('div'); d.id = 'blroad'; d.innerHTML = '<div style="position:fixed;inset:0;z-index:99990;background:#000;display:flex;flex-direction:column"><div style="flex:0 0 42px;color:#fff">✕ home</div><iframe src="' + src + '" style="flex:1;border:0;width:100%"></iframe></div>'; document.body.appendChild(d); };
 window.closeRoad = function () { var d = document.getElementById('blroad'); if (d) d.remove(); };
 </script>`);
+// 23 Nov 2026 (v0.1.5): a comic page — a quiet top, then a panel whose speech bubble (absolute, short words) and caption scroll under
+// the bottom-right corner (Shaka's desktop screenshot of /websitetour: the dock and the pill sat on the KAAAK bubble)
+const COMIC = PAGE('comic', `<div style="height:70vh"></div><div class="panel" style="position:relative;width:min(900px,80vw);margin:0 auto;height:560px;background:#223;border:3px solid #000">` +
+  `<p class="cap" style="position:absolute;top:14px;left:14px;max-width:420px;background:#fff8df;color:#111;padding:8px 12px;font:600 15px/1.4 sans-serif">PANEL 1 · THE SEAT WITH YOUR NAME ON IT</p>` +
+  `<p class="kaaak" style="position:absolute;right:-200px;bottom:30px;max-width:420px;background:#fff;color:#111;padding:10px 14px;border-radius:18px;font:800 16px/1.35 sans-serif">See you inside!!! Bring your songs!!!</p>` +
+  `</div><div style="height:120vh"></div>`);
 const HERO = PAGE('hero then text', `<div style="height:280px"></div><div style="max-width:560px;margin:0 auto">` + Array.from({ length: 30 }, (_, i) => `<p>Paragraph ${i + 1}. ${'Words below a quiet hero. '.repeat(8)}</p>`).join('') + '</div>');
 
 async function loadPlaywright() {
@@ -56,6 +64,7 @@ function serve() {
         if (u.pathname === '/wide.html') return rsp.writeHead(200, { 'content-type': TYPES['.html'] }).end(WIDE);
         if (u.pathname === '/narrow.html') return rsp.writeHead(200, { 'content-type': TYPES['.html'] }).end(NARROW);
         if (u.pathname === '/hero.html') return rsp.writeHead(200, { 'content-type': TYPES['.html'] }).end(HERO);
+        if (u.pathname === '/comic.html') return rsp.writeHead(200, { 'content-type': TYPES['.html'] }).end(COMIC);
         if (u.pathname === '/navleak.html') return rsp.writeHead(200, { 'content-type': TYPES['.html'] }).end(NAVLEAK);
         if (u.pathname === '/shell.html') return rsp.writeHead(200, { 'content-type': TYPES['.html'] }).end(SHELL);
         if (u.pathname === '/allow.html') return rsp.writeHead(200, { 'content-type': TYPES['.html'] }).end(NARROW.replace('data-door="auto"', 'data-door="auto" data-embed="allow"'));
@@ -100,7 +109,7 @@ const errsOf = (p) => { const e = []; p.on('pageerror', (x) => e.push('PE:' + St
   ok(r.id === 'pit-protocol', `data-door=auto on publicinform.com → id ${r.id}`);
   ok(r.accent === '#7fe0ff', `accent applied (${r.accent})`);
   ok(r.first === 'home' && r.pitGone && r.n >= 10, `slot ops: prepend + remove (left: ${r.n} items, first ${r.first})`);
-  ok(r.version === '0.1.4' && r.gear, `v${r.version} with the ⚙ gear in the credit mark`);
+  ok(r.version === '0.1.5' && r.gear, `v${r.version} with the ⚙ gear in the credit mark`);
   ok(!errs.length, 'no console/page errors' + (errs.length ? ' → ' + errs.join(' | ') : ''));
   await ctx.close();
 }
@@ -156,19 +165,21 @@ const errsOf = (p) => { const e = []; p.on('pageerror', (x) => e.push('PE:' + St
   ok(!errs.length, 'no errors across the panel flow' + (errs.length ? ' → ' + errs.join(' | ') : ''));
   await ctx.close();
 }
-// 4 · BUTTON LAW: edge-to-edge text on a 900px desktop → rails fold into the 🎻 sheet; no text under the sheet button
+// 4 · STAY-IN-PLACE (v0.1.5): edge-to-edge text on a 900px desktop → the rails stay where they are (no 🎻 sheet relocation);
+//     every rail piece on words folds to a dot IN PLACE (box held), no unfolded piece sits on words; centred text → full rails
 {
   const ctx = await ctxFor('nobody.example', { width: 900, height: 700 });
   const p = await ctx.newPage(); const errs = errsOf(p);
   await p.goto('http://nobody.example/wide.html', { waitUntil: 'load' });
   await p.waitForSelector('#oso-frames[data-osof-ready]', { state: 'attached' }); await p.waitForTimeout(1800);
-  let r = await p.evaluate(() => { const F = document.getElementById('oso-frames'); const sb = F.querySelector('.osof-sheetbtn'); const r = sb.getBoundingClientRect(); const under = document.elementsFromPoint(r.left + r.width / 2, r.top + r.height / 2).filter((e) => !F.contains(e)).find((e) => /^(P|LI|H\d)$/.test(e.tagName)); return { mode: F.getAttribute('data-mode'), crowded: F.hasAttribute('data-osof-crowded'), railsShown: [...F.querySelectorAll('[data-slot=left],[data-slot=right]')].some((z) => getComputedStyle(z).display !== 'none'), sheetVisible: r.width > 0, folded: sb.classList.contains('osof-fold'), textUnderSheet: !!under && !sb.classList.contains('osof-fold') }; });
-  ok(r.crowded && r.mode === 'mobile' && !r.railsShown, `edge-to-edge text → rails fold into the sheet (mode ${r.mode})`);
-  ok(r.sheetVisible && !r.textUnderSheet, `the 🎻 sits on no text (folded: ${r.folded})`);
+  let r = await p.evaluate(() => { const F = document.getElementById('oso-frames'); const items = [...F.querySelectorAll('[data-slot=left] > .osof-item:not([hidden]), [data-slot=right] > .osof-item:not([hidden])')].filter((e) => e.getClientRects().length); const folded = items.filter((e) => e.hasAttribute('data-osof-folded')); const dotInside = folded.every((e) => { const b = e.getBoundingClientRect(), d = e.querySelector('.osof-idot'); if (!d) return false; const r2 = d.getBoundingClientRect(); return r2.width > 4 && r2.left >= b.left - 1 && r2.right <= b.right + 1 && r2.top >= b.top - 1 && r2.bottom <= b.bottom + 1; }); const unfoldedOnWords = items.filter((e) => !e.hasAttribute('data-osof-folded')).filter((e) => { const r2 = e.getBoundingClientRect(); return document.elementsFromPoint(r2.left + r2.width / 2, r2.top + r2.height / 2).some((x) => !F.contains(x) && /^(P|LI|H\d)$/.test(x.tagName)); }).length; return { mode: F.getAttribute('data-mode'), crowded: F.hasAttribute('data-osof-crowded'), railsShown: [...F.querySelectorAll('[data-slot=left],[data-slot=right]')].every((z) => getComputedStyle(z).display !== 'none'), n: items.length, folded: folded.length, dotInside, unfoldedOnWords, sheetShown: getComputedStyle(F.querySelector('.osof-sheet-item')).display !== 'none' }; });
+  ok(r.mode === 'desktop' && !r.crowded && r.railsShown && !r.sheetShown, `edge-to-edge text on a desktop: the rails stay rails (mode ${r.mode}, no sheet)`);
+  ok(r.folded >= 3 && r.dotInside, `${r.folded} of ${r.n} rail pieces on words fold to dots IN PLACE (each dot inside the box it held)`);
+  ok(r.unfoldedOnWords === 0, `no unfolded rail piece sits on words (${r.unfoldedOnWords})`);
   await p.goto('http://nobody.example/narrow.html', { waitUntil: 'load' });
   await p.waitForSelector('#oso-frames[data-osof-ready]', { state: 'attached' }); await p.waitForTimeout(1200);
-  r = await p.evaluate(() => { const F = document.getElementById('oso-frames'); return { mode: F.getAttribute('data-mode'), crowded: F.hasAttribute('data-osof-crowded') }; });
-  ok(!r.crowded && r.mode === 'desktop', 'centred text → full rails on desktop');
+  r = await p.evaluate(() => { const F = document.getElementById('oso-frames'); return { mode: F.getAttribute('data-mode'), folded: F.querySelectorAll('[data-slot=left] [data-osof-folded], [data-slot=right] [data-osof-folded]').length }; });
+  ok(r.mode === 'desktop' && r.folded === 0, 'centred text → full rails on desktop, nothing folded');
   ok(!errs.length, 'no errors on the law pages' + (errs.length ? ' → ' + errs.join(' | ') : ''));
   await ctx.close();
 }
@@ -182,9 +193,9 @@ const errsOf = (p) => { const e = []; p.on('pageerror', (x) => e.push('PE:' + St
   ok(r.folded && r.ls === null, 'phone + edge-to-edge text: the 🎻 folds to a dot for this page view only (BUTTON LAW)');
   await p.goto('http://nobody.example/hero.html', { waitUntil: 'load' });
   await p.waitForSelector('#oso-frames[data-osof-ready]', { state: 'attached' }); await p.waitForTimeout(800);
-  r = await p.evaluate(() => { const x = document.querySelector('#oso-frames .osof-fold-x'); const r = x.getBoundingClientRect(); return { x: !!x && r.width > 0, label: x.getAttribute('aria-label') }; });
+  r = await p.evaluate(() => { const x = document.querySelector('#oso-frames .osof-sheet-x'); const r = x.getBoundingClientRect(); return { x: !!x && r.width > 0, label: x.getAttribute('aria-label') }; });
   ok(r.x && /Hide/.test(r.label), 'the mobile 🎻 carries a tiny ✕ (fold)');
-  await p.click('#oso-frames .osof-fold-x');
+  await p.click('#oso-frames .osof-sheet-x');
   r = await p.evaluate(() => { const sb = document.querySelector('#oso-frames .osof-sheetbtn'); const rr = sb.getBoundingClientRect(); return { folded: sb.classList.contains('osof-fold'), w: Math.round(rr.width), ls: localStorage.getItem('osof:fold:sheet') }; });
   ok(r.folded && r.w <= 22 && r.ls === '1', `✕ folds the 🎻 to a ${r.w}px dot, remembered`);
   await p.reload({ waitUntil: 'load' }); await p.waitForSelector('#oso-frames[data-osof-ready]', { state: 'attached' }); await p.waitForTimeout(600);
@@ -239,23 +250,24 @@ const errsOf = (p) => { const e = []; p.on('pageerror', (x) => e.push('PE:' + St
     const mini = document.getElementById('mini').getBoundingClientRect(); const br = z('bottom-right');
     const th = F.querySelector('.osof-thanks'); const thr = th && th.getBoundingClientRect();
     const words = th && !th.hidden ? document.elementsFromPoint(thr.left + thr.width / 2, thr.top + thr.height / 2).some((e) => !F.contains(e) && /^(P|A|H\d)$/.test(e.tagName)) : null;
-    return { rightX: z('right').left, leftX: z('left').left, vw, totemRight: !!tr && tr.left > vw / 2, overlaps, chat: !!F.querySelector('[data-osof-kind=chat]'), brAboveMini: br.bottom <= mini.top + 1, thanksShown: !!th && !th.hidden && th.classList.contains('osof-on'), thanksTop: thr && Math.round(thr.top), thanksCentred: thr && Math.abs((thr.left + thr.width / 2) - vw / 2) < 6, wordsUnderThanks: words, tourBar: !!F.querySelector('.osof-tourbar:not([hidden])'), metaX402: !!document.querySelector('head meta[name="x402"]') };
+    const brItems = [...F.querySelectorAll('[data-slot=bottom-right] > .osof-item:not([hidden])')].filter((e) => e.getBoundingClientRect().width > 0); const onMini = brItems.filter((e) => { const r2 = e.getBoundingClientRect(); return r2.bottom > mini.top && r2.top < mini.bottom && r2.right > mini.left && r2.left < mini.right; });
+    return { rightX: z('right').left, leftX: z('left').left, vw, totemRight: !!tr && tr.left > vw / 2, overlaps, chat: !!F.querySelector('[data-osof-kind=chat]'), brStyleBottom: F.querySelector('[data-slot=bottom-right]').style.bottom, brBottom: getComputedStyle(F.querySelector('[data-slot=bottom-right]')).bottom, onMini: onMini.length, onMiniFolded: onMini.filter((e) => e.hasAttribute('data-osof-folded')).length, thanksShown: !!th && !th.hidden && th.classList.contains('osof-on'), thanksTop: thr && Math.round(thr.top), thanksCentred: thr && Math.abs((thr.left + thr.width / 2) - vw / 2) < 6, wordsUnderThanks: words, tourBar: !!F.querySelector('.osof-tourbar:not([hidden])'), metaX402: !!document.querySelector('head meta[name="x402"]') };
   });
   ok(r.rightX > r.vw / 2 && r.leftX < r.vw / 2, `page nav{left:0;right:0} cannot move the rails (left at ${Math.round(r.leftX)}, right at ${Math.round(r.rightX)})`);
   ok(r.totemRight, 'the totem is on the right rail');
   {
-    const rr = await p.evaluate(() => { const F = document.getElementById('oso-frames'); const wide = document.getElementById('wide').getBoundingClientRect(); const z = (s) => F.querySelector(`[data-slot="${s}"]`).getBoundingClientRect(); const under = [...F.querySelectorAll('[data-slot=left] .osof-item:not([hidden]), [data-slot=right] .osof-item:not([hidden])')].filter((e) => { const b2 = e.getBoundingClientRect(); return b2.width > 0 && b2.bottom > wide.top && b2.top < wide.bottom; }).length; return { mode: F.getAttribute('data-mode'), leftBottom: Math.round(z('left').bottom), rightBottom: Math.round(z('right').bottom), wideTop: Math.round(wide.top), under, leftKids: F.querySelectorAll('[data-slot=left] .osof-item:not([hidden])').length }; });
+    const rr = await p.evaluate(() => { const F = document.getElementById('oso-frames'); const wide = document.getElementById('wide').getBoundingClientRect(); const on = [...F.querySelectorAll('[data-slot=left] > .osof-item:not([hidden]), [data-slot=right] > .osof-item:not([hidden])')].filter((e) => { const b2 = e.getBoundingClientRect(); return b2.width > 0 && b2.bottom > wide.top && b2.top < wide.bottom; }); return { mode: F.getAttribute('data-mode'), on: on.length, onFolded: on.filter((e) => e.hasAttribute('data-osof-folded')).length, leftKids: F.querySelectorAll('[data-slot=left] > .osof-item:not([hidden])').length, leftTop: F.querySelector('[data-slot=left]').style.top }; });
     ok(rr.mode === 'desktop' && rr.leftKids >= 3, `one wide button row does not fold the rails (mode ${rr.mode}, ${rr.leftKids} left items)`);
-    ok(rr.under === 0 && rr.leftBottom <= rr.wideTop && rr.rightBottom <= rr.wideTop, `the rails end above the wide row (left ${rr.leftBottom}, right ${rr.rightBottom} ≤ ${rr.wideTop}; ${rr.under} items on it)`);
+    ok(rr.on >= 1 && rr.onFolded === rr.on, `the rail pieces on the wide row fold in place (${rr.onFolded}/${rr.on}); the rails themselves stay (left top ${rr.leftTop})`);
   }
   ok(r.overlaps === 0, `no frame item sits on another (${r.overlaps} overlaps)`);
-  ok(r.brAboveMini, 'the bottom-right corner (chat) lifted above the page\'s mini player');
-  ok(r.thanksShown && r.thanksCentred && r.thanksTop >= 0 && r.wordsUnderThanks === false, `the thanks line shows centred at the top (y=${r.thanksTop}) with no words under it`);
+  ok(r.brStyleBottom === '' && r.brBottom === '10px' && r.onMini >= 1 && r.onMiniFolded === r.onMini, `the bottom-right corner never lifts off the page's mini player (bottom ${r.brBottom}); the ${r.onMini} piece(s) on it fold in place`);
+  ok(!r.thanksShown, 'the thanks line has one anchor (top centre): the page\'s own nav covers it here → it does not show (no step down)');
   ok(r.metaX402, 'agent language: <meta name="x402"> in <head>');
   ok(r.chat, 'before the page builds its own FAB, the frame offers its chat');
   await p.waitForTimeout(3600);
   r = await p.evaluate(() => { const F = document.getElementById('oso-frames'); const th = F.querySelector('.osof-thanks'); return { thanksGone: !th || th.hidden, chat: !!F.querySelector('[data-osof-kind=chat]'), fab: !!document.getElementById('oso-fab') }; });
-  ok(r.thanksGone, 'the thanks line is gone after three seconds');
+  ok(r.thanksGone, 'the thanks line stays gone');
   ok(r.fab && !r.chat, 'the page built #oso-fab late → the frame\'s chat bowed out (no double "Talk to OSO")');
   await p.waitForTimeout(5200);
   ok(!(await p.evaluate(() => !!document.querySelector('#oso-frames .osof-tourbar:not([hidden]), #oso-frames .osof-cap.osof-on'))), 'no auto tour: no caption bubbles ever appear by themselves');
@@ -409,6 +421,71 @@ const AUDIO_STUB = `window.__audioLog = []; window.Audio = class { constructor()
   ok(!r.a.oflo && !r.a.oviol && r.a.attr === '' && r.b.oflo && r.b.oviol && r.b.attr === null && !r.c.oflo && r.c.attr === '', `the frame absorbs the page's legacy 🌺/🎻 rail while on (on: ${!r.a.oflo} · ⚙ off: back ${r.b.oflo} · on again: ${!r.c.oflo})`);
   ok(!errs.length, 'no errors on the shell' + (errs.length ? ' → ' + errs.join(' | ') : ''));
   await ctx.close();
+}
+// ── test 10 (v0.1.5): STAY-IN-PLACE — Shaka, 23 Nov 2026: "i want them to stay in place and automatically minimize or close with the tiny x if it ever covers text"
+{
+  const SNAP = `(() => { const F = document.getElementById('oso-frames'); const R = (e) => { const r = e.getBoundingClientRect(); return [Math.round(r.x), Math.round(r.y), Math.round(r.width), Math.round(r.height)]; };
+    const zones = {}; for (const z of F.querySelectorAll('.osof-slot')) { const s = z.getAttribute('data-slot'); if (s === 'overlay') continue; const cs = getComputedStyle(z); zones[s] = { top: cs.top, bottom: cs.bottom, left: cs.left, right: cs.right, styleBottom: z.style.bottom || '' }; }
+    const items = {}; for (const w of F.querySelectorAll('.osof-slot > .osof-item')) { if (w.hidden || !w.getClientRects().length) continue; const k = w.getAttribute('data-osof-kind') + '#' + (w.getAttribute('data-osof-id') || ''); const mini = w.querySelector('[data-mini]'); items[k] = { box: R(w), folded: w.hasAttribute('data-osof-folded'), dotted: w.hasAttribute('data-osof-dotted'), gone: w.hasAttribute('data-osof-gone'), mini: mini ? mini.getAttribute('data-mini') : null, shown: R(w.querySelector('[data-osof-dotted] > .osof-idot, .osof-idot') && getComputedStyle(w.querySelector('.osof-idot')).display !== 'none' ? w.querySelector('.osof-idot') : (w.querySelector('[data-mini="1"] .osof-rd-mini, [data-mini="1"] .osof-fab-mini') || w.firstElementChild)) }; }
+    const under = (sel) => { const e = F.querySelector(sel); if (!e || !e.getClientRects().length) return null; const r = e.getBoundingClientRect(); return document.elementsFromPoint(r.x + r.width / 2, r.y + r.height / 2).some((x) => !F.contains(x) && /^(P|LI|H\\d)$/.test(x.tagName)); };
+    return { scrollY: Math.round(scrollY), zones, items, dockOnWords: under('.osof-radio .osof-dock'), pillOnWords: under('.osof-chatwrap .osof-fab'), mode: F.getAttribute('data-mode'), topR: getComputedStyle(F).getPropertyValue('--osof-top-r').trim(), audioPaused: window.__a ? window.__a.paused : null, miniEmoji: (F.querySelector('.osof-rd-mini') || {}).textContent }; })()`;
+  const same = (a, b, keys) => keys.every((k) => JSON.stringify(a[k]) === JSON.stringify(b[k]));
+  const anchorsSame = (a, b) => Object.keys(a.zones).every((z) => same(a.zones[z], b.zones[z], ['top', 'bottom', 'left', 'right']));
+  const boxesSame = (a, b) => Object.keys(a.items).filter((k) => b.items[k] && !/^(credit|sheet)/.test(k)).every((k) => same(a.items[k], b.items[k], ['box']));
+  const shownInside = (s) => Object.values(s.items).filter((i) => i.folded && !i.gone).every((i) => i.shown[2] > 4 && i.shown[0] >= i.box[0] - 1 && i.shown[1] >= i.box[1] - 1 && i.shown[0] + i.shown[2] <= i.box[0] + i.box[2] + 1 && i.shown[1] + i.shown[3] <= i.box[1] + i.box[3] + 1);
+  const scrollUnder = `(() => { const k = document.querySelector('.kaaak').getBoundingClientRect(); window.scrollBy(0, k.bottom + 24 - innerHeight); })()`;
+  // desktop
+  const ctx = await ctxFor('nobody.example', { width: 1440, height: 900 });
+  await ctx.addInitScript(AUDIO_STUB + ` const _A = window.Audio; window.Audio = class extends _A { constructor() { super(); window.__a = this; } setAttribute(k, v) { if (k === 'src') this.src = v; } getAttribute(k) { return k === 'src' ? this.src : null; } load() {} };`);
+  const p = await ctx.newPage(); const errs = errsOf(p);
+  await p.goto('http://nobody.example/comic.html', { waitUntil: 'load' });
+  await p.waitForSelector('#oso-frames[data-osof-ready]', { state: 'attached' }); await p.waitForTimeout(1500);
+  const s0 = await p.evaluate(SNAP);
+  ok(s0.items['radio#radio'] && !s0.items['radio#radio'].folded && s0.items['chat#chat'] && !s0.items['chat#chat'].folded && s0.zones['bottom-right'].bottom === '10px', `quiet top of the page: dock + pill unfolded at their anchor (bottom ${s0.zones['bottom-right'].bottom})`);
+  await p.evaluate(scrollUnder); await p.waitForTimeout(900);
+  const s1 = await p.evaluate(SNAP);
+  ok(s1.items['radio#radio'].folded && s1.items['radio#radio'].mini === '1' && s1.items['chat#chat'].folded && s1.items['chat#chat'].mini === '1', `the speech bubble scrolls under the corner → the dock and the pill FOLD to their tiny emoji (scrollY ${s1.scrollY})`);
+  ok(anchorsSame(s0, s1) && boxesSame(s0, s1) && s1.zones['bottom-right'].styleBottom === '', 'nothing moved: every zone anchor and every piece box is exactly where it was (no step-up, no lift)');
+  ok(shownInside(s1) && s1.dockOnWords !== true && s1.pillOnWords !== true, 'each tiny emoji sits inside the box its piece held; no unfolded piece on the words');
+  await p.evaluate(() => window.scrollTo(0, 0)); await p.waitForTimeout(900);
+  const s2 = await p.evaluate(SNAP);
+  ok(!s2.items['radio#radio'].folded && !s2.items['chat#chat'].folded && anchorsSame(s0, s2) && boxesSame(s0, s2), 'back on clear ground → both unfold, still exactly in place');
+  // a playing song is never undone by a fold: press ▶, scroll under the bubble → folded to 🎧, still playing
+  await p.click('#oso-frames .osof-rd-play'); await p.waitForTimeout(300);
+  const playing = await p.evaluate(() => !!window.__a && !window.__a.paused);
+  await p.evaluate(scrollUnder); await p.waitForTimeout(900);
+  const s3 = await p.evaluate(SNAP);
+  ok(playing && s3.items['radio#radio'].folded && s3.audioPaused === false && s3.miniEmoji === '🎧', `a song playing through a fold keeps playing (folded to ${s3.miniEmoji}, paused=${s3.audioPaused})`);
+  await p.evaluate(() => window.scrollTo(0, 0)); await p.waitForTimeout(900);
+  // the tiny ✕ on a rail door: fold on purpose, in place; a probe never undoes it; the dot unfolds it on a tap
+  const door = '#oso-frames [data-slot=left] > .osof-item[data-osof-kind=door]:not([hidden])';
+  const d0 = await p.evaluate((sel) => { const w = document.querySelector(sel); const r = w.getBoundingClientRect(); return [Math.round(r.x), Math.round(r.y), Math.round(r.width), Math.round(r.height)]; }, door);
+  await p.hover(door);
+  const xShown = await p.evaluate((sel) => { const x = document.querySelector(sel + ' > .osof-ix'); return !!x && getComputedStyle(x).display !== 'none' && x.getBoundingClientRect().width > 0; }, door);
+  await p.click(door + ' > .osof-ix');
+  await p.evaluate(() => window.scrollBy(0, 300)); await p.waitForTimeout(700);
+  const d1 = await p.evaluate((sel) => { const w = document.querySelector(sel); const r = w.getBoundingClientRect(); const dot = w.querySelector('.osof-idot'); const dr = dot.getBoundingClientRect(); return { box: [Math.round(r.x), Math.round(r.y), Math.round(r.width), Math.round(r.height)], folded: w.hasAttribute('data-osof-folded'), dotted: w.hasAttribute('data-osof-dotted'), dotInside: dr.width > 4 && dr.left >= r.left - 1 && dr.right <= r.right + 1 && dr.top >= r.top - 1 && dr.bottom <= r.bottom + 1 }; }, door);
+  ok(xShown && d1.folded && d1.dotted && d1.dotInside && JSON.stringify(d1.box) === JSON.stringify(d0), `the tiny ✕ (on hover) folds a rail door in place (box ${d1.box}); a scroll-stop probe leaves it folded`);
+  await p.click(door + ' > .osof-idot'); await p.waitForTimeout(200);
+  ok(await p.evaluate((sel) => !document.querySelector(sel).hasAttribute('data-osof-folded'), door), 'a tap on the dot unfolds it (the door itself is not opened by that tap)');
+  // one ✕ for all
+  await p.click('#oso-frames .osof-credit-x');
+  const off = await p.evaluate(() => { const F = document.getElementById('oso-frames'); const d = F.querySelector('.osof-dot'); const r = d && d.getBoundingClientRect(); return { off: F.hasAttribute('data-osof-off'), items: F.querySelectorAll('.osof-item').length, dotAt: r && [Math.round(r.x), Math.round(r.y)] }; });
+  ok(off.off && off.items === 0 && off.dotAt && off.dotAt[0] === 10 && off.dotAt[1] === 900 - 28, `✕ on the credit hides everything at once; the one dot stays at the credit's anchor (${off.dotAt})`);
+  ok(!errs.length, 'no errors on the comic page' + (errs.length ? ' → ' + errs.join(' | ') : ''));
+  await ctx.close();
+  // phone: same page — the corners fold in place, the 🌊 keeps its anchor even when it folds
+  const ctx2 = await ctxFor('nobody.example', { width: 390, height: 844 }, true);
+  const p2 = await ctx2.newPage(); const errs2 = errsOf(p2);
+  await p2.goto('http://nobody.example/comic.html', { waitUntil: 'load' });
+  await p2.waitForSelector('#oso-frames[data-osof-ready]', { state: 'attached' }); await p2.waitForTimeout(1200);
+  const m0 = await p2.evaluate(SNAP);
+  await p2.evaluate(scrollUnder); await p2.waitForTimeout(900);
+  const m1 = await p2.evaluate(SNAP);
+  ok(m1.mode === 'mobile' && m1.items['radio#radio'].folded && m1.items['chat#chat'].folded && anchorsSame(m0, m1) && boxesSame(m0, m1) && shownInside(m1), `📱 the bubble under the corner folds the dock + pill in place; no anchor moved (bottom ${m1.zones['bottom-right'].bottom})`);
+  ok(m1.topR === '52px' && m0.topR === '52px', `📱 the top-right stack keeps its anchor (--osof-top-r ${m1.topR}) — it folds, it never steps down`);
+  ok(!errs2.length, '📱 no errors' + (errs2.length ? ' → ' + errs2.join(' | ') : ''));
+  await ctx2.close();
 }
 await b.close(); srv.close();
 console.log(fails ? `\n✗ ${fails} check(s) failed` : '\n✓ e2e-settings: all green');

@@ -82,14 +82,13 @@
     const place = function () {
       el.hidden = false;
       const r = el.getBoundingClientRect(), vh = window.innerHeight, hgt = r.height || 30;
-      const tries = [8];
-      for (let y = 136; y <= vh * 0.4; y += hgt + 14) tries.push(y);
+      const tries = [8];                                         // v0.1.5 STAY-IN-PLACE: one anchor (top centre); covered ground → no line on this page view
       // v0.1.3: the two top corners (🌐 + 🌺 ceremony on the left, 🌊 Blessing Pool + 🎻 on the right) are obstacles too
       const corners = typeof ctx.corners === 'function' ? ctx.corners() : [];
       const onCorner = function (box) { return corners.some(function (c) { return c && box.left < c.right + 6 && box.right > c.left - 6 && box.top < c.bottom + 6 && box.top + box.height > c.top - 6; }); };
       for (let i = 0; i < tries.length; i++) {
         const box = { left: r.left, right: r.right, top: tries[i], height: hgt };
-        if (!onCorner(box) && !ctx.textAt(box)) { el.style.setProperty('--osof-thanks-y', tries[i] + 'px'); return true; }
+        if (!onCorner(box) && !(typeof ctx.blockedAt === 'function' ? ctx.blockedAt(box) : ctx.textAt(box))) { el.style.setProperty('--osof-thanks-y', tries[i] + 'px'); return true; }   // v0.1.5: a page's own fixed bar counts too
       }
       el.hidden = true;
       return false;

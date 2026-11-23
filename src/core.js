@@ -12,7 +12,7 @@
  */
 var FRAMES = (function (W) {
   'use strict';
-  var VERSION = '0.1.4';
+  var VERSION = '0.1.5';
   var MAJOR = VERSION.split('.')[0];
   if (W && W.OSOFrames && W.OSOFrames.__osof) {            // loaded twice: the first copy rules
     if (W.console) W.console.info('🎻 frames: already on this page; the second copy stays quiet.');
@@ -343,10 +343,10 @@ var FRAMES = (function (W) {
 
   // ── state ───────────────────────────────────────────────────────────────────────
   var kinds = {};
-  var state = { booted: false, ready: false, fresh: false, outline: false, mobile: false, reduced: false, off: false, crowded: false, zoomedOut: false, asleep: false };
+  var state = { booted: false, ready: false, fresh: false, outline: false, mobile: false, reduced: false, off: false, crowded: false, zoomedOut: false, asleep: false, langBottom: 0 };
   var prefs = { on: true, hide: {} };      // the ⚙ panel: osof:settings:v1 (this browser only)
   var dot = null, sheetX = null, sheetFolded = { user: false, text: false };
-  var cerBtn = null, cerFolded = false, cerLabel = '', bottomFolded = false, scrollT = 0;   // v0.1.3: the 🌺 ceremony button (top-left) · the phone bottom law
+  var cerBtn = null, cerFolded = false, cerLabel = '', scrollT = 0;   // v0.1.3: the 🌺 ceremony button (top-left) · v0.1.5: the scroll-stop probe timer
   var data = null, dataURL = '', base = '', frameId = 'frame';
   var LS = null, once = null, store = null;
   var root = null, zones = {}, recs = [], more = {}, creditBox = null, creditInfo = null, creditGear = null, creditX = null, sheetBtn = null;
@@ -371,6 +371,7 @@ var FRAMES = (function (W) {
       credit: creditLine(data),
       panel: function (o) { return dialog(o || {}); },
       textAt: function (r) { return rectHasText(r); },                // BUTTON LAW probe for pieces that place themselves
+      blockedAt: function (r) { return rectBlocked(r); },             // v0.1.5: words OR a fixed control of the page under this box
       corners: function () { return [extent('top-left'), extent('top-right')]; }   // v0.1.3: the two top corners, as obstacles
     };
     Object.defineProperty(ctx, 'reduced', { enumerable: true, get: function () { return state.reduced; } });
@@ -458,6 +459,10 @@ var FRAMES = (function (W) {
       // v0.1.3 · "pin": the item stays on phones too (the top corners: 🌺 ceremony top-left, 🌊 Blessing Pool top-right)
       if (item.pin === true || item.kind === 'tour') { rec.pinned = true; rec.wrap.setAttribute('data-osof-pin', ''); }
       zones[slot].appendChild(rec.wrap);
+      makeItemX(rec);                                                // v0.1.5: the tiny ✕ (fold on purpose, in place)
+      // a piece with its own fold (chat pill, radio dock): a tap on its tiny emoji unfolds it — the core lets go of the held box and
+      // leaves it open until the next scroll (the visitor asked for it)
+      rec.wrap.addEventListener('click', function (e) { if (!rec.folded || !hasOwnFold(rec) || !e.target.closest || !e.target.closest('.osof-rd-mini,.osof-fab-mini')) return; rec.folded = false; rec.tapOpen = true; holdBox(rec.wrap, false); }, true);
     }
     recs.push(rec);
     return rec;
@@ -599,6 +604,8 @@ var FRAMES = (function (W) {
     creditX = h('button', { type: 'button', class: 'osof-credit-i osof-credit-x', 'aria-label': t('hide'), title: t('hide'), on: { click: function () { hideAll(); } } },
       h('span', { 'aria-hidden': 'true' }, '✕'), h('span', { class: 'osof-lbl osof-x-lbl', 'aria-hidden': 'true' }, '✕ ' + t('hide.short')));
     creditBox = h('div', { class: 'osof-credit' }, a, creditInfo, creditGear, creditX);
+    // v0.1.5: folded to its 🎻 dot (desktop, words under even the icons) a tap unfolds it to the icons — it does not follow the link
+    creditBox.addEventListener('click', function (e) { if (!creditBox.classList.contains('osof-credit-dot')) return; e.preventDefault(); e.stopPropagation(); creditTap = true; creditBox.classList.remove('osof-credit-dot'); creditBox.classList.add('osof-credit-mini'); focusEl(creditGear); }, true);
     zones['bottom-left'].appendChild(h('div', { class: 'osof-item', 'data-osof-kind': 'credit' }, creditBox));
   }
   function about(opener) {
@@ -725,7 +732,7 @@ var FRAMES = (function (W) {
     [].slice.call(zones.overlay.children).forEach(function (c) { c.remove(); });
     [].slice.call(root.querySelectorAll('.osof-sig')).forEach(function (c) { c.remove(); });
     Object.keys(dialogs).forEach(function (k) { if (dialogs[k] !== keep) { dialogs[k].root.remove(); delete dialogs[k]; } });
-    more = {}; creditBox = creditInfo = creditGear = creditX = sheetBtn = sheetX = cerBtn = null; cerFolded = false; bottomFolded = false;
+    more = {}; creditBox = creditInfo = creditGear = creditX = sheetBtn = sheetX = cerBtn = null; cerFolded = false; creditTap = false;
     if (outlineSvg) { outlineSvg.remove(); outlineSvg = null; }
   }
   function turnOff() {
@@ -792,11 +799,9 @@ var FRAMES = (function (W) {
     root.appendChild(dot);
     placeDot();
   }
-  function placeDot() {
+  function placeDot() {                                            // v0.1.5: one anchor — where the credit mark stood (bottom-left); it never wanders
     if (!dot) return;
-    var vw = W.innerWidth, vh = W.innerHeight, S = 18, tries = [[10, vh - 10 - S], [10, Math.round(vh * 0.5)], [vw - 10 - S, vh - 10 - S], [10, 84]], pick = tries[0];
-    for (var i = 0; i < tries.length; i++) { if (!textUnder(tries[i][0], tries[i][1], S)) { pick = tries[i]; break; } }
-    dot.style.left = pick[0] + 'px'; dot.style.top = pick[1] + 'px';
+    dot.style.left = '10px'; dot.style.top = (W.innerHeight - 10 - 18) + 'px';
   }
 
   // ── the mobile sheet (rails hide on phones; one 🎻 opens every door) ───────────
@@ -805,10 +810,11 @@ var FRAMES = (function (W) {
   function makeSheetBtn() {
     sheetBtn = h('button', { type: 'button', class: 'osof-btn osof-btn-lg osof-sheetbtn', 'aria-label': t('sheet.label'), 'aria-haspopup': 'dialog', 'aria-expanded': 'false', on: { click: function () { if (sheetFolded.user || sheetFolded.text) { foldSheet(false, true); return; } openSheet(); } } },
       h('span', { class: 'osof-emo', 'aria-hidden': 'true' }, sheetEmoji()));
-    sheetX = h('button', { type: 'button', class: 'osof-fold-x', 'aria-label': t('fold'), on: { click: function () { foldSheet(true, true); } } }, h('span', { 'aria-hidden': 'true' }, '✕'));
+    sheetX = h('button', { type: 'button', class: 'osof-fold-x osof-sheet-x', 'aria-label': t('fold'), on: { click: function () { foldSheet(true, true); } } }, h('span', { 'aria-hidden': 'true' }, '✕'));
     sheetBtn.title = creditLine(data);
     sheetBtn.setAttribute('aria-describedby', 'osof-sheet-credit');
     zones['top-right'].appendChild(h('div', { class: 'osof-item osof-sheet-item', 'data-osof-kind': 'sheet' }, sheetBtn, sheetX, h('span', { id: 'osof-sheet-credit', hidden: true }, creditLine(data))));
+    sheetFolded.tap = false;
     sheetFolded.user = !!store('fold').get('sheet');
     syncFold();
   }
@@ -819,7 +825,7 @@ var FRAMES = (function (W) {
     return e;
   }
   function foldSheet(v, byUser) {
-    if (byUser) { sheetFolded.user = v; sheetFolded.text = false; if (v) store('fold').set('sheet', 1); else store('fold').del('sheet'); }
+    if (byUser) { sheetFolded.user = v; sheetFolded.text = false; sheetFolded.tap = !v; if (v) store('fold').set('sheet', 1); else store('fold').del('sheet'); }
     else sheetFolded.text = v;
     syncFold();
     if (byUser) focusEl(sheetBtn);
@@ -917,6 +923,7 @@ var FRAMES = (function (W) {
   // ours = the frame itself and the ʻŌlelo host (#olelo). The LEGACY 🌐 corner (#olang) is page content: its label bar
   // ("every language — on a Planet We Share As One") is words the 🎻 must not sit on (blessingpool.com at 390px).
   function ours(a) { return (root && root.contains(a)) || a.id === 'olelo' || a.id === 'oso-frames'; }
+  function isBubble(a) { try { return !!(a.matches && a.matches('[class*="bubble"],[class*="caption"],[class*="speech"],[class*="balloon"],.cap,.kaaak,blockquote,figcaption,q,cite')); } catch (e) { return false; } }
   function inFixed(a) { for (var f = a; f && f !== D.body && f !== D.documentElement; f = f.parentElement) { var p = W.getComputedStyle(f).position; if (p === 'fixed' || p === 'sticky') return true; } return false; }
   function textUnder(x, y, size, textOnly) {
     if (!D.elementsFromPoint) return null;
@@ -932,7 +939,8 @@ var FRAMES = (function (W) {
           if (ours(a)) break;
           var cs = W.getComputedStyle(a);
           if (cs.visibility === 'hidden' || +cs.opacity < 0.05) break;
-          var tl = TEXT_TAGS[a.tagName] ? (a.innerText || '').replace(/\s+/g, ' ').trim().length : ownTextLen(a);
+          // v0.1.5: a speech bubble, a caption, a quote — words in a box of any tag (the comic's KAAAK bubble on /websitetour)
+          var tl = (TEXT_TAGS[a.tagName] || isBubble(a)) ? (a.innerText || '').replace(/\s+/g, ' ').trim().length : ownTextLen(a);
           if (tl > 2) {                                            // words are words: a 16-char link, a <div class=kick> kicker — any tag
             if (textOnly === 'flow' && inFixed(a)) break;          // 'flow': words of the page itself, not of its fixed widgets (those are cleared by the corner rules)
             var tr = a.getBoundingClientRect();
@@ -949,26 +957,14 @@ var FRAMES = (function (W) {
     }
     return null;
   }
-  // step below any small fixed/sticky bar — or text — of the page that sits where a top corner wants to be
-  function clearTop(side, y0, size, tall) {                      // tall: a second square below (a two-button stack on phones)
-    var x = side === 'left' ? 10 : W.innerWidth - 10 - size, y = y0, blocked = false;
-    var probe = function (yy) { return textUnder(x, yy, size) || (tall ? textUnder(x, yy + tall, size) : null); };
-    for (var k = 0; k < 8; k++) {
-      var hit = probe(y);
-      if (!hit) break;
-      y = Math.ceil(hit.bottom) + 8;
-    }
-    if (y > W.innerHeight * 0.4 || probe(y)) { y = y0; blocked = true; }
-    return { y: y, blocked: blocked };
-  }
-  // a folded 🎻 (20px dot) looks for a clear spot down the right edge: the first y with nothing under it, else the top corner
-  function dotSpot(x, y0, min) {
-    var vh = W.innerHeight, tries = [y0, 8, 30, 52], y;
-    for (y = 96; y < vh * 0.6; y += 44) tries.push(y);
-    if (min) tries = tries.filter(function (v) { return v >= min; });            // the left edge: never over the 🌐 globe
-    for (var i = 0; i < tries.length; i++) if (!textUnder(x, tries[i], 20)) return tries[i];
-    return min || 8;
-  }
+  // ── STAY-IN-PLACE (v0.1.5, 23 Nov 2026 — Shaka, from a desktop screenshot of /websitetour: "i dont like how they move across the
+  // screen, i want them to stay in place and automatically minimize or close with the tiny x if it ever covers text") ──────────
+  // Every piece has ONE fixed anchor: 🌐/🌺 top-left · 🌊/🎻 top-right · the rails down the sides · credit bottom-left · chat pill +
+  // radio dock bottom-right · thanks line top-centre. Nothing steps, nudges, slides, lifts or drifts. When words, a caption, a speech
+  // bubble, the page's own controls or another piece of ours would run under a piece, the piece FOLDS IN PLACE to its tiny emoji —
+  // its box is held, so no neighbour moves either. It unfolds when the ground under its anchor is clear again (re-probed when
+  // scrolling stops) or on the visitor's tap. A visitor's own ✕ is never undone by a probe. A playing song is never undone by a
+  // fold (the dock folds to 🎧 and keeps playing). The sensors (textUnder · rectHasText · cornerStuff) stayed; only the answer changed.
   // the page's own fixed widgets near a corner (an old 🎻 corner, a chat FAB, a mini player): rails keep clear of them
   function cornerStuff(slot) {
     var vw = W.innerWidth, vh = W.innerHeight, e = null, seen = [];
@@ -992,29 +988,130 @@ var FRAMES = (function (W) {
     }
     return e;
   }
-  // are the rails about to sit on the page's text? (narrow windows, edge-to-edge paragraphs) → fold into the 🎻 sheet
-  // NO COVERED TEXT LAW (22 Nov 2026): a rail stands on its longest clear band — the tallest stretch of its edge with none of the
-  // page's own (in-flow) words under it. A wide button row at y=680 ends the rail above it; a paragraph wall leaves no band.
-  function clearRuns(top, bottom) {
-    var vw = W.innerWidth, size = 46, out = {};
-    ['left', 'right'].forEach(function (side) {
-      var x = side === 'left' ? 10 : vw - 10 - size, best = null, cur = null;
-      var close = function () { if (cur && (!best || cur.bottom - cur.top > best.bottom - best.top)) best = cur; cur = null; };
-      for (var y = top; y + size <= bottom; y += 24) {
-        if (textUnder(x, y, size, 'flow')) { close(); continue; }
-        if (!cur) cur = { top: y, bottom: y + size }; else cur.bottom = y + size;
+  // is anything of the page under this box — words (textOnly) or also a fixed/sticky control of the page? A grid of small probes
+  // (a kicker line between the rows counts, a sliver of a link row under one edge counts)
+  function rectHasText(r, textOnly) {
+    if (textOnly === undefined) textOnly = true;
+    var S = 12, h = r.height || 32, ys = [r.top + 2, r.top + h / 2 - S / 2, r.top + h - S - 2];
+    for (var yy = r.top + 18; yy < r.top + h - S - 2; yy += 16) ys.push(yy);
+    for (var i = 0; i < ys.length; i++) {
+      for (var x = r.left; x <= r.right - S + 1; x += 22) if (textUnder(x, ys[i], S, textOnly)) return true;
+      if (textUnder(Math.max(r.left, r.right - S), ys[i], S, textOnly)) return true;
+    }
+    return false;
+  }
+  function rectBlocked(r) { return rectHasText(r, false); }
+  // a fixed/sticky control of the page under this box (not words): a dot must not sit on a button of the page either
+  function ctrlUnder(x, y, size) {
+    if (!D.elementsFromPoint) return false;
+    var vw = W.innerWidth, vh = W.innerHeight, pts = [[x + 2, y + 2], [x + size / 2, y + size / 2], [x + size - 2, y + size - 2]];
+    for (var k = 0; k < pts.length; k++) {
+      if (pts[k][0] < 0 || pts[k][1] < 0 || pts[k][0] >= vw || pts[k][1] >= vh) continue;
+      var els = D.elementsFromPoint(pts[k][0], pts[k][1]);
+      for (var j = 0; j < els.length; j++) {
+        var el = els[j]; if (el === D.body || el === D.documentElement) continue;
+        for (var a = el; a && a !== D.body && a !== D.documentElement; a = a.parentElement) {
+          if (ours(a)) break;
+          var cs = W.getComputedStyle(a);
+          if (cs.visibility === 'hidden' || +cs.opacity < 0.05 || cs.pointerEvents === 'none') break;
+          if (cs.position === 'fixed' || cs.position === 'sticky') { var r = a.getBoundingClientRect(); if (r.width * r.height < vw * vh * 0.35) return true; break; }
+        }
       }
-      close();
-      out[side] = best || { top: top, bottom: top };
-    });
+    }
+    return false;
+  }
+  function rectHasControl(r) { var S = Math.max(6, Math.min(12, Math.floor(Math.min(r.width, r.height)))); return ctrlUnder(r.left, r.top, S) || ctrlUnder(r.right - S, r.bottom - S, S) || ctrlUnder(r.left + (r.width - S) / 2, r.top + (r.height - S) / 2, S); }
+  function overlapsRect(a, b) { return !!(a && b && a.width > 1 && b.width > 1 && a.left < b.right - 2 && a.right > b.left + 2 && a.top < b.bottom - 2 && a.bottom > b.top + 2); }
+  // a folded piece keeps the box it had (min sizes on its wrap): the dot sits where the piece was, and nothing around it moves
+  function holdBox(wrap, on) {
+    if (on) {
+      if (wrap.hasAttribute('data-osof-folded')) return;
+      var r = wrap.getBoundingClientRect();
+      wrap.style.minWidth = Math.round(r.width) + 'px'; wrap.style.minHeight = Math.round(r.height) + 'px';
+      wrap.setAttribute('data-osof-folded', '');
+    } else { wrap.style.minWidth = wrap.style.minHeight = ''; wrap.removeAttribute('data-osof-folded'); }
+  }
+  function hasOwnFold(r) { return !!(r.piece && typeof r.piece.fold === 'function'); }
+  // fold / unfold one piece in place. byUser: the visitor's own tiny ✕ (session; a probe never undoes it) or a tap on the dot
+  // (the piece stays open until the next scroll, even over words — the visitor asked for it)
+  function foldRec(r, v, byUser) {
+    if (!r || !r.wrap) return;
+    v = !!v;
+    if (byUser) { r.userFold = v; r.tapOpen = !v; }
+    else if (r.userFold) return;
+    if (!!r.folded === v) return;
+    r.folded = v;
+    if (v && !r.idot) makeIdot(r);
+    holdBox(r.wrap, v);
+    if (hasOwnFold(r)) { try { r.piece.fold(v); } catch (e) {} }
+    else r.wrap.toggleAttribute('data-osof-dotted', v);
+    if (r.kind === 'tour') cerFolded = v;
+    emit('frame:fold', { id: r.id, kind: r.kind, folded: v, byUser: !!byUser });
+  }
+  // the tiny dot a folded piece becomes (its emoji; a tap unfolds it — the piece itself is not triggered by that tap)
+  function makeIdot(r) {
+    var lbl = r.kind === 'credit' ? creditLine(data) : labelOf(r);
+    r.idot = h('button', { type: 'button', class: 'osof-idot', title: lbl, 'aria-label': lbl + ' · ' + t('unfold'), on: { click: function (e) {
+      e.preventDefault(); e.stopPropagation();
+      foldRec(r, false, true);
+      var f = r.el && (r.el.matches && r.el.matches('a,button') ? r.el : r.el.querySelector && r.el.querySelector('a,button'));
+      if (f) focusEl(f);
+    } } }, h('span', { 'aria-hidden': 'true' }, emojiOf(r)));
+    r.wrap.appendChild(r.idot);
+  }
+  // the tiny ✕ every piece carries (hover/focus on desktops; always on the pinned phone corners): folds it on purpose for this visit
+  function makeItemX(r) {
+    if (!r.wrap || r.ix || r.kind === 'chat' || r.kind === 'radio' || r.kind === 'credit' || r.kind === 'sheet' || r.kind === 'globe') return;
+    r.ix = h('button', { type: 'button', class: 'osof-fold-x osof-ix', 'aria-label': t('fold') + ': ' + labelOf(r), title: t('fold'), on: { click: function (e) { e.preventDefault(); e.stopPropagation(); foldRec(r, true, true); if (r.idot) focusEl(r.idot); } } }, h('span', { 'aria-hidden': 'true' }, '✕'));
+    r.wrap.appendChild(r.ix);
+  }
+  function moreRecs() {
+    var out = [];
+    ['left', 'right'].forEach(function (s) { var m = more[s]; if (!m || !m.wrap) return; if (!m.rec) { m.rec = { id: 'more-' + s, kind: 'more', slot: s, item: { label: t('more.title'), emoji: '⋯' }, wrap: m.wrap, el: m.btn, piece: null }; makeItemX(m.rec); } out.push(m.rec); });
     return out;
   }
-  function railsCrowded(top0) {
-    state.runs = null;
-    if (!D.elementsFromPoint || W.innerWidth < 721) return false;
-    state.runs = clearRuns(top0 + 14, W.innerHeight - 24);
-    var l = state.runs.left, r = state.runs.right;
-    return Math.min(l.bottom - l.top, r.bottom - r.top) < 150;                 // no band for even three doors on one side → the 🎻 sheet
+  // the probe: every piece on its anchor — blocked → fold in place; clear → unfold (unless the visitor folded it)
+  function probeAll(mobile) {
+    if (!root || state.off || state.asleep || !D.elementsFromPoint) return;
+    recs.concat(moreRecs()).forEach(function (r) {
+      if (!r.wrap || r.spot || !live(r) || r.wrap.hidden || r.wrap.hasAttribute('data-osof-hid')) return;
+      if (r.wrap.getClientRects().length === 0) return;                       // not shown in this mode (rails on phones)
+      var b = r.wrap.getBoundingClientRect();
+      if (b.width < 2 || b.height < 2) return;
+      var blocked = rectBlocked(b);
+      if (blocked) { if (!r.tapOpen) foldRec(r, true); }
+      else foldRec(r, false);
+      var gone = false;
+      if (r.folded && !r.tapOpen) { var d = r.idot && r.wrap.hasAttribute('data-osof-dotted') ? r.idot : (hasOwnFold(r) ? r.wrap.querySelector('.osof-rd-mini,.osof-fab-mini') : null); var dr = d && d.getBoundingClientRect(); gone = !!(dr && dr.width > 1 && rectHasControl(dr)); }
+      r.wrap.toggleAttribute('data-osof-gone', gone);
+    });
+    if (mobile && sheetBtn) {                                               // the 🎻 sheet button: probed on its unfolded square (the dot never moves it)
+      var sw = sheetBtn.parentElement, sr = sw.getBoundingClientRect(), zr = zones['top-right'].getBoundingClientRect(), sz = 44;
+      if (sr.height > 1 && zr.width > 1) {
+        var sBlocked = rectBlocked({ left: zr.right - sz, right: zr.right, top: sr.top, height: sz });
+        if (sheetFolded.text !== sBlocked && !sheetFolded.user && !(sheetFolded.tap && sBlocked)) foldSheet(sBlocked, false);
+      }
+    }
+    creditLaw(mobile);
+  }
+  // the credit mark (always rendered, AGPL §7(b)) folds IN PLACE at the bottom-left: words / a page control / our own dock under it →
+  // its icons (🎻 · i · ⚙ · ✕); still covered → on phones it rests inside the 🎻 sheet, on desktops it becomes one 🎻 dot that is the
+  // credit (title + aria carry the line) and unfolds on a tap. It never steps up the edge.
+  var creditTap = false;
+  function creditLaw(mobile) {
+    root.removeAttribute('data-osof-credit-folded');
+    if (!creditBox) return;
+    creditBox.classList.remove('osof-credit-mini'); creditBox.classList.remove('osof-credit-dot');
+    if (state.zoomedOut && sheetBtn) { root.setAttribute('data-osof-credit-folded', ''); return; }
+    if (creditTap) { creditBox.classList.add('osof-credit-mini'); return; }
+    var c = creditBox.getBoundingClientRect(), br = extent('bottom-right');
+    if (c.width < 2) return;
+    if (!rectBlocked(c) && !overlapsRect(c, br)) return;
+    creditBox.classList.add('osof-credit-mini');
+    var m = creditBox.getBoundingClientRect();
+    if (!rectBlocked(m) && !overlapsRect(m, br)) return;
+    if (mobile && sheetBtn) { root.setAttribute('data-osof-credit-folded', ''); creditBox.classList.remove('osof-credit-mini'); return; }
+    creditBox.classList.add('osof-credit-dot');
   }
   function layout() {
     if (bigFrameOver()) { if (!state.asleep) sleep('iframe'); return; }   // v0.1.4: another page fills the screen → step aside
@@ -1028,9 +1125,9 @@ var FRAMES = (function (W) {
     // everywhere — the frame folds into the 🎻 sheet and keeps the credit inside it rather than sit on the words
     var vv = W.visualViewport;
     state.zoomedOut = mq('(pointer: coarse)') && !!((vv && vv.width > 0 && vv.width < W.innerWidth * 0.8) || (W.screen && W.screen.width > 0 && W.innerWidth > W.screen.width * 1.3));
-    state.crowded = !narrow && (state.zoomedOut || railsCrowded(top00));
-    var mobile = narrow || state.crowded;
-    root.toggleAttribute('data-osof-crowded', state.crowded);
+    state.crowded = false;                                                 // v0.1.5: desktop rails never relocate into the sheet — crowded pieces fold in place
+    var mobile = narrow || state.zoomedOut;
+    root.removeAttribute('data-osof-crowded');
     if (mobile !== state.mobile) {
       state.mobile = mobile;
       root.setAttribute('data-mode', mobile ? 'mobile' : 'desktop');
@@ -1040,159 +1137,36 @@ var FRAMES = (function (W) {
     var reduced = mq('(prefers-reduced-motion: reduce)');
     if (reduced !== state.reduced) { state.reduced = reduced; root.setAttribute('data-motion', reduced ? 'reduced' : 'full'); }
     emit('frame:layout', { mobile: mobile });
-    var size = narrow ? 44 : size0, top0 = narrow ? 52 : top00;
-    var pinnedTR = mobile && recs.some(function (r) { return r.slot === 'top-right' && r.pinned && live(r); });
-    var trTwo = !mobile && recs.filter(function (r) { return r.slot === 'top-right' && live(r) && r.wrap; }).length >= 2;   // desktop: 🌊 + 🎻 = one stack (globyagent.com: the 🎻 sat on the logo)
-    var ct = clearTop('right', top0, size, pinnedTR ? size + 8 : (trTwo ? size + 10 : 0)), trMode = 'stack';
-    // phones: no room for the 🌊 + 🎻 stack, but room for one square → the 🌊 keeps the corner (Shaka: "blessing pool on the top right")
-    // and the 🎻 folds to a dot on its own clear spot below (opensourceorchestra.org at 390px lost the pool otherwise)
-    if (mobile && pinnedTR && ct.blocked) { var c1 = clearTop('right', top0, size); if (!c1.blocked) { ct = c1; trMode = 'pool'; } }
-    root.style.setProperty('--osof-top-r', ct.y + 'px');
-    root.setAttribute('data-osof-tr', trMode);
-    if (mobile) {
-      var sheetBlocked = ct.blocked || trMode === 'pool';
-      if (sheetFolded.text !== sheetBlocked && !sheetFolded.user) foldSheet(sheetBlocked, false);
-      if (trMode === 'pool') root.style.setProperty('--osof-dot-r', dotSpot(W.innerWidth - 8 - 20, ct.y + size + 8, ct.y + size + 8) + 'px');
-      else if (sheetFolded.text || sheetFolded.user) root.style.setProperty('--osof-top-r', dotSpot(W.innerWidth - 8 - 20, ct.y) + 'px');   // the dot, too, sits on no words
-    }
-    root.toggleAttribute('data-osof-tr-fold', mobile && ct.blocked && trMode !== 'pool');   // no room even for one square → the pinned 🌊 rests with the 🎻 (the visitor's own ✕ folds only the 🎻)
-    // v0.1.3 · the top-left stack (🌺 ceremony) stands below the real lang.js globe, on clear ground; blocked → it folds to a dot
+    var top0 = narrow ? 52 : top00;
+    // STAY-IN-PLACE anchors: the top-right stack at top0, always; the top-left stack under the real 🌐 globe (lang.js draws it — we only read where it stands)
+    root.style.setProperty('--osof-top-r', top0 + 'px');
+    // the 🌐 globe's reserve is read ONCE per page view (lang.js nudges its own button by a few px as it probes; our 🌺 must not follow)
     var lb = langButton(), lbr = lb && isVisible(lb) ? lb.getBoundingClientRect() : null;
-    var y0l = lbr && lbr.height > 2 && lbr.top < 120 ? Math.max(top0, Math.round(lbr.bottom) + 10) : top0;
-    var cl = clearTop('left', y0l, narrow ? 38 : size);
-    foldCer(cl.blocked);
-    root.style.setProperty('--osof-top-l', (cl.blocked ? dotSpot(narrow ? 8 : 10, y0l, y0l) : cl.y) + 'px');
-    liftOffWidgets('bottom-right');
-    liftOffWidgets('bottom-left');
-    bottomLaw();                                                    // phones AND desktops (myagentohana.com: the dock sat on the honesty strip)
-    placeCredit(mobile);
-    stackCorners(mobile);
-    if (cer.lift) ['bottom-left', 'bottom-right'].forEach(function (s) { var z = zones[s], cur = parseFloat(z.style.bottom) || 8; if (cur < cer.lift) z.style.bottom = cer.lift + 'px'; });   // the ceremony sheet on phones: our corners step above it
+    if (lbr && lbr.height > 2 && lbr.top < 120 && !state.langBottom) state.langBottom = Math.round(lbr.bottom);
+    var y0l = state.langBottom ? Math.max(top0, state.langBottom + 10) : (hasLang() ? top0 + (narrow ? 44 : 54) + 10 : top0);
+    root.style.setProperty('--osof-top-l', y0l + 'px');
+    root.toggleAttribute('data-osof-cer-sheet', !!(mobile && cer.lift));   // the phone ceremony sheet: our bottom corners rest while it is up (nothing steps above it)
     if (!mobile) {
       var vh = W.innerHeight;
-      var tl = union(extent('top-left'), cornerStuff('top-left')), tr = union(extent('top-right'), cornerStuff('top-right'));
-      var bl = union(extent('bottom-left'), cornerStuff('bottom-left')), br = union(extent('bottom-right'), cornerStuff('bottom-right'));
-      var runs = state.runs || clearRuns(top0 + 14, vh - 24);
-      fitRail('left', Math.max((tl ? Math.max(tl.bottom, top0) : top0) + 14, runs.left.top), Math.min((bl ? Math.min(bl.top, vh - 10) : vh - 10) - 14, runs.left.bottom));
-      fitRail('right', Math.max((tr ? Math.max(tr.bottom, top0) : top0) + 14, runs.right.top), Math.min((br ? Math.min(br.top, vh - 10) : vh - 10) - 14, runs.right.bottom));
+      // the rails' anchors come from OUR corners alone (a page widget near a corner would move the rail as it scrolls — a sticky bar,
+      // a late FAB); a page control under a rail item folds that item instead
+      var tl = zoneBox('top-left'), tr = zoneBox('top-right'), bl = zoneBox('bottom-left'), br = zoneBox('bottom-right');
+      fitRail('left', (tl ? Math.max(tl.bottom, top0) : top0) + 14, (bl ? Math.min(bl.top, vh - 10) : vh - 10) - 14);
+      fitRail('right', (tr ? Math.max(tr.bottom, top0) : top0) + 14, (br ? Math.min(br.top, vh - 10) : vh - 10) - 14);
     }
-    keepOffText(mobile);
+    probeAll(mobile);
     if (openDlg) place(openDlg);
     if (state.outline) drawOutline();
     if (tour.active && tour.cur) showStep(tour.cur, true);
   }
-  // BUTTON LAW at the bottom edge: a pill that would sit on the page's words tucks away for this layout (desktop); on phones the
-  // credit mark shrinks to its icons (🎻 · i · ⚙) when words run under it — the credit stays visible, the words stay readable
-  function rectHasText(r) {
-    // a grid of small probes over the whole rect (a kicker line under the bottom edge counts too)
-    var S = 12, h = r.height || 32, ys = [r.top + 2, r.top + h / 2 - S / 2, r.top + h - S - 2];
-    for (var yy = r.top + 18; yy < r.top + h - S - 2; yy += 16) ys.push(yy);      // v0.1.3: a thin line of words between the rows counts too ("ONE BODY · SIX SOULS" under the dock)
-    for (var i = 0; i < ys.length; i++) {
-      for (var x = r.left; x <= r.right - S + 1; x += 22) if (textUnder(x, ys[i], S, true)) return true;
-      if (textUnder(Math.max(r.left, r.right - S), ys[i], S, true)) return true;
-    }
-    return false;
-  }
-  function keepOffText(mobile) {
-    recs.forEach(function (r) {
-      if (r.kind !== 'pill' || !r.wrap) return;
-      if (mobile || !live(r)) { r.wrap.removeAttribute('data-osof-tuck'); return; }
-      r.wrap.removeAttribute('data-osof-tuck');
-      var b = r.wrap.getBoundingClientRect();
-      if (b.width > 2 && rectHasText(b)) r.wrap.setAttribute('data-osof-tuck', '');
-    });
-  }
-  // the credit mark (always visible, AGPL §7(b)) and the BUTTON LAW: words under it → on desktops it steps up the left edge to
-  // the first clear spot (the rail fits above it); with no clear spot, or on phones, it shrinks to its icons (🎻 · i · ⚙)
-  function placeCredit(mobile) {
-    var z = zones['bottom-left'];
-    z.style.bottom = state.liftBL ? state.liftBL + 'px' : '';                               // keep the lift off a page widget
-    root.removeAttribute('data-osof-credit-folded');
-    if (!creditBox) return;
-    creditBox.classList.remove('osof-credit-mini');
-    var c = creditBox.getBoundingClientRect(), vh = W.innerHeight;
-    if (state.zoomedOut && sheetBtn) { root.setAttribute('data-osof-credit-folded', ''); return; }
-    if (c.width < 2 || !rectHasText(c)) return;
-    var step = c.height + 10, k, y;
-    for (k = 1; k <= 10; k++) {                                  // step up the left edge to the first clear spot
-      y = c.top - k * step;
-      if (y < vh * 0.45) break;
-      if (!rectHasText({ left: c.left, right: c.right, top: y, height: c.height })) { z.style.bottom = Math.round(vh - (y + c.height)) + 'px'; return; }
-    }
-    creditBox.classList.add('osof-credit-mini');                  // icons only (🎻 · i · ⚙)
-    var m = creditBox.getBoundingClientRect();
-    if (!rectHasText(m)) return;
-    for (k = 1; k <= 10; k++) {
-      y = m.top - k * (m.height + 10);
-      if (y < vh * 0.45) break;
-      if (!rectHasText({ left: m.left, right: m.right, top: y, height: m.height })) { z.style.bottom = Math.round(vh - (y + m.height)) + 'px'; return; }
-    }
-    // phones: no clear spot at all (a words panel fills the screen) → the credit folds INTO the 🎻 sheet button, which carries
-    // the credit line (title + description) and whose sheet shows it in full — AGPL §7(b) stays visible, the words stay readable
-    if (mobile && sheetBtn) { root.setAttribute('data-osof-credit-folded', ''); creditBox.classList.remove('osof-credit-mini'); }
-  }
-  // NO COVERED TEXT LAW (Shaka, 22 Nov 2026: "remove the one that covers the radio player … always centered, grounded, and balanced"):
-  // a bottom corner of the frame (chat FAB, radio dock, pills, credit) never sits on the page's own fixed controls — a mini player,
-  // an old chat FAB, a cookie bar. If one lives under the corner, the whole corner steps up above it (grounded on clear ground).
-  // NO COVERED TEXT LAW on phones (22 Nov 2026 audit: the chat pill sat on footer kickers and on mini players that arrive late):
-  // the bottom-right zone steps up to the first clear band; with none, the pill and the dock fold to their tiny emoji until a
-  // clear spot exists (re-probed when scrolling stops). Session only; a visitor's own ✕ (remembered mini) is never undone.
-  function bottomLaw() {
-    var z = zones['bottom-right'], vh = W.innerHeight;
-    z.style.bottom = state.liftBR ? state.liftBR + 'px' : '';
-    foldBottom(false);
-    var zr = z.getBoundingClientRect();
-    if (zr.width < 2 || zr.height < 2 || !rectHasText(zr)) return;
-    var base = state.liftBR || 0;
-    for (var lift = base + 24; vh - lift - zr.height > vh * 0.5; lift += 24) {
-      if (!rectHasText({ left: zr.left, right: zr.right, top: vh - lift - zr.height, height: zr.height })) { z.style.bottom = lift + 'px'; return; }
-    }
-    foldBottom(true);
-    var fr = z.getBoundingClientRect();
-    if (fr.width > 2 && rectHasText(fr)) {                                                   // even the tiny emoji sits on words → step the tiny one up
-      for (var l2 = base + 24; vh - l2 - fr.height > vh * 0.5; l2 += 24) if (!rectHasText({ left: fr.left, right: fr.right, top: vh - l2 - fr.height, height: fr.height })) { z.style.bottom = l2 + 'px'; return; }
-    }
-  }
-  function foldBottom(v) {
-    if (bottomFolded === v) return;
-    bottomFolded = v;
-    recs.forEach(function (r) { if (r.slot === 'bottom-right' && r.piece && typeof r.piece.fold === 'function') { try { r.piece.fold(v); } catch (e) {} } });
-  }
+  // lang.js on the page (its 🌐 globe owns the top-left corner, 54px on desktops / 44px on phones, even before it has drawn)
+  function hasLang() { return !!(D.getElementById('olelo') || D.getElementById('olang') || D.querySelector('script[src*="lang.opensourceorchestra.org"],script[src$="/lang.js"]')); }
+  function zoneBox(slot) { var z = zones[slot], r = z ? z.getBoundingClientRect() : null; return r && r.width > 1 && r.height > 1 ? { top: r.top, bottom: r.bottom, left: r.left, right: r.right } : null; }
   function onScroll() {
-    if (!root || state.off || tour.active) return;
+    if (!root || state.off) return;
+    recs.forEach(function (r) { r.tapOpen = false; }); sheetFolded.tap = false; creditTap = false;
     clearTimeout(scrollT);
-    scrollT = setTimeout(function () { if (!state.off && !tour.active && !finalEl) { bottomLaw(); if (state.mobile) stackCorners(true); } }, 320);
-  }
-  function liftOffWidgets(slot) {
-    var z = zones[slot];
-    z.style.bottom = '';
-    if (slot === 'bottom-left') state.liftBL = 0;
-    if (slot === 'bottom-right') state.liftBR = 0;
-    var zr = z.getBoundingClientRect(), vh = W.innerHeight;
-    if (zr.width < 2 || zr.height < 2) return;
-    var stuff = cornerStuff(slot);
-    if (!stuff) return;
-    if (stuff.right < zr.left - 6 || stuff.left > zr.right + 6 || stuff.top > zr.bottom || stuff.bottom < zr.top) return;   // no overlap
-    var lift = Math.round(vh - stuff.top + 10);
-    if (vh - lift - zr.height < vh * 0.45) return;                                           // would climb into the page: stay
-    z.style.bottom = lift + 'px';
-    if (slot === 'bottom-left') state.liftBL = lift;
-    if (slot === 'bottom-right') state.liftBR = lift;
-  }
-  // phones: when the bottom-right pieces (chat, radio dock) reach across the bottom-left credit, the credit steps up above them
-  function stackCorners(mobile) {
-    var z = zones['bottom-left'];
-    if (!mobile) return;                                            // v0.1.3: a credit already lifted off a page widget is checked too (globyagent.com: it met the dock)
-    var br = extent('bottom-right'), bl = z.getBoundingClientRect();
-    if (!br || bl.width < 2 || br.left > bl.right + 6 || br.top > bl.bottom || br.bottom < bl.top) return;
-    var lift = Math.round(W.innerHeight - br.top + 8), y = W.innerHeight - lift - bl.height, S = Math.min(bl.height, 32);
-    // BUTTON LAW: step up only onto a clear spot (probed across the credit's whole width); if words live there, the credit folds
-    // into the 🎻 sheet (v0.1.3: it used to stay put — and sat on the radio dock, globyagent.com at 390px)
-    var fold = function () { if (sheetBtn) root.setAttribute('data-osof-credit-folded', ''); };
-    if (y < 60) { fold(); return; }
-    for (var x = bl.left; x <= bl.right - S + 1; x += S) if (textUnder(x, y, S, true)) { fold(); return; }
-    if (textUnder(bl.right - S, y, S, true)) { fold(); return; }
-    z.style.bottom = lift + 'px';
+    scrollT = setTimeout(function () { if (!state.off && !tour.active && !finalEl) probeAll(state.mobile); }, 320);
   }
   function fitRail(side, top, bottom) {
     var z = zones[side], m = more[side];
@@ -1664,19 +1638,14 @@ var FRAMES = (function (W) {
   function defineTour() {
     kinds.tour = function (ctx, item) {
       var label = str(item.label) || t('tour');
-      var b = ctx.h('button', { type: 'button', class: 'osof-btn osof-btn-lg osof-tourbtn osof-cerbtn', 'aria-label': label, 'aria-describedby': null, on: { click: function () { if (cerFolded) { foldCer(false); return; } startTour(false); } } },
+      var b = ctx.h('button', { type: 'button', class: 'osof-btn osof-btn-lg osof-tourbtn osof-cerbtn', 'aria-label': label, 'aria-describedby': null, on: { click: function () { startTour(false); } } },
         ctx.h('span', { class: 'osof-emo', 'aria-hidden': 'true' }, str(item.emoji) || '🌺'),
         ctx.h('span', { class: 'osof-lbl', 'aria-hidden': 'true' }, label));
       cerBtn = b; cerLabel = label; cerFolded = false;
       return { el: b, tour: str(item.tip) || t('tour.tip'), open: function () { startTour(false); } };
     };
   }
-  function foldCer(v) {
-    if (!cerBtn || cerFolded === v) return;
-    cerFolded = v;
-    cerBtn.classList.toggle('osof-fold', v);
-    cerBtn.setAttribute('aria-label', v ? cerLabel + ' · ' + t('unfold') : cerLabel);
-  }
+  // (v0.1.5: the 🌺 folds like every other piece — in place, to its dot — through foldRec; cerFolded mirrors it for the API)
 
   // ── CSS (every selector starts with #oso-frames; light DOM so translators can read it) ──
   var SERIF = 'Georgia,"Iowan Old Style","Palatino Linotype",Palatino,"Times New Roman",serif';
@@ -1789,10 +1758,31 @@ var FRAMES = (function (W) {
       F + '[data-mode=mobile] [data-slot=top-right]>.osof-item:not(.osof-sheet-item):not([data-osof-pin]),' + F + '[data-mode=mobile] [data-slot=bottom-left]>.osof-item:not([data-osof-kind=credit]),' + F + '[data-mode=mobile] [data-osof-hom]{display:none}',
       F + '[data-mode=mobile] [data-slot=top-right] [data-osof-pin] .osof-btn{width:44px;height:44px;font-size:21px}',
       F + '[data-mode=mobile] .osof-cerbtn{width:38px;height:38px;font-size:18px}',
-      F + '[data-osof-tr-fold] [data-slot=top-right]>[data-osof-pin]{display:none!important}',
+      // v0.1.5 STAY-IN-PLACE: a folded piece keeps its box (min sizes on the wrap) and shows one dot where it stood; the tiny ✕ shows on hover/focus (always on the pinned phone corners)
+      F + ' .osof-item[data-osof-folded]{align-items:center;justify-content:center}',
+      F + ' [data-slot=bottom-right] .osof-item[data-osof-folded]{justify-content:flex-end}',
+      F + ' [data-slot=bottom-left] .osof-item[data-osof-folded]{justify-content:flex-start}',
+      F + ' .osof-item[data-osof-dotted]>:not(.osof-idot){display:none!important}',
+      F + ' .osof-idot{position:relative;display:none;width:17px;height:17px;border-radius:50%;align-items:center;justify-content:center;background:rgba(20,18,45,.86);border:1px solid rgba(251,226,160,.55);font:9px/1 ' + EMOJI + ';opacity:.5;cursor:pointer;box-shadow:none;transition:opacity .2s ease}',
+      F + ' .osof-idot::after{content:"";position:absolute;inset:-10px}',
+      F + ' .osof-idot:hover,' + F + ' .osof-idot:focus-visible{opacity:.95}',
+      F + ' .osof-item[data-osof-dotted]>.osof-idot{display:flex}',
+      F + '[data-mode=mobile] .osof-idot{width:20px;height:20px;font-size:10px;opacity:.62}',
+      F + ' .osof-fold-x.osof-ix{display:none;width:18px;height:18px;font-size:9px}',
+      F + ' .osof-fold-x.osof-ix::after{inset:-3px}',
+      F + ' .osof-item:hover>.osof-fold-x.osof-ix,' + F + ' .osof-item:focus-within>.osof-fold-x.osof-ix{display:flex}',
+      F + '[data-mode=mobile] .osof-item[data-osof-pin]>.osof-fold-x.osof-ix{display:flex}',
+      F + ' .osof-item[data-osof-folded]>.osof-fold-x.osof-ix,' + F + ' .osof-item[data-osof-gone]>.osof-fold-x.osof-ix{display:none!important}',
+      F + ' .osof-item[data-osof-gone]>*{visibility:hidden!important}',
+      F + ' [data-slot=right] .osof-ix,' + F + ' [data-slot=top-right] .osof-ix,' + F + ' [data-slot=bottom-right] .osof-ix{left:auto;right:-7px}',
+      F + ' .osof-credit-dot{padding:0!important;height:18px!important;width:18px!important;justify-content:center;opacity:.6}',
+      F + ' .osof-credit-dot .osof-credit-i{display:none!important}',
+      F + ' .osof-credit-dot .osof-credit-a{padding:0;font-size:0;gap:0}',
+      F + ' .osof-credit-dot .osof-credit-a span[aria-hidden]{font-size:9px}',
+      F + ' .osof-credit-dot .osof-credit-a::after{inset:-10px}',
+      F + '[data-osof-cer-sheet] [data-slot=bottom-left],' + F + '[data-osof-cer-sheet] [data-slot=bottom-right]{display:none!important}',
       F + '[data-mode=mobile] .osof-sheetbtn{width:44px;height:44px;font-size:21px}',
       F + '[data-mode=mobile] .osof-sheet-item{order:2}',
-      F + '[data-mode=mobile][data-osof-tr=pool] .osof-sheet-item{position:fixed;top:var(--osof-dot-r,100px);right:calc(8px + env(safe-area-inset-right,0px))}',   // pool-only corner: the folded 🎻 dot finds its own spot
       F + '[data-mode=mobile] .osof-lbl{display:none}',                              // touch: a tapped button keeps :hover — its label would sit on the words                        // phones: the pinned 🌊 stands first, the 🎻 under it
       F + '[data-mode=mobile] [data-slot=bottom-left]{left:calc(8px + env(safe-area-inset-left,0px));bottom:calc(8px + env(safe-area-inset-bottom,0px))}',
       F + '[data-mode=mobile] [data-slot=bottom-right]{right:calc(8px + env(safe-area-inset-right,0px));bottom:calc(8px + env(safe-area-inset-bottom,0px))}',
@@ -1818,7 +1808,6 @@ var FRAMES = (function (W) {
       F + ' .osof-link{color:#fbe2a0;text-decoration:underline;text-underline-offset:.16em;cursor:pointer;font:inherit}',
       F + ' .osof-settings .osof-small{margin-top:10px}',
       F + ' [data-osof-hid]{display:none!important}',
-      F + ' [data-osof-tuck]{display:none!important}',
       F + '[data-osof-credit-folded] [data-osof-kind=credit]{display:none!important}',
       F + ' .osof-credit-mini{padding-left:6px}',
       F + ' .osof-credit-mini .osof-credit-a{padding:0;font-size:0;gap:0}',
@@ -1984,7 +1973,7 @@ var FRAMES = (function (W) {
     D.body.appendChild(root);
     ['top-left', 'top-right', 'bottom-left', 'bottom-right'].forEach(function (s) { if (ro) ro.observe(zones[s]); });
     if (prefs.on) mountAll(); else { state.off = true; root.setAttribute('data-osof-off', ''); makeDot(); info('the frame is off for this browser (⚙) — the small 🎻 dot brings it back'); }
-    W.addEventListener('resize', schedule);
+    W.addEventListener('resize', function () { state.langBottom = 0; schedule(); });
     W.addEventListener('orientationchange', schedule);
     W.addEventListener('load', function () { recheck(); });
     if (D.fonts && D.fonts.ready) D.fonts.ready.then(schedule, function () {});

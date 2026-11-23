@@ -184,9 +184,10 @@
       tour: item.tip || T('tour', 'The radio: songs of the ʻohana. Nothing plays or loads until you press ▶.'),
       open: function () { setMini(false); askLive(); play.focus(); },
       close: function () { if (audio && !audio.paused) audio.pause(); },
-      // NO COVERED TEXT LAW (phones): the core folds the dock to the tiny 📻 while words run under it — session only, never
-      // while a song plays (the visitor pressed ▶), never undoing the visitor's own ✕ (remembered mini)
-      fold: function (v) { if (ui.get(miniKey) === true) return; if (v && audio && !audio.paused) return; el.setAttribute('data-mini', v ? '1' : '0'); }
+      // NO COVERED TEXT LAW → STAY-IN-PLACE (v0.1.5, Shaka 23 Nov 2026): the core folds the dock to its tiny emoji while words run
+      // under it — session only, never undoing the visitor's own ✕ (remembered mini). A playing song is never undone by a fold:
+      // the dock folds to 🎧 and keeps playing; a tap on the 🎧 brings the dock back (still playing).
+      fold: function (v) { if (ui.get(miniKey) === true) return; el.setAttribute('data-mini', v ? '1' : '0'); var playing = !!(audio && !audio.paused); mini.textContent = v && playing ? '🎧' : '📻'; mini.title = v && playing ? fill(T('playingMini', 'Playing: {title} — show the player'), { title: cur().title }) : name; }
     };
   });
 }
