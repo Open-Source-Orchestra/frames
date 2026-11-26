@@ -12,7 +12,7 @@
  */
 var FRAMES = (function (W) {
   'use strict';
-  var VERSION = '0.1.5';
+  var VERSION = '0.1.6';
   var MAJOR = VERSION.split('.')[0];
   if (W && W.OSOFrames && W.OSOFrames.__osof) {            // loaded twice: the first copy rules
     if (W.console) W.console.info('🎻 frames: already on this page; the second copy stays quiet.');
@@ -57,7 +57,7 @@ var FRAMES = (function (W) {
     'fold': 'Hide the frame button (a small dot stays)', 'unfold': 'Show the frame button',
     'hide': 'Hide the whole frame — every button at once (a small 🎻 dot stays and brings it back)', 'sheet.hide': 'Hide the whole frame',
     'g.thanks': 'Gift line (3 s)',
-    'g.doors': 'Doors', 'g.pills': 'Pills', 'g.theater': 'Theater', 'g.totem': 'Totem of agents', 'g.chat': 'Talk line', 'g.radio': 'Radio', 'g.signature': 'Signature', 'g.tour': 'Tour'
+    'g.doors': 'Doors', 'g.pills': 'Pills', 'g.theater': 'Theater', 'g.totem': 'OHAN(ai) the Totem', 'g.chat': 'Talk line', 'g.radio': 'Radio', 'g.signature': 'Signature', 'g.tour': 'Tour'
   };
   // the ⚙ panel groups pieces by what a visitor sees (the globe stays: one language choice follows the visitor across every door)
   var GROUP = { door: 'doors', pill: 'pills', theater: 'theater', totem: 'totem', chat: 'chat', radio: 'radio', signature: 'signature', tour: 'tour', spot: 'tour', thanks: 'thanks' };
