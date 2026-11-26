@@ -1,4 +1,4 @@
-/*! Open Source Orchestra Frames v0.1.6 · https://github.com/Open-Source-Orchestra/frames
+/*! Open Source Orchestra Frames v0.1.7 · https://github.com/Open-Source-Orchestra/frames
  *  SPDX-License-Identifier: AGPL-3.0-or-later · Copyright (C) 2026 Shaka Lei Kaumaka / Open Source Orchestra and the AI ʻohana
  *  AGPL §7(b): keep the credit "Built on Open Source Orchestra Frames by Open Source Orchestra: Shaka Lei Kaumaka & the AI ʻohana
  *  (https://opensourceorchestra.org)" visible in the frame. See NOTICE. Source of this exact file: https://github.com/Open-Source-Orchestra/frames */
@@ -18,7 +18,7 @@
  */
 var FRAMES = (function (W) {
   'use strict';
-  var VERSION = '0.1.6';
+  var VERSION = '0.1.7';
   var MAJOR = VERSION.split('.')[0];
   if (W && W.OSOFrames && W.OSOFrames.__osof) {            // loaded twice: the first copy rules
     if (W.console) W.console.info('🎻 frames: already on this page; the second copy stays quiet.');
@@ -63,6 +63,13 @@ var FRAMES = (function (W) {
     'fold': 'Hide the frame button (a small dot stays)', 'unfold': 'Show the frame button',
     'hide': 'Hide the whole frame — every button at once (a small 🎻 dot stays and brings it back)', 'sheet.hide': 'Hide the whole frame',
     'g.thanks': 'Gift line (3 s)',
+    // v0.1.7 · the pennies-of-aloha card (the 🌊 Blessing Pool opens it)
+    'gift.title': 'pennies of aloha', 'gift.send': '🦊 send with MetaMask', 'gift.custom': 'custom $',
+    'gift.copy': '📋 copy address', 'gift.copied': '✅ copied — mahalo!',
+    'gift.nofox': 'no fox? no worries — send USDC on Base by hand to the ʻohana wallet:',
+    'gift.nowallet': '🦊 no wallet found — install MetaMask (or any EIP-1193 fox), or use the address below 🌺',
+    'gift.poolpage': 'the Blessing Pool page ↗', 'gift.agents': 'agents: x402 instructions 🤖',
+    'gift.honest': 'made by the ʻohana (machines), blessed by Shaka (a human) · every drop keeps a door open 🌺',
     'g.doors': 'Doors', 'g.pills': 'Pills', 'g.theater': 'Theater', 'g.totem': 'OHAN(ai) the Totem', 'g.chat': 'Talk line', 'g.radio': 'Radio', 'g.signature': 'Signature', 'g.tour': 'Tour'
   };
   // the ⚙ panel groups pieces by what a visitor sees (the globe stays: one language choice follows the visitor across every door)
@@ -1667,6 +1674,10 @@ var FRAMES = (function (W) {
       // v0.1.4 ABSORB: 76 doors of the ʻohana still carry the rail that came before the frame (🌺 all doors panel · 🎻 join · its panel);
       // with the frame on they were two 🌺 and two 🎻 on one screen (Shaka, 23 Nov 2026). The frame carries those doors now.
       'html[data-osof-on] #oflo,html[data-osof-on] #oflop,html[data-osof-on] #oviol{display:none!important}',
+      // v0.1.7 ABSORB: the pre-frame x402 pill (#x4-wrap · its dot · its overlay — 143 doors) bows out while the frame is on
+      // (the 🌊 Blessing Pool opens the same card) or while the visitor hid everything (one ✕ hides ALL buttons). v2.0 of
+      // x402-tip.js already bows out by itself; this net catches the old cached copies (Shaka, 27 Nov 2026).
+      'html[data-osof-on] #x4-wrap,html[data-osof-on] #x4-mini,html[data-osof-on] #x4-ovl,html[data-osof-off] #x4-wrap,html[data-osof-off] #x4-mini,html[data-osof-off] #x4-ovl{display:none!important}',
       // the zones are <nav>/<div>: a page's own "nav{position:fixed;left:0;right:0;display:grid;padding:…}" must not reach them
       // (publicinform.com, 22 Nov 2026: the right rail landed at x=0 over the left one) → every zone starts from a clean slate
       F + ' .osof-slot{all:unset;position:fixed;inset:auto;z-index:' + Z.frame + ';pointer-events:none;display:flex;flex-direction:column;box-sizing:border-box;margin:0;padding:0;border:0;background:none;width:auto;height:auto;min-height:0;max-height:none;transform:none;overflow:visible;font:inherit;color:inherit;direction:ltr}',
@@ -2169,11 +2180,19 @@ var FRAMES = (function (W) {
       ctx.h('span', { class: 'osof-lbl', 'aria-hidden': 'true' }, label));
     var d = described(ctx, item, a);
     if (d) a.appendChild(d);
+    // v0.1.7: a "gift" door (the 🌊 Blessing Pool) keeps its href (SEO, middle-click, no-JS) but a plain tap
+    // opens the pennies-of-aloha card (x402 inline) instead of navigating — one ring, one gift card everywhere.
+    function giftTap(e) {
+      if (!item.gift || !(FRAMES.gift && FRAMES.gift.open)) return;
+      if (e.defaultPrevented || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || (e.button && e.button !== 0)) return;
+      if (FRAMES.gift.open(ctx, item)) e.preventDefault();
+    }
+    if (item.gift) { a.setAttribute('aria-haspopup', 'dialog'); a.addEventListener('click', giftTap); }
     return {
       el: a,
       tour: item.tip || label,
       open: function () { a.click(); },
-      tile: function () { return tile(ctx, href, item, emoji, label); }
+      tile: function () { var tl = tile(ctx, href, item, emoji, label); if (item.gift) tl.addEventListener('click', giftTap); return tl; }
     };
   });
 
@@ -2663,9 +2682,9 @@ var FRAMES = (function (W) {
     '#oso-frames .osof-tt-roof{height:17px;margin-bottom:-3px;position:relative;z-index:1}' +
     '#oso-frames .osof-tt-base{height:9px;margin-top:-2px}' +
     '#oso-frames .osof-tt-roof svg,#oso-frames .osof-tt-base svg{display:block;width:100%;height:100%}' +
-    '#oso-frames .osof-tt-pole{display:flex;flex-direction:column;align-items:center;gap:2px;width:44px;padding:5px 3px 4px;border-radius:4px;' +
+    '#oso-frames .osof-tt-pole{display:flex;flex-direction:column;align-items:center;gap:2px;width:44px;padding:4px 3px 3px;border-radius:4px;' +
       'background:linear-gradient(90deg,#2a1b10 0%,#47301f 18%,#5c3f28 50%,#47301f 82%,#2a1b10 100%);box-shadow:inset 0 0 0 1px #24170d,inset 0 3px 6px rgba(0,0,0,.55)}' +
-    '#oso-frames .osof-tt-face{--c:#ffb443;position:relative;display:block;width:38px;height:30px;margin:0;padding:0;border:0;border-radius:4px 4px 7px 7px;cursor:pointer;' +
+    '#oso-frames .osof-tt-face{--c:#ffb443;position:relative;display:block;width:38px;height:26px;margin:0;padding:0;border:0;border-radius:4px 4px 7px 7px;cursor:pointer;' +
       'background:linear-gradient(180deg,#a3764c 0%,#80593a 42%,#56391f 100%);color:inherit;' +
       'box-shadow:inset 0 1px 0 rgba(232,196,146,.6),inset 0 -3px 4px rgba(0,0,0,.42),inset 1px 0 0 rgba(0,0,0,.3),inset -1px 0 0 rgba(0,0,0,.3),0 0 6px -1px var(--c);' +
       'transition:transform .16s ease,box-shadow .16s ease;-webkit-tap-highlight-color:transparent}' +
@@ -2695,10 +2714,9 @@ var FRAMES = (function (W) {
       '100%{box-shadow:inset 0 1px 0 rgba(232,196,146,.6),inset 0 -3px 4px rgba(0,0,0,.42),0 0 6px -1px var(--c)}}' +
     '@media (prefers-reduced-motion:reduce){#oso-frames .osof-tt-face{transition:none}#oso-frames .osof-tt-face.osof-lit{animation:none}}' +
     /* 26 Nov 2026: the roof is only 46px wide — ʻOHANA was clipping to OHAN. The name lives under the base, extends into the page (never off-screen), and never ellipsizes. */
-    '#oso-frames .osof-tt-caption{display:block;box-sizing:border-box;margin:5px 0 0;width:max-content;max-width:124px;min-width:46px;align-self:flex-end;padding:0;color:#fbecd0;text-align:center;text-shadow:0 1px 3px rgba(0,0,0,.85);white-space:normal;overflow:visible;word-break:keep-all;overflow-wrap:normal;hyphens:none;pointer-events:none}' +
-    '#oso-frames .osof-tt-caption b{display:block;font:800 10px/1.15 system-ui,-apple-system,"Segoe UI",sans-serif;letter-spacing:.03em;white-space:nowrap}' +
-    '#oso-frames .osof-tt-caption small{display:block;margin-top:1px;font:700 8.5px/1.2 system-ui,-apple-system,"Segoe UI",sans-serif;letter-spacing:.04em;white-space:nowrap}' +
-    '#oso-frames .osof-totem.osof-tt-l .osof-tt-caption{align-self:flex-start}';
+    '#oso-frames .osof-tt-caption{display:block;box-sizing:border-box;margin:3px 0 0;width:46px;max-width:46px;min-width:46px;align-self:center;padding:0;color:#fbecd0;text-align:center;text-shadow:0 1px 3px rgba(0,0,0,.85);white-space:normal;overflow:visible;word-break:keep-all;overflow-wrap:normal;hyphens:none;pointer-events:none}' +
+    '#oso-frames .osof-tt-caption b{display:block;font:800 9.5px/1.12 system-ui,-apple-system,"Segoe UI",sans-serif;letter-spacing:.02em;white-space:nowrap}' +
+    '#oso-frames .osof-tt-caption small{display:block;margin-top:1px;font:700 8px/1.15 system-ui,-apple-system,"Segoe UI",sans-serif;letter-spacing:.03em;white-space:nowrap}';
 
   const totemSvg = function (tag, attrs) {
     const el = document.createElementNS(TOTEM_NS, tag);
@@ -3882,5 +3900,188 @@ FRAMES.define('signature', function (ctx, item) {
     };
   });
 }
+// ── src/pieces/gift.js ──
+/* ── gift: the pennies-of-aloha card (v0.1.7, 27 Nov 2026 — Shaka: "finish the x402 pennies of aloha
+ * button fix on all doors and frames") ──────────────────────────────────────────────────────────────
+ * A door rec with "gift": true (the 🌊 Blessing Pool, top-right on every door) keeps its href (SEO,
+ * middle-click, no-JS) but a TAP opens this card instead of navigating: USDC on Base straight to the
+ * ʻohana's agent-launch wallet (osoartist.eth = 0x2596…c934 — the ONE address, Shaka's law 23 Nov),
+ * gas-free for the giver (EIP-3009 transferWithAuthorization, verified + settled by the PayAI
+ * facilitator). No fox → copy the address by hand; humans also get the Stripe · PayPal · Venmo rails
+ * and a link out to the Blessing Pool page. Agents get the x402 instructions link.
+ * The card is a modal the visitor ASKED for — the NO COVERED TEXT law does not fold it.
+ * Same flow lives standalone on unframed doors: shakaleikaumaka.com/assets/x402-tip.js (v2.0) — keep in sync.
+ * SPDX-License-Identifier: AGPL-3.0-or-later
+ */
+(function () {
+  var FACILITATOR = 'https://facilitator.payai.network';
+  var USDC = '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913';
+  var PAYTO = '0x25965899f4600b3AA5362ee4f34be95E5E62c934';
+  var BASE_CHAIN = 8453;
+  var RESOURCE = 'https://shakaleikaumaka.com/x402-bless.json';
+  var ETHERS_URL = 'https://cdnjs.cloudflare.com/ajax/libs/ethers/6.13.4/ethers.umd.min.js';
+  var F = '#oso-frames';
+  var CSS = [
+    F + ' .osof-gift-sub{color:#cdbce8;font:13px/1.5 system-ui,-apple-system,sans-serif;margin:0 0 12px}',
+    F + ' .osof-gift-sub a{color:#7fd8a4}',
+    F + ' .osof-gift-amts{display:flex;gap:8px;flex-wrap:wrap;margin:2px 0 12px}',
+    F + ' .osof-gift-amt{background:#0b0710;border:1px solid #4a3565;color:#f5efe6;border-radius:10px;padding:8px 14px;font:14px system-ui,-apple-system,sans-serif;cursor:pointer}',
+    F + ' .osof-gift-amt[aria-pressed="true"]{border-color:#7fd8a4;color:#7fd8a4}',
+    F + ' .osof-gift-custom{background:#0b0710;border:1px solid #4a3565;color:#f5efe6;border-radius:10px;padding:8px 10px;font:14px system-ui,-apple-system,sans-serif;width:96px}',
+    F + ' .osof-gift-send{width:100%;background:linear-gradient(90deg,#0052ff,#7c4ba8);color:#fff;border:none;border-radius:12px;padding:12px;font:700 15px system-ui,-apple-system,sans-serif;cursor:pointer;margin-top:2px}',
+    F + ' .osof-gift-send:disabled{opacity:.5;cursor:wait}',
+    F + ' .osof-gift-st{color:#9d97c9;font:13px/1.5 system-ui,-apple-system,sans-serif;margin-top:12px;word-break:break-word}',
+    F + ' .osof-gift-st a{color:#7fd8a4}',
+    F + ' .osof-gift-fb{margin-top:14px;border-top:1px solid #2c2140;padding-top:12px}',
+    F + ' .osof-gift-addr{background:#0b0710;border:1px solid #4a3565;border-radius:10px;padding:8px 10px;font:12px ui-monospace,monospace;word-break:break-all;color:#cfc6e8}',
+    F + ' .osof-gift-copy{background:#1c1230;color:#7fd8a4;border:1px solid #7fd8a4;border-radius:10px;padding:8px 14px;font:13px system-ui,-apple-system,sans-serif;cursor:pointer;margin-top:8px}',
+    F + ' .osof-gift-rails{margin-top:14px;border-top:1px solid #2c2140;padding-top:10px;color:#cdbce8;font:13px/1.8 system-ui,-apple-system,sans-serif}',
+    F + ' .osof-gift-rails a{color:#fbe2a0}',
+    F + ' .osof-gift-honest{margin-top:10px;color:#8b84ad;font:11.5px/1.5 system-ui,-apple-system,sans-serif}'
+  ].join('\n');
+
+  var built = null;   // one card per frame (per page)
+
+  function ensureEthers() {
+    if (window.ethers) return Promise.resolve();
+    if (!window.__osofGiftEthersP) {
+      window.__osofGiftEthersP = new Promise(function (res, rej) {
+        var s = document.createElement('script');
+        s.src = ETHERS_URL;
+        s.onload = res;
+        s.onerror = function () { rej(new Error('could not load ethers from cdnjs')); };
+        document.head.appendChild(s);
+      });
+    }
+    return window.__osofGiftEthersP;
+  }
+
+  function build(ctx) {
+    var h = ctx.h, t = ctx.t;
+    var d = ctx.panel({ id: 'gift', title: '🌊 ' + t('gift.title', 'pennies of aloha') });
+    var amt = 0.01;
+    var st = h('div', { class: 'osof-gift-st', role: 'status', 'aria-live': 'polite' });
+    var fb = h('div', { class: 'osof-gift-fb', hidden: true });
+    var custom = h('input', { class: 'osof-gift-custom', type: 'number', min: '0.001', step: '0.001', placeholder: t('gift.custom', 'custom $'), 'aria-label': t('gift.custom', 'custom amount in dollars') });
+    var send = h('button', { type: 'button', class: 'osof-gift-send' }, t('gift.send', '🦊 send with MetaMask'));
+    function say(m) { st.innerHTML = m || ''; }     // trusted, our own markup only (tx hash is hex)
+    function sayT(m) { st.textContent = m; }
+    var amts = [['0.01', '1¢'], ['0.10', '10¢'], ['1', '$1']].map(function (pair, i) {
+      return h('button', { type: 'button', class: 'osof-gift-amt', 'data-v': pair[0], 'aria-pressed': i === 0 ? 'true' : 'false', on: {
+        click: function (e) {
+          d.body.querySelectorAll('.osof-gift-amt').forEach(function (x) { x.setAttribute('aria-pressed', 'false'); });
+          e.currentTarget.setAttribute('aria-pressed', 'true');
+          amt = parseFloat(pair[0]); custom.value = '';
+        } } }, pair[1]);
+    });
+    custom.addEventListener('input', function () {
+      var v = parseFloat(custom.value);
+      if (v > 0) { amt = v; d.body.querySelectorAll('.osof-gift-amt').forEach(function (x) { x.setAttribute('aria-pressed', 'false'); }); }
+    });
+
+    var addr = h('div', { class: 'osof-gift-addr' }, PAYTO);
+    var copy = h('button', { type: 'button', class: 'osof-gift-copy', on: {
+      click: function () {
+        function okC() { copy.textContent = t('gift.copied', '✅ copied — mahalo!'); setTimeout(function () { copy.textContent = t('gift.copy', '📋 copy address'); }, 2500); }
+        function fbC() { var ta = document.createElement('textarea'); ta.value = PAYTO; document.body.appendChild(ta); ta.select(); try { document.execCommand('copy'); okC(); } catch (e) {} document.body.removeChild(ta); }
+        if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(PAYTO).then(okC, fbC); else fbC();
+      } } }, t('gift.copy', '📋 copy address'));
+    fb.appendChild(h('div', { class: 'osof-gift-sub', style: 'margin-bottom:6px' }, t('gift.nofox', 'no fox? no worries — send USDC on Base by hand to the ʻohana wallet:')));
+    fb.appendChild(addr); fb.appendChild(copy);
+
+    send.addEventListener('click', async function () {
+      try {
+        if (!window.ethereum) { sayT(t('gift.nowallet', '🦊 no wallet found — install MetaMask (or any EIP-1193 fox), or use the address below 🌺')); fb.hidden = false; return; }
+        if (!(amt > 0)) { sayT('⚠️ pick an amount above zero'); return; }
+        send.disabled = true;
+        sayT('⏳ loading the signing library…'); await ensureEthers();
+        sayT('🦊 connecting the fox…');
+        var provider = new ethers.BrowserProvider(window.ethereum);
+        await provider.send('eth_requestAccounts', []);
+        var net = await provider.getNetwork();
+        if (Number(net.chainId) !== BASE_CHAIN) {
+          sayT('🌉 switching to Base…');
+          try { await window.ethereum.request({ method: 'wallet_switchEthereumChain', params: [{ chainId: '0x2105' }] }); }
+          catch (e) { await window.ethereum.request({ method: 'wallet_addEthereumChain', params: [{ chainId: '0x2105', chainName: 'Base', nativeCurrency: { name: 'Ether', symbol: 'ETH', decimals: 18 }, rpcUrls: ['https://mainnet.base.org'], blockExplorerUrls: ['https://basescan.org'] }] }); }
+          provider = new ethers.BrowserProvider(window.ethereum);
+        }
+        var signer = await provider.getSigner();
+        var from = await signer.getAddress();
+        var value = BigInt(Math.round(amt * 1e6));
+        var now = Math.floor(Date.now() / 1000);
+        var nonce = ethers.hexlify(ethers.randomBytes(32));
+        var auth = { from: from, to: PAYTO, value: value, validAfter: 0, validBefore: now + 300, nonce: nonce };
+        sayT('✍️ sign the aloha (EIP-3009 — gas-free for you)…');
+        var sig = await signer.signTypedData(
+          { name: 'USD Coin', version: '2', chainId: BASE_CHAIN, verifyingContract: USDC },
+          { TransferWithAuthorization: [
+            { name: 'from', type: 'address' }, { name: 'to', type: 'address' }, { name: 'value', type: 'uint256' },
+            { name: 'validAfter', type: 'uint256' }, { name: 'validBefore', type: 'uint256' }, { name: 'nonce', type: 'bytes32' }] },
+          auth);
+        var payload = { x402Version: 1, scheme: 'exact', network: 'base', payload: { signature: sig, authorization: { from: auth.from, to: auth.to, value: auth.value.toString(), validAfter: String(auth.validAfter), validBefore: String(auth.validBefore), nonce: auth.nonce } } };
+        var req = { scheme: 'exact', network: 'base', maxAmountRequired: value.toString(), resource: RESOURCE, description: 'pennies of aloha 🤙 — every drop keeps a door open', mimeType: 'application/json', payTo: PAYTO, maxTimeoutSeconds: 300, asset: USDC, extra: { name: 'USD Coin', version: '2' } };
+        sayT('🌊 verifying with the facilitator…');
+        var vr = await fetch(FACILITATOR + '/verify', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ x402Version: 1, paymentPayload: payload, paymentRequirements: req }) });
+        var vj = await vr.json();
+        if (!vj.isValid) { sayT('⚠️ the facilitator did not bless it: ' + (vj.invalidReason || 'unknown') + ' — nothing left your wallet'); send.disabled = false; return; }
+        sayT('🌊 settling on Base… (seconds)');
+        var sr = await fetch(FACILITATOR + '/settle', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ x402Version: 1, paymentPayload: payload, paymentRequirements: req }) });
+        var sj = await sr.json();
+        if (sj.success) {
+          say('🌊🤙 <b>ALOHA RECEIVED.</b> mahalo nui!' + (sj.transaction ? ('<br>✦ on-chain forever: <a href="https://basescan.org/tx/' + sj.transaction + '" target="_blank" rel="noopener">' + sj.transaction.slice(0, 14) + '…' + sj.transaction.slice(-8) + '</a> ✦') : ''));
+          ctx.emit('gift:sent', { tx: sj.transaction || null, amount: amt });
+        } else {
+          sayT('⚠️ settlement hiccup: ' + (sj.error || sj.errorReason || 'unknown') + ' — nothing left your wallet without success');
+        }
+      } catch (e) {
+        if (e && e.code === 4001) { sayT('🦊 declined for now — the aloha waits patiently 🌺'); }
+        else if (/insufficient/i.test(String(e && e.message || e))) { sayT('⚠️ not enough USDC on Base in this wallet'); }
+        else { sayT('⚠️ hiccup: ' + ((e && e.message) || e)); }
+      }
+      send.disabled = false;
+    });
+
+    d.body.appendChild(h('div', { class: 'osof-gift-sub' },
+      'USDC on ', h('b', {}, 'Base'), ' straight to the ʻohana’s agent-launch wallet — gas-free for you (EIP-3009; the pool settles it via ',
+      h('a', { href: 'https://facilitator.payai.network', target: '_blank', rel: 'noopener' }, 'PayAI'), ').'));
+    d.body.appendChild(h('div', { class: 'osof-gift-amts' }, amts, custom));
+    d.body.appendChild(send);
+    d.body.appendChild(st);
+    d.body.appendChild(fb);
+    d.body.appendChild(h('div', { class: 'osof-gift-honest' }, t('gift.honest', 'made by the ʻohana (machines), blessed by Shaka (a human) · every drop keeps a door open 🌺')));
+    return {
+      sync: function (item) {
+        var gift = (ctx.data && ctx.data.gift) || {};
+        var rails = d.body.querySelector('.osof-gift-rails');
+        if (rails) rails.remove();
+        var parts = [];
+        function link(u, label) { return u ? h('a', { href: u, target: '_blank', rel: 'noopener' }, label) : null; }
+        var pool = (item && item.href) || gift.pool;
+        var poolA = link(pool, t('gift.poolpage', 'the Blessing Pool page ↗'));
+        if (poolA) parts.push(poolA);
+        [['stripe', 'Stripe'], ['paypal', 'PayPal'], ['venmo', 'Venmo']].forEach(function (p) {
+          var a = link(gift[p[0]], p[1]); if (a) { if (parts.length) parts.push(' · '); parts.push(a); }
+        });
+        var x = link(gift.x402 || RESOURCE, t('gift.agents', 'agents: x402 instructions 🤖'));
+        if (x) { if (parts.length) parts.push(' · '); parts.push(x); }
+        if (parts.length) d.body.insertBefore(h('div', { class: 'osof-gift-rails' }, parts), d.body.querySelector('.osof-gift-honest'));
+      },
+      reset: function () { sayT(''); fb.hidden = true; send.disabled = false; }
+    };
+  }
+
+  FRAMES.gift = {
+    open: function (ctx, item) {
+      if (!ctx || typeof ctx.panel !== 'function') return false;
+      ctx.css('gift', CSS);
+      if (!built) built = build(ctx);
+      built.sync(item || ctx.item);
+      built.reset();
+      ctx.panel({ id: 'gift' }).open();
+      ctx.emit('gift:open', { id: item && item.id });
+      return true;
+    }
+  };
+})();
 FRAMES.boot();
 })();

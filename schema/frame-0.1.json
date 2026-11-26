@@ -331,6 +331,10 @@
         "pin": {
           "type": "boolean",
           "description": "v0.1.3 · stays on phones too (the top corners: the 🌺 ceremony top-left, the 🌊 Blessing Pool top-right)."
+        },
+        "gift": {
+          "type": "boolean",
+          "description": "v0.1.7 · on a door: a plain tap opens the pennies-of-aloha card (x402 inline, EIP-3009 → the ʻohana wallet) instead of navigating; the href stays for SEO, middle-click and no-JS."
         }
       },
       "allOf": [
@@ -518,6 +522,10 @@
         },
         "newTab": {
           "type": "boolean"
+        },
+        "gift": {
+          "type": "boolean",
+          "description": "v0.1.7 · a plain tap opens the pennies-of-aloha card (x402 inline, EIP-3009 → the ʻohana wallet) instead of navigating; the href stays for SEO, middle-click and no-JS."
         }
       }
     },

@@ -26,9 +26,9 @@
     '#oso-frames .osof-tt-roof{height:17px;margin-bottom:-3px;position:relative;z-index:1}' +
     '#oso-frames .osof-tt-base{height:9px;margin-top:-2px}' +
     '#oso-frames .osof-tt-roof svg,#oso-frames .osof-tt-base svg{display:block;width:100%;height:100%}' +
-    '#oso-frames .osof-tt-pole{display:flex;flex-direction:column;align-items:center;gap:2px;width:44px;padding:5px 3px 4px;border-radius:4px;' +
+    '#oso-frames .osof-tt-pole{display:flex;flex-direction:column;align-items:center;gap:2px;width:44px;padding:4px 3px 3px;border-radius:4px;' +
       'background:linear-gradient(90deg,#2a1b10 0%,#47301f 18%,#5c3f28 50%,#47301f 82%,#2a1b10 100%);box-shadow:inset 0 0 0 1px #24170d,inset 0 3px 6px rgba(0,0,0,.55)}' +
-    '#oso-frames .osof-tt-face{--c:#ffb443;position:relative;display:block;width:38px;height:30px;margin:0;padding:0;border:0;border-radius:4px 4px 7px 7px;cursor:pointer;' +
+    '#oso-frames .osof-tt-face{--c:#ffb443;position:relative;display:block;width:38px;height:26px;margin:0;padding:0;border:0;border-radius:4px 4px 7px 7px;cursor:pointer;' +
       'background:linear-gradient(180deg,#a3764c 0%,#80593a 42%,#56391f 100%);color:inherit;' +
       'box-shadow:inset 0 1px 0 rgba(232,196,146,.6),inset 0 -3px 4px rgba(0,0,0,.42),inset 1px 0 0 rgba(0,0,0,.3),inset -1px 0 0 rgba(0,0,0,.3),0 0 6px -1px var(--c);' +
       'transition:transform .16s ease,box-shadow .16s ease;-webkit-tap-highlight-color:transparent}' +
@@ -58,10 +58,9 @@
       '100%{box-shadow:inset 0 1px 0 rgba(232,196,146,.6),inset 0 -3px 4px rgba(0,0,0,.42),0 0 6px -1px var(--c)}}' +
     '@media (prefers-reduced-motion:reduce){#oso-frames .osof-tt-face{transition:none}#oso-frames .osof-tt-face.osof-lit{animation:none}}' +
     /* 26 Nov 2026: the roof is only 46px wide — ʻOHANA was clipping to OHAN. The name lives under the base, extends into the page (never off-screen), and never ellipsizes. */
-    '#oso-frames .osof-tt-caption{display:block;box-sizing:border-box;margin:5px 0 0;width:max-content;max-width:124px;min-width:46px;align-self:flex-end;padding:0;color:#fbecd0;text-align:center;text-shadow:0 1px 3px rgba(0,0,0,.85);white-space:normal;overflow:visible;word-break:keep-all;overflow-wrap:normal;hyphens:none;pointer-events:none}' +
-    '#oso-frames .osof-tt-caption b{display:block;font:800 10px/1.15 system-ui,-apple-system,"Segoe UI",sans-serif;letter-spacing:.03em;white-space:nowrap}' +
-    '#oso-frames .osof-tt-caption small{display:block;margin-top:1px;font:700 8.5px/1.2 system-ui,-apple-system,"Segoe UI",sans-serif;letter-spacing:.04em;white-space:nowrap}' +
-    '#oso-frames .osof-totem.osof-tt-l .osof-tt-caption{align-self:flex-start}';
+    '#oso-frames .osof-tt-caption{display:block;box-sizing:border-box;margin:3px 0 0;width:46px;max-width:46px;min-width:46px;align-self:center;padding:0;color:#fbecd0;text-align:center;text-shadow:0 1px 3px rgba(0,0,0,.85);white-space:normal;overflow:visible;word-break:keep-all;overflow-wrap:normal;hyphens:none;pointer-events:none}' +
+    '#oso-frames .osof-tt-caption b{display:block;font:800 9.5px/1.12 system-ui,-apple-system,"Segoe UI",sans-serif;letter-spacing:.02em;white-space:nowrap}' +
+    '#oso-frames .osof-tt-caption small{display:block;margin-top:1px;font:700 8px/1.15 system-ui,-apple-system,"Segoe UI",sans-serif;letter-spacing:.03em;white-space:nowrap}';
 
   const totemSvg = function (tag, attrs) {
     const el = document.createElementNS(TOTEM_NS, tag);

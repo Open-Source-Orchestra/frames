@@ -109,7 +109,7 @@ const errsOf = (p) => { const e = []; p.on('pageerror', (x) => e.push('PE:' + St
   ok(r.id === 'pit-protocol', `data-door=auto on publicinform.com → id ${r.id}`);
   ok(r.accent === '#7fe0ff', `accent applied (${r.accent})`);
   ok(r.first === 'home' && r.pitGone && r.n >= 10, `slot ops: prepend + remove (left: ${r.n} items, first ${r.first})`);
-  ok(r.version === '0.1.5' && r.gear, `v${r.version} with the ⚙ gear in the credit mark`);
+  ok(r.version === '0.1.7' && r.gear, `v${r.version} with the ⚙ gear in the credit mark`);
   ok(!errs.length, 'no console/page errors' + (errs.length ? ' → ' + errs.join(' | ') : ''));
   await ctx.close();
 }
@@ -488,6 +488,69 @@ const AUDIO_STUB = `window.__audioLog = []; window.Audio = class { constructor()
   { const e3 = errs2.filter((e) => !/ERR_FAILED|net::|ERR_ABORTED/.test(e)); errs2.length = 0; errs2.push(...e3); }
   ok(m1.topR === '52px' && m0.topR === '52px', `📱 the top-right stack keeps its anchor (--osof-top-r ${m1.topR}) — it folds, it never steps down`);
   ok(!errs2.length, '📱 no errors' + (errs2.length ? ' → ' + errs2.join(' | ') : ''));
+  await ctx2.close();
+}
+// 11 · v0.1.7 PENNIES OF ALOHA — the 🌊 Blessing Pool (gift:true) opens the x402 card instead of navigating;
+// the card pays through a fake wallet + fail-closed mocked facilitator; the legacy #x4-wrap pill is absorbed.
+{
+  const WALLET = `
+    window.ethereum = { request: async ({ method }) => (method === 'eth_requestAccounts' ? ['0x1111111111111111111111111111111111111111'] : null) };
+    window.ethers = {
+      BrowserProvider: class { async send() { return []; } async getNetwork() { return { chainId: 8453n }; }
+        async getSigner() { return { getAddress: async () => '0x1111111111111111111111111111111111111111', signTypedData: async () => '0x' + 'ab'.repeat(65) }; } },
+      hexlify: (b) => '0x' + Array.from(b).map((x) => x.toString(16).padStart(2, '0')).join(''), randomBytes: (n) => new Uint8Array(n) };
+    window.__giftSent = []; document.addEventListener('osoframes:gift:sent', (e) => window.__giftSent.push(e.detail));`;
+  const ctx = await ctxFor('nobody.example', { width: 1280, height: 800 });
+  // fail-closed: the facilitator is mocked; registered AFTER ctxFor's catch-all so it wins for these URLs only
+  await ctx.route('https://facilitator.payai.network/**', (route) => {
+    const u = route.request().url();
+    if (u.endsWith('/verify')) return route.fulfill({ json: { isValid: true } });
+    if (u.endsWith('/settle')) return route.fulfill({ json: { success: true, transaction: '0x' + 'cd'.repeat(32) } });
+    return route.abort();
+  });
+  await ctx.addInitScript(WALLET);
+  const p = await ctx.newPage(); const errs = errsOf(p);
+  await p.goto('http://nobody.example/narrow.html', { waitUntil: 'load' });
+  await p.waitForSelector('#oso-frames[data-osof-ready]', { state: 'attached' }); await p.waitForTimeout(1200);
+  const bp = '#oso-frames [data-slot=top-right] a[href="https://blessingpool.com/"]';
+  ok(await p.evaluate((s) => { const a = document.querySelector(s); return !!a && a.getAttribute('aria-haspopup') === 'dialog'; }, bp), '🌊 Blessing Pool pinned top-right, href kept (SEO/no-JS), aria-haspopup=dialog');
+  const urlBefore = p.url();
+  await p.click(bp); await p.waitForTimeout(400);
+  const card = await p.evaluate(() => { const d = document.querySelector('#oso-frames .osof-dlg[id*="gift"]'); if (!d || d.hidden) return null; return { role: d.getAttribute('role'), modal: d.getAttribute('aria-modal'), title: (d.querySelector('.osof-dlg-title') || {}).textContent || '' }; });
+  ok(!!card && card.role === 'dialog' && card.modal === 'true' && /pennies of aloha/.test(card.title), 'a tap opens the pennies-of-aloha card (modal dialog), no navigation' + (card ? '' : ' (card not found)'));
+  ok(p.url() === urlBefore, 'the tap did NOT navigate away');
+  ok(await p.evaluate(() => { const r = document.querySelector('#oso-frames .osof-gift-rails'); return !!r && /Stripe/.test(r.textContent) && /PayPal/.test(r.textContent) && /Venmo/.test(r.textContent) && /x402/.test(r.textContent) && !!r.querySelector('a[href^="https://blessingpool.com"]'); }), 'the card carries the rails: pool page + Stripe · PayPal · Venmo + the x402 agent instructions');
+  await p.click('#oso-frames .osof-gift-amt[data-v="0.10"]');
+  await p.click('#oso-frames .osof-gift-send');
+  await p.waitForFunction(() => /ALOHA RECEIVED/.test((document.querySelector('#oso-frames .osof-gift-st') || {}).innerHTML || ''), { timeout: 8000 });
+  ok(true, 'gift flow settles through the mocked facilitator (EIP-3009 → PayAI verify+settle)');
+  ok(await p.evaluate(() => !!document.querySelector('#oso-frames .osof-gift-st a[href*="basescan.org/tx/0xcdcd"]')), 'on-chain receipt link shown');
+  ok(await p.evaluate(() => window.__giftSent.length === 1 && window.__giftSent[0].amount === 0.1), 'gift:sent event emitted with the amount');
+  await p.keyboard.press('Escape'); await p.waitForTimeout(250);
+  ok(await p.evaluate(() => { const d = document.querySelector('#oso-frames .osof-dlg[id*="gift"]'); return d && d.hidden; }), 'Esc closes the card');
+  // ABSORB: a legacy #x4-wrap on the page is hidden while the frame is on
+  const absorbed = await p.evaluate(() => {
+    const w = document.createElement('div'); w.id = 'x4-wrap'; w.innerHTML = '<button id="x4-pill">🤖</button><button id="x4-x">✕</button>';
+    const m = document.createElement('button'); m.id = 'x4-mini'; document.body.appendChild(w); document.body.appendChild(m);
+    return getComputedStyle(w).display === 'none' && getComputedStyle(m).display === 'none';
+  });
+  ok(absorbed, 'the pre-frame #x4-wrap/#x4-mini are absorbed while the frame is on (old cached pills)');
+  { const e2 = errs.filter((e) => !/ERR_FAILED|net::|ERR_ABORTED/.test(e)); ok(!e2.length, 'no console/page errors' + (e2.length ? ' → ' + e2.slice(0, 4).join(' | ') : '')); }
+  await ctx.close();
+  // phone: the sheet's Blessing Pool tile opens the card and closes the sheet
+  const ctx2 = await ctxFor('nobody.example', { width: 390, height: 844 }, true);
+  await ctx2.route('https://facilitator.payai.network/**', (route) => route.abort());
+  await ctx2.addInitScript(WALLET);
+  const p2 = await ctx2.newPage();
+  await p2.goto('http://nobody.example/narrow.html', { waitUntil: 'load' });
+  await p2.waitForSelector('#oso-frames[data-osof-ready]', { state: 'attached' }); await p2.waitForTimeout(1200);
+  await p2.click('#oso-frames .osof-sheetbtn'); await p2.waitForTimeout(400);
+  // the 🎻 may start folded over words (first tap only unfolds it) → tap again until the sheet is open
+  for (let i = 0; i < 3 && !(await p2.evaluate(() => !!document.querySelector('#osof-dlg-sheet:not([hidden])'))); i++) { await p2.click('#oso-frames .osof-sheetbtn'); await p2.waitForTimeout(400); }
+  const tile = '#osof-dlg-sheet a[href="https://blessingpool.com/"]';
+  ok(await p2.evaluate((s) => !!document.querySelector(s), tile), '📱 the phone sheet carries the Blessing Pool tile');
+  await p2.click(tile); await p2.waitForTimeout(400);
+  ok(await p2.evaluate(() => { const g = document.querySelector('#osof-dlg-gift'); const s = document.querySelector('#osof-dlg-sheet'); return g && !g.hidden && s && s.hidden; }), '📱 tile tap → card opens, sheet closes');
   await ctx2.close();
 }
 await b.close(); srv.close();

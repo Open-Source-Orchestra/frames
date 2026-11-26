@@ -12,7 +12,7 @@
  */
 var FRAMES = (function (W) {
   'use strict';
-  var VERSION = '0.1.6';
+  var VERSION = '0.1.7';
   var MAJOR = VERSION.split('.')[0];
   if (W && W.OSOFrames && W.OSOFrames.__osof) {            // loaded twice: the first copy rules
     if (W.console) W.console.info('🎻 frames: already on this page; the second copy stays quiet.');
@@ -57,6 +57,13 @@ var FRAMES = (function (W) {
     'fold': 'Hide the frame button (a small dot stays)', 'unfold': 'Show the frame button',
     'hide': 'Hide the whole frame — every button at once (a small 🎻 dot stays and brings it back)', 'sheet.hide': 'Hide the whole frame',
     'g.thanks': 'Gift line (3 s)',
+    // v0.1.7 · the pennies-of-aloha card (the 🌊 Blessing Pool opens it)
+    'gift.title': 'pennies of aloha', 'gift.send': '🦊 send with MetaMask', 'gift.custom': 'custom $',
+    'gift.copy': '📋 copy address', 'gift.copied': '✅ copied — mahalo!',
+    'gift.nofox': 'no fox? no worries — send USDC on Base by hand to the ʻohana wallet:',
+    'gift.nowallet': '🦊 no wallet found — install MetaMask (or any EIP-1193 fox), or use the address below 🌺',
+    'gift.poolpage': 'the Blessing Pool page ↗', 'gift.agents': 'agents: x402 instructions 🤖',
+    'gift.honest': 'made by the ʻohana (machines), blessed by Shaka (a human) · every drop keeps a door open 🌺',
     'g.doors': 'Doors', 'g.pills': 'Pills', 'g.theater': 'Theater', 'g.totem': 'OHAN(ai) the Totem', 'g.chat': 'Talk line', 'g.radio': 'Radio', 'g.signature': 'Signature', 'g.tour': 'Tour'
   };
   // the ⚙ panel groups pieces by what a visitor sees (the globe stays: one language choice follows the visitor across every door)
@@ -1661,6 +1668,10 @@ var FRAMES = (function (W) {
       // v0.1.4 ABSORB: 76 doors of the ʻohana still carry the rail that came before the frame (🌺 all doors panel · 🎻 join · its panel);
       // with the frame on they were two 🌺 and two 🎻 on one screen (Shaka, 23 Nov 2026). The frame carries those doors now.
       'html[data-osof-on] #oflo,html[data-osof-on] #oflop,html[data-osof-on] #oviol{display:none!important}',
+      // v0.1.7 ABSORB: the pre-frame x402 pill (#x4-wrap · its dot · its overlay — 143 doors) bows out while the frame is on
+      // (the 🌊 Blessing Pool opens the same card) or while the visitor hid everything (one ✕ hides ALL buttons). v2.0 of
+      // x402-tip.js already bows out by itself; this net catches the old cached copies (Shaka, 27 Nov 2026).
+      'html[data-osof-on] #x4-wrap,html[data-osof-on] #x4-mini,html[data-osof-on] #x4-ovl,html[data-osof-off] #x4-wrap,html[data-osof-off] #x4-mini,html[data-osof-off] #x4-ovl{display:none!important}',
       // the zones are <nav>/<div>: a page's own "nav{position:fixed;left:0;right:0;display:grid;padding:…}" must not reach them
       // (publicinform.com, 22 Nov 2026: the right rail landed at x=0 over the left one) → every zone starts from a clean slate
       F + ' .osof-slot{all:unset;position:fixed;inset:auto;z-index:' + Z.frame + ';pointer-events:none;display:flex;flex-direction:column;box-sizing:border-box;margin:0;padding:0;border:0;background:none;width:auto;height:auto;min-height:0;max-height:none;transform:none;overflow:visible;font:inherit;color:inherit;direction:ltr}',

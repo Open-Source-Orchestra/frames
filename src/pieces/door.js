@@ -68,11 +68,19 @@
       ctx.h('span', { class: 'osof-lbl', 'aria-hidden': 'true' }, label));
     var d = described(ctx, item, a);
     if (d) a.appendChild(d);
+    // v0.1.7: a "gift" door (the 🌊 Blessing Pool) keeps its href (SEO, middle-click, no-JS) but a plain tap
+    // opens the pennies-of-aloha card (x402 inline) instead of navigating — one ring, one gift card everywhere.
+    function giftTap(e) {
+      if (!item.gift || !(FRAMES.gift && FRAMES.gift.open)) return;
+      if (e.defaultPrevented || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || (e.button && e.button !== 0)) return;
+      if (FRAMES.gift.open(ctx, item)) e.preventDefault();
+    }
+    if (item.gift) { a.setAttribute('aria-haspopup', 'dialog'); a.addEventListener('click', giftTap); }
     return {
       el: a,
       tour: item.tip || label,
       open: function () { a.click(); },
-      tile: function () { return tile(ctx, href, item, emoji, label); }
+      tile: function () { var tl = tile(ctx, href, item, emoji, label); if (item.gift) tl.addEventListener('click', giftTap); return tl; }
     };
   });
 
