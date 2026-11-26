@@ -24,9 +24,9 @@
           "kind": "door",
           "id": "totem",
           "emoji": "🗿",
-          "label": "Talk to the Totem",
+          "label": "Talk to OHAN(ai) the Totem",
           "href": "https://myagentohana.com/ohana-bot/",
-          "tip": "The ʻohana totem: six AI faces of the family, one body.",
+          "tip": "OHAN(ai) the Totem: six AI faces of the family, one body.",
           "anim": "bob"
         },
         {

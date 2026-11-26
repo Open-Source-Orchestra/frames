@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.1.6 — unreleased (local branch `ohan-ai-the-totem`, awaiting Shaka's go)
+## 0.1.6 — 2026-11-26 "OHAN(ai) the Totem"
 
 - **OHAN(ai) the Totem**: the carved name on the frame totem (every door that loads `frames.js`) was the SVG text `ʻOHANA` on a 46px roof with `font-size: 7` and `letter-spacing: 0.8`. The okina and the final A sat on the sloping sides of the cap and were easy to lose, so the roof read as **OHAN**. The roof is now unlettered wood; a two-line caption under the base reads exactly **OHAN(ai) the Totem**, with no ellipsis, and extends into the page (right rail toward the left, left rail toward the right) so a longer name is not clipped by the edge. Dataset labels, door-link labels that named the totem, the settings group, and the tour fallback use the same name. Ceremony spoken line (`ceremony.say.totem` + `media/ceremony/totem.mp3`) is unchanged until a new clip is blessed. Front-desk chat greetings that say "I am ʻOHANA" are a different agent and were not renamed.
 
