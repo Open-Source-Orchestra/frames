@@ -21,7 +21,7 @@
   const TOTEM_WORDS = ['no', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten', 'eleven', 'twelve'];
 
   const TOTEM_CSS = '' +
-    '#oso-frames .osof-totem{position:relative;display:flex;flex-direction:column;align-items:center;width:46px;pointer-events:auto;filter:drop-shadow(0 8px 14px rgba(0,0,0,.5))}' +
+    '#oso-frames .osof-totem{position:relative;display:flex;flex-direction:column;align-items:center;width:46px;overflow:visible;pointer-events:auto;filter:drop-shadow(0 8px 14px rgba(0,0,0,.5))}' +
     '#oso-frames .osof-tt-roof,#oso-frames .osof-tt-base{display:block;width:46px;pointer-events:none}' +
     '#oso-frames .osof-tt-roof{height:17px;margin-bottom:-3px;position:relative;z-index:1}' +
     '#oso-frames .osof-tt-base{height:9px;margin-top:-2px}' +
@@ -56,7 +56,12 @@
     '@keyframes osof-tt-wake{0%{box-shadow:inset 0 1px 0 rgba(232,196,146,.6),inset 0 -3px 4px rgba(0,0,0,.42),0 0 0 0 var(--c)}' +
       '40%{box-shadow:inset 0 1px 0 rgba(232,196,146,.6),inset 0 -3px 4px rgba(0,0,0,.42),0 0 14px 1px var(--c)}' +
       '100%{box-shadow:inset 0 1px 0 rgba(232,196,146,.6),inset 0 -3px 4px rgba(0,0,0,.42),0 0 6px -1px var(--c)}}' +
-    '@media (prefers-reduced-motion:reduce){#oso-frames .osof-tt-face{transition:none}#oso-frames .osof-tt-face.osof-lit{animation:none}}';
+    '@media (prefers-reduced-motion:reduce){#oso-frames .osof-tt-face{transition:none}#oso-frames .osof-tt-face.osof-lit{animation:none}}' +
+    /* 26 Nov 2026: the roof is only 46px wide — ʻOHANA was clipping to OHAN. The name lives under the base, extends into the page (never off-screen), and never ellipsizes. */
+    '#oso-frames .osof-tt-caption{display:block;box-sizing:border-box;margin:5px 0 0;width:max-content;max-width:124px;min-width:46px;align-self:flex-end;padding:0;color:#fbecd0;text-align:center;text-shadow:0 1px 3px rgba(0,0,0,.85);white-space:normal;overflow:visible;word-break:keep-all;overflow-wrap:normal;hyphens:none;pointer-events:none}' +
+    '#oso-frames .osof-tt-caption b{display:block;font:800 10px/1.15 system-ui,-apple-system,"Segoe UI",sans-serif;letter-spacing:.03em;white-space:nowrap}' +
+    '#oso-frames .osof-tt-caption small{display:block;margin-top:1px;font:700 8.5px/1.2 system-ui,-apple-system,"Segoe UI",sans-serif;letter-spacing:.04em;white-space:nowrap}' +
+    '#oso-frames .osof-totem.osof-tt-l .osof-tt-caption{align-self:flex-start}';
 
   const totemSvg = function (tag, attrs) {
     const el = document.createElementNS(TOTEM_NS, tag);
@@ -134,7 +139,7 @@
     const route = item.route || 'prefix';
     const count = faces.length;
     const countWord = TOTEM_WORDS[count] || String(count);
-    const name = item.label || T('label', 'The totem');
+    const name = item.label || T('label', 'OHAN(ai) the Totem');
     const left = ctx.slot === 'left' || ctx.slot === 'bottom-left' || ctx.slot === 'top-left';
     const buttons = [];
 
@@ -168,15 +173,18 @@
     const roof = ctx.h('span', { class: 'osof-tt-roof', 'aria-hidden': 'true' });
     roof.appendChild(totemSvg('svg', { viewBox: '0 0 46 17', focusable: 'false' },
       totemSvg('path', { d: 'M1 17 L6.2 3.2 Q7 1.2 9.2 1.2 L36.8 1.2 Q39 1.2 39.8 3.2 L45 17 Z', fill: '#7d5636', stroke: '#24170d', 'stroke-width': 1.2 }),
-      totemSvg('path', { d: 'M6.6 3.4 H39.4', stroke: '#e0bd8a', 'stroke-opacity': 0.5, 'stroke-width': 0.8 }),
-      totemSvg('text', { x: 23, y: 12.4, 'text-anchor': 'middle', 'font-size': 7, 'font-weight': 800, 'letter-spacing': 0.8, fill: '#fbecd0', 'font-family': 'system-ui,-apple-system,"Segoe UI",sans-serif' }, 'ʻOHANA')));
+      totemSvg('path', { d: 'M6.6 3.4 H39.4', stroke: '#e0bd8a', 'stroke-opacity': 0.5, 'stroke-width': 0.8 })));
     const base = ctx.h('span', { class: 'osof-tt-base', 'aria-hidden': 'true' });
     base.appendChild(totemSvg('svg', { viewBox: '0 0 46 9', focusable: 'false' },
       totemSvg('path', { d: 'M4 0 L42 0 L46 9 L0 9 Z', fill: '#4c3524', stroke: '#24170d', 'stroke-width': 1 }),
       totemSvg('path', { d: 'M5 1.2 H41', stroke: '#e0bd8a', 'stroke-opacity': 0.35, 'stroke-width': 0.7 })));
 
+    const caption = ctx.h('span', { class: 'osof-tt-caption', 'aria-hidden': 'true' },
+      ctx.h('b', {}, 'OHAN(ai)'),
+      ctx.h('small', {}, 'the Totem'));
+
     const el = ctx.h('div', { class: 'osof-totem' + (left ? ' osof-tt-l' : ''), role: 'group', 'data-osof-piece': 'totem',
-      'aria-label': fill(T('group', '{name}: {count} AI agents of the ʻohana'), { name: name, count: countWord }) }, roof, pole, base);
+      'aria-label': fill(T('group', '{name}: {count} AI agents of the ʻohana'), { name: name, count: countWord }) }, roof, pole, base, caption);
 
     // ONE-TIME LAW: faces blink once in sequence, then the totem is still forever
     if (count && !ctx.reduced && ctx.once('totem-blink')) {
@@ -186,7 +194,7 @@
 
     return {
       el: el,
-      tour: item.tip || fill(T('tour', 'The totem: {count} AI agents of the ʻohana. Tap a face to talk.'), { count: countWord }),
+      tour: item.tip || fill(T('tour', 'OHAN(ai) the Totem: {count} AI agents of the ʻohana. Tap a face to talk.'), { count: countWord }),
       open: function () { if (buttons[0]) talk(faces[0], buttons[0]); }
     };
   });

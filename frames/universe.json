@@ -212,7 +212,7 @@
       {
         "kind": "totem",
         "id": "totem",
-        "label": "Totem",
+        "label": "OHAN(ai) the Totem",
         "href": "https://myagentohana.com/",
         "hub": "https://ohana-chat.shakaverse.workers.dev",
         "route": "prefix",
