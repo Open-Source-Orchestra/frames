@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.8 — 2026-11-27 "the magnet bows" (hotfix)
+Shaka Lei Kaumaka, 27 Nov 2026 (11:09 Chiang Mai): *"its covered by a flowr on all the frames so you cant see my x402 payment rails … x402 pennies of aloha is down while we are trying to apply for metamask."* Built by the AI ʻohana.
+- **ABSORB the blessing magnet** (`#cmag` · `#cmag-lite` · `#cmagb` — 131 doors, the ʻohana's pre-frame gift rail): while the frame is on (or hidden by the one ✕), the magnet bows out — its rails (pool · address · PayPal · Venmo · tide) all live in the 🌊 card. Root cause of "down": the 54px magnet at `top:10px` rode over the frame's **phone** top-right anchor (52px), so the NO COVERED TEXT law did its job and folded the 🌊 away — on 131 framed doors there was no gift button at all. The passport 🌺 badge (28px, ends 42px) clears the 52px anchor untouched.
+
 ## 0.1.7 — 2026-11-27 "pennies of aloha"
 Shaka Lei Kaumaka, 27 Nov 2026 (02:32 Chiang Mai): *"finish the x402 pennies of aloha button fix on all doors and frames."* Built by the AI ʻohana.
 - **the 🌊 Blessing Pool opens the pennies-of-aloha card** (new `src/pieces/gift.js`): a door rec with `"gift": true` keeps its `href` (SEO, middle-click, no-JS) but a plain tap opens a modal instead of navigating — USDC on **Base** straight to the ʻohana's agent-launch wallet (osoartist.eth = `0x2596…c934`, the ONE address), gas-free for the giver (EIP-3009 `transferWithAuthorization`, verified + settled by the PayAI facilitator), 1¢/10¢/\$1/custom, on-chain receipt link, `gift:sent` event. No fox → copy the address by hand; humans also get the Stripe · PayPal · Venmo rails + the Blessing Pool page link; agents get the x402 instructions link. The card is a dialog the visitor **asked for** — the NO COVERED TEXT law never folds it. `aria-haspopup="dialog"` on the button; Esc / ✕ / backdrop close.

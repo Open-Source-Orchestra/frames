@@ -1,4 +1,4 @@
-/*! Open Source Orchestra Frames v0.1.7 · https://github.com/Open-Source-Orchestra/frames
+/*! Open Source Orchestra Frames v0.1.8 · https://github.com/Open-Source-Orchestra/frames
  *  SPDX-License-Identifier: AGPL-3.0-or-later · Copyright (C) 2026 Shaka Lei Kaumaka / Open Source Orchestra and the AI ʻohana
  *  AGPL §7(b): keep the credit "Built on Open Source Orchestra Frames by Open Source Orchestra: Shaka Lei Kaumaka & the AI ʻohana
  *  (https://opensourceorchestra.org)" visible in the frame. See NOTICE. Source of this exact file: https://github.com/Open-Source-Orchestra/frames */
@@ -18,7 +18,7 @@
  */
 var FRAMES = (function (W) {
   'use strict';
-  var VERSION = '0.1.7';
+  var VERSION = '0.1.8';
   var MAJOR = VERSION.split('.')[0];
   if (W && W.OSOFrames && W.OSOFrames.__osof) {            // loaded twice: the first copy rules
     if (W.console) W.console.info('🎻 frames: already on this page; the second copy stays quiet.');
@@ -1678,6 +1678,11 @@ var FRAMES = (function (W) {
       // (the 🌊 Blessing Pool opens the same card) or while the visitor hid everything (one ✕ hides ALL buttons). v2.0 of
       // x402-tip.js already bows out by itself; this net catches the old cached copies (Shaka, 27 Nov 2026).
       'html[data-osof-on] #x4-wrap,html[data-osof-on] #x4-mini,html[data-osof-on] #x4-ovl,html[data-osof-off] #x4-wrap,html[data-osof-off] #x4-mini,html[data-osof-off] #x4-ovl{display:none!important}',
+      // v0.1.8 ABSORB: the blessing magnet (#cmag · #cmag-lite · its panel — 131 doors of the ʻohana's pre-frame gift rail) bows
+      // out while the frame is on: its rails (pool · address · PayPal · Venmo · tide) all live in the 🌊 card now — AND the 54px
+      // magnet rode over the frame's phone top-right anchor (52px), so the NO COVERED TEXT law folded the 🌊 away entirely
+      // (Shaka, 27 Nov 2026: "x402 pennies of aloha is down … covered by a flowr"). Frame-off brings the magnet back.
+      'html[data-osof-on] #cmag,html[data-osof-on] #cmag-lite,html[data-osof-on] #cmagb,html[data-osof-off] #cmag,html[data-osof-off] #cmag-lite,html[data-osof-off] #cmagb{display:none!important}',
       // the zones are <nav>/<div>: a page's own "nav{position:fixed;left:0;right:0;display:grid;padding:…}" must not reach them
       // (publicinform.com, 22 Nov 2026: the right rail landed at x=0 over the left one) → every zone starts from a clean slate
       F + ' .osof-slot{all:unset;position:fixed;inset:auto;z-index:' + Z.frame + ';pointer-events:none;display:flex;flex-direction:column;box-sizing:border-box;margin:0;padding:0;border:0;background:none;width:auto;height:auto;min-height:0;max-height:none;transform:none;overflow:visible;font:inherit;color:inherit;direction:ltr}',

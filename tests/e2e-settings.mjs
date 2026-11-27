@@ -109,7 +109,7 @@ const errsOf = (p) => { const e = []; p.on('pageerror', (x) => e.push('PE:' + St
   ok(r.id === 'pit-protocol', `data-door=auto on publicinform.com → id ${r.id}`);
   ok(r.accent === '#7fe0ff', `accent applied (${r.accent})`);
   ok(r.first === 'home' && r.pitGone && r.n >= 10, `slot ops: prepend + remove (left: ${r.n} items, first ${r.first})`);
-  ok(r.version === '0.1.7' && r.gear, `v${r.version} with the ⚙ gear in the credit mark`);
+  ok(r.version === '0.1.8' && r.gear, `v${r.version} with the ⚙ gear in the credit mark`);
   ok(!errs.length, 'no console/page errors' + (errs.length ? ' → ' + errs.join(' | ') : ''));
   await ctx.close();
 }
