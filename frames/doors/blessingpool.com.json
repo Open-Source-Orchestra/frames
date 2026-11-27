@@ -32,7 +32,7 @@
         {
           "kind": "door",
           "id": "dao",
-          "emoji": "🎁",
+          "emoji": "🪴",
           "label": "Public goods",
           "href": "https://opensourceorchestra.org/dao/",
           "tip": "The public-goods ledger of the orchestra: grants, totals, receipts.",

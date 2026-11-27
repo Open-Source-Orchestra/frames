@@ -278,7 +278,7 @@
       {
         "kind": "door",
         "id": "public-goods",
-        "emoji": "🎁",
+        "emoji": "🪴",
         "label": "Public goods",
         "href": "https://opensourceorchestra.org/dao/",
         "tip": "The open ledger and the public goods shelf: everything in the open.",
