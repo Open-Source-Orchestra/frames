@@ -30,6 +30,15 @@
 /lib/base-account-2.6.0.min.js
   ! Cache-Control
   Cache-Control: public, max-age=31536000, immutable
+/lib/fountain.js
+  ! Cache-Control
+  Cache-Control: public, max-age=300
+/lib/fountain.src.js
+  ! Cache-Control
+  Cache-Control: public, max-age=300
+/fountain-config.json
+  ! Cache-Control
+  Cache-Control: no-cache
 /lib/*.txt
   Content-Type: text/plain; charset=utf-8
 /*.md
