@@ -1,4 +1,4 @@
-/*! owh · ʻohana wallet connect v1.0 · standalone lazy module of Open Source Orchestra Frames v0.1.13
+/*! owh · ʻohana wallet connect v1.0 · standalone lazy module of Open Source Orchestra Frames v0.1.14
  *  SPDX-License-Identifier: GPL-3.0-or-later · Built by Open Source Orchestra: Shaka Lei Kaumaka & the AI ʻohana (https://opensourceorchestra.org)
  *  Source of this exact file: https://github.com/Open-Source-Orchestra/frames → src/lib/owh.js (sets window.OWH only if absent) */
 (function(){'use strict';if(window.OWH)return;
@@ -31,7 +31,8 @@ var OWH = (function () {
   var IOS = /iPad|iPhone|iPod/.test(UA) || (N.platform === 'MacIntel' && N.maxTouchPoints > 1);   // iPadOS Safari says "Mac"
   var ANDROID = /Android/i.test(UA);
   var PARAM = 'osogift';
-  var AUTOSTART_MAX = 10;                                 // USD: a link can open the card at any amount, but only starts the wallet prompt up to this
+  var DEFAULT_USD = 10;                                   // the preselected amount of every gift card (chips $1 · $10 · $100 + a custom box); a garbage ?osogift amount falls back to it. Hosts keep their own DEFAULT_USD in step.
+  var AUTOSTART_MAX = 10;                                 // USD: a link can open the card at any amount, but only starts the wallet prompt up to this ($1 and $10 start; $100 waits for a tap)
   var LIB = 'https://frames.opensourceorchestra.org/lib/';                           // the lazy files live beside lib/owh.js (a self-hosting fork serves its own)
   try { var CS = D.currentScript; if (CS && CS.src && /\/lib\/owh(\.min)?\.js(\?|$)/.test(CS.src)) LIB = CS.src.replace(/[^\/]*(\?.*)?$/, ''); } catch (e) {}
   var QR_URL = LIB + 'owh-qr.min.js';
@@ -75,7 +76,7 @@ var OWH = (function () {
       var p = v.split(':'); if (p[0] !== surface) return null;
       u.searchParams.delete(PARAM);
       W.history.replaceState(W.history.state, '', u.pathname + u.search + u.hash);
-      var usd = parseFloat(p[1]), sane = usd >= 0.001 && usd <= 1000; if (!sane) usd = 0.01;        // garbage in → the 1¢ default, and never an auto-start
+      var usd = parseFloat(p[1]), sane = usd >= 0.001 && usd <= 1000; if (!sane) usd = DEFAULT_USD;        // garbage in → the default amount, and never an auto-start
       return { usd: usd, rail: p[2] || '', go: sane && p[3] === 'go' && usd <= AUTOSTART_MAX };
     } catch (e) { return null; }
   }
@@ -158,6 +159,7 @@ var OWH = (function () {
     R('.owh .owh-qr svg', 'display:block;width:100%;height:auto');
     R('.owh .owh-cap', 'margin:6px 0 0;text-align:center;font:11.5px/1.4 system-ui,-apple-system,sans-serif;color:#9d97c9');
     R('.owh .owh-ex', 'margin-top:12px;font:12.5px/1.55 system-ui,-apple-system,sans-serif;color:#9d97c9');
+    R('.owh .owh-ex a', 'color:#7fd8a4');
     R('.owh [hidden]', 'display:none!important');
     D.head.appendChild(el('style', { id: 'owh-css' }, [out.join('\n')]));
   }
@@ -179,7 +181,7 @@ var OWH = (function () {
     if (N.clipboard && N.clipboard.writeText) N.clipboard.writeText(text).then(done, fb); else fb();
   }
   /* connect(o) → {el, refresh, setBusy, say, autostart, wallets}
-     o: {surface, usdc, payTo, chain, usd:()=>number, rail?:()=>string, send:(provider, info)=>Promise|void, t?:(key,fallback)=>string, hook?:false, payToName?:string} */
+     o: {surface, usdc, payTo, chain, usd:()=>number, rail?:()=>string, send:(provider, info)=>Promise|void, t?:(key,fallback)=>string, hook?:false, payToName?:string, safetyUrl?:string} */
   function connect(o) {
     css();
     var E = env(), t = o.t || function (k, d) { return d; };
@@ -199,7 +201,9 @@ var OWH = (function () {
     var qrCap = el('div', { class: 'owh-cap', hidden: true }, [t('owh.qrcap', 'scan with MetaMask · Coinbase Wallet · Trust · Rainbow — USDC on Base, amount filled in')]);
     var qrMode = el('button', { type: 'button', class: 'owh-more', hidden: true }, [t('owh.qraddr', 'address only (any wallet)')]);
     var shortTo = o.payTo.slice(0, 6) + '…' + o.payTo.slice(-4);
-    var ex = el('div', { class: 'owh-ex' }, [t('owh.explain', 'Your wallet may call this a “high-risk approval” or say the recipient is an “untrusted EOA”. That is the wallet’s generic caution for any gasless USDC payment to an address it hasn’t seen. This signature sends exactly the amount you chose, once, to ' + (o.payToName ? o.payToName + ' (' + shortTo + ')' : shortTo) + ', and expires in 5 minutes — check the amount and address in the message.')]);
+    var exKids = [t('owh.explain', 'Your wallet may call this a “high-risk approval” or say the recipient is an “untrusted EOA”. That is the wallet’s generic caution for any gasless USDC payment to an address it hasn’t seen. This signature sends exactly the amount you chose, once, to ' + (o.payToName ? o.payToName + ' (' + shortTo + ')' : shortTo) + ', and expires in 5 minutes — check the amount and address in the message.')];
+    if (o.safetyUrl) exKids.push(' ', el('a', { href: o.safetyUrl, target: '_blank', rel: 'noopener' }, [t('owh.safety', 'what will my wallet say? ↗')]));
+    var ex = el('div', { class: 'owh-ex' }, exKids);
 
     function say(m) { note.textContent = m || ''; }
     function cfg() { return { surface: o.surface, usd: o.usd(), rail: o.rail ? o.rail() : '', usdc: o.usdc, payTo: o.payTo, chain: o.chain }; }
@@ -319,6 +323,6 @@ var OWH = (function () {
       }
     };
   }
-  return { version: '1.0', env: env, links: links, pending: pending, connect: connect, authorize: authorize, nameOf: nameOf, esc: esc, txOf: txOf, post: post, why: why, rest: rest, NET: NET, NETSETTLE: NETSETTLE };
+  return { version: '1.0', DEFAULT_USD: DEFAULT_USD, env: env, links: links, pending: pending, connect: connect, authorize: authorize, nameOf: nameOf, esc: esc, txOf: txOf, post: post, why: why, rest: rest, NET: NET, NETSETTLE: NETSETTLE };
 })();
 window.OWH=OWH;})();
