@@ -1,4 +1,4 @@
-/*! Open Source Orchestra Frames v0.1.8 · https://github.com/Open-Source-Orchestra/frames
+/*! Open Source Orchestra Frames v0.1.9 · https://github.com/Open-Source-Orchestra/frames
  *  SPDX-License-Identifier: AGPL-3.0-or-later · Copyright (C) 2026 Shaka Lei Kaumaka / Open Source Orchestra and the AI ʻohana
  *  AGPL §7(b): keep the credit "Built on Open Source Orchestra Frames by Open Source Orchestra: Shaka Lei Kaumaka & the AI ʻohana
  *  (https://opensourceorchestra.org)" visible in the frame. See NOTICE. Source of this exact file: https://github.com/Open-Source-Orchestra/frames */
@@ -18,7 +18,7 @@
  */
 var FRAMES = (function (W) {
   'use strict';
-  var VERSION = '0.1.8';
+  var VERSION = '0.1.9';
   var MAJOR = VERSION.split('.')[0];
   if (W && W.OSOFrames && W.OSOFrames.__osof) {            // loaded twice: the first copy rules
     if (W.console) W.console.info('🎻 frames: already on this page; the second copy stays quiet.');
@@ -413,7 +413,7 @@ var FRAMES = (function (W) {
   var unlessWatch = null;
   function watchUnless() {
     stopUnlessWatch();
-    var pending = recs.filter(function (r) { return r.item && typeof r.item.unless === 'string' && !/^window\./.test(r.item.unless.trim()); });
+    var pending = recs.filter(function (r) { return r.item && !r.drawerOnly && typeof r.item.unless === 'string' && !/^window\./.test(r.item.unless.trim()); });
     if (!pending.length) return;
     var check = function () {
       pending = pending.filter(function (r) {
@@ -421,7 +421,7 @@ var FRAMES = (function (W) {
         if (!unlessMatches(r.item.unless)) return true;
         info('"' + r.id + '" adopted late: the page has ' + r.item.unless);
         if (openDlg && openDlg.opener && r.wrap && r.wrap.contains(openDlg.opener)) closeDialog(openDlg, false, 'adopt');
-        unmount(r); schedule();
+        adoptRec(r); schedule();
         return false;
       });
       if (!pending.length) stopUnlessWatch();
@@ -457,7 +457,13 @@ var FRAMES = (function (W) {
   // ── mounting ────────────────────────────────────────────────────────────────────
   function mount(slot, item, idx) {
     var rec = { id: item.id, kind: item.kind, slot: slot, item: item, idx: idx, wrap: null, el: null, piece: null };
-    if (unlessMatches(item.unless)) return null;                    // adopt mode: the page already has it
+    if (unlessMatches(item.unless)) {                               // adopt mode: the page already has it …
+      if (item.kind !== 'chat') return null;
+      // v0.1.9 "the totem stays in the screen" (Shaka, 28 Nov 2026: "i like when you can talk to the totem in screen like devconpit.com
+      // as a standard"): … but the totem's faces still talk IN this page. The chat piece mounts as a DRAWER ONLY (no pill: the page keeps
+      // its own button), so a face tap — on the rail or in the phone sheet — opens the drawer instead of leaving for myagentohana.com.
+      item = copy(item); item.drawerOnly = true; rec.item = item; rec.drawerOnly = true;
+    }
     if (item.kind === 'spot') { rec.spot = true; recs.push(rec); return rec; }
     var f = kinds[item.kind];
     if (!f) { if (!unknownSeen[item.kind]) { unknownSeen[item.kind] = 1; info('no piece for kind "' + item.kind + '" in this build; skipped'); } return null; }
@@ -486,9 +492,20 @@ var FRAMES = (function (W) {
     try { if (rec.piece && rec.piece.close) rec.piece.close(); } catch (e) {}
     recs = recs.filter(function (r) { return r !== rec; });
   }
+  // v0.1.9: a page widget showed up AFTER us. A chat pill steps aside but keeps its DRAWER (the totem faces still talk in the screen);
+  // every other piece unmounts, exactly as before.
+  function adoptRec(r) {
+    if (r.kind === 'chat' && r.piece && typeof r.piece.adopt === 'function') {
+      try { r.piece.adopt(); } catch (e) {}
+      if (r.wrap) r.wrap.remove();
+      r.wrap = null; r.el = null; r.drawerOnly = true; r.item = copy(r.item); r.item.drawerOnly = true;
+      return;
+    }
+    unmount(r);
+  }
   function groupOf(kind) { return GROUP[kind] || ''; }
   function hiddenKind(kind) { var g = groupOf(kind); return !!(g && prefs.hide[g]); }
-  function live(r) { return !r.skipped && !hiddenKind(r.kind) && (!state.mobile || !r.item.hideOnMobile); }
+  function live(r) { return !r.skipped && !r.drawerOnly && !hiddenKind(r.kind) && (!state.mobile || !r.item.hideOnMobile); }
   function openRec(r, opener) {
     if (r.piece && typeof r.piece.open === 'function') { r.piece.open(opener); return true; }
     var href = resolveURL(r.item.href, dataURL);
@@ -2028,7 +2045,7 @@ var FRAMES = (function (W) {
   }
   // late arrivals: a page widget that appears after us (unless), spots, the lang.js button
   function recheck() {
-    recs.slice().forEach(function (r) { if (r.item.unless && !r.spot && unlessMatches(r.item.unless)) unmount(r); });
+    recs.slice().forEach(function (r) { if (r.item.unless && !r.spot && !r.drawerOnly && unlessMatches(r.item.unless)) adoptRec(r); });
     observeSpots();
     schedule();
   }
@@ -3397,7 +3414,9 @@ var FRAMES = (function (W) {
       line: line,
       open: open,
       close: close,
-      addWrap: function (w, f) { D.wraps.push(w); if (!D.wrap) { D.wrap = w; D.fab = f; } }
+      addWrap: function (w, f) { D.wraps.push(w); if (!D.wrap) { D.wrap = w; D.fab = f; } },
+      // v0.1.9: the page grew its own chat button after us — this pill steps aside, the drawer stays (totem faces)
+      dropWrap: function (w) { D.wraps = D.wraps.filter(function (x) { return x !== w; }); if (D.wrap === w) { D.wrap = D.wraps[0] || null; D.fab = D.wrap ? D.wrap.querySelector('.osof-fab') : null; } }
     };
   };
 
@@ -3439,6 +3458,17 @@ var FRAMES = (function (W) {
       });
     });
 
+    // v0.1.9 · DRAWER ONLY: the page already wears its own chat button (adopt mode). No pill — the totem faces (rail + phone sheet) still
+    // open THIS drawer, in the screen, like devconpit.com. Nothing is drawn until a face is tapped.
+    if (item.drawerOnly) {
+      return {
+        el: null,
+        open: function () { engine.open(mainLine, null, null); },
+        close: function () { engine.close(); },
+        adopt: function () {}
+      };
+    }
+
     // ── the pill (+ ✕ that bows out to a tiny emoji, remembered) ──
     const ui = ctx.store('chat');
     const miniKey = 'fab:' + String(item.id || mainDef.storage) + ':mini';
@@ -3471,6 +3501,7 @@ var FRAMES = (function (W) {
       tour: item.tip || fill(T('tour', '{label}: an AI agent of the ʻohana answers you, live from Taurus.'), { label: label }),
       open: function () { engine.open(mainLine, fab, wrap); },
       close: function () { engine.close(); },
+      adopt: function () { engine.dropWrap(wrap); },
       // NO COVERED TEXT LAW (phones): the core folds the pill to the tiny emoji while words run under it — session only,
       // never undoing the visitor's own ✕ (remembered mini)
       fold: function (v) { if (ui.get(miniKey) === true) return; wrap.setAttribute('data-mini', v ? '1' : '0'); }
