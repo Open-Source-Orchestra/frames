@@ -117,7 +117,7 @@ const errsOf = (p) => { const e = []; p.on('pageerror', (x) => e.push('PE:' + St
   ok(r.id === 'pit-protocol', `data-door=auto on publicinform.com → id ${r.id}`);
   ok(r.accent === '#7fe0ff', `accent applied (${r.accent})`);
   ok(r.first === 'home' && r.pitGone && r.n >= 10, `slot ops: prepend + remove (left: ${r.n} items, first ${r.first})`);
-  ok(r.version === '0.1.12' && r.gear, `v${r.version} with the ⚙ gear in the credit mark`);
+  ok(r.version === '0.1.13' && r.gear, `v${r.version} with the ⚙ gear in the credit mark`);
   ok(!errs.length, 'no console/page errors' + (errs.length ? ' → ' + errs.join(' | ') : ''));
   await ctx.close();
 }
@@ -514,7 +514,7 @@ const AUDIO_STUB = `window.__audioLog = []; window.Audio = class { constructor()
   const ctx = await ctxFor('nobody.example', { width: 1280, height: 800 });
   const libHits = []; ctx.on('request', (r) => { if (/\/lib\//.test(r.url())) libHits.push(new URL(r.url()).pathname); });
   // fail-closed: the facilitator is mocked; registered AFTER ctxFor's catch-all so it wins for these URLs only
-  await ctx.route('https://facilitator.payai.network/**', (route) => {
+  await ctx.route('https://gift-rail.opensourceorchestra.org/base/**', (route) => {
     const u = route.request().url();
     if (u.endsWith('/verify')) return route.fulfill({ json: { isValid: true } });
     if (u.endsWith('/settle')) return route.fulfill({ json: { success: true, transaction: '0x' + 'cd'.repeat(32) } });
@@ -557,7 +557,7 @@ const AUDIO_STUB = `window.__audioLog = []; window.Audio = class { constructor()
   await ctx.close();
   // phone: the sheet's Blessing Pool tile opens the card and closes the sheet
   const ctx2 = await ctxFor('nobody.example', { width: 390, height: 844 }, true);
-  await ctx2.route('https://facilitator.payai.network/**', (route) => route.abort());
+  await ctx2.route('https://gift-rail.opensourceorchestra.org/base/**', (route) => route.abort());
   await ctx2.addInitScript(WALLET);
   const p2 = await ctx2.newPage();
   await p2.goto('http://nobody.example/narrow.html', { waitUntil: 'load' });
@@ -580,7 +580,7 @@ const AUDIO_STUB = `window.__audioLog = []; window.Audio = class { constructor()
   const HOSTILE = '0x"><img src=x onerror="window.__xss=1"><a href="javascript:window.__xss=2">x</a>';
   for (const [label, tx] of [['hostile markup', HOSTILE], ['not a hash (short hex)', '0xabc'], ['not a string', 12345]]) {
     const ctx = await ctxFor('nobody.example', { width: 1280, height: 800 });
-    await ctx.route('https://facilitator.payai.network/**', (route) => {
+    await ctx.route('https://gift-rail.opensourceorchestra.org/base/**', (route) => {
       const u = route.request().url();
       if (u.endsWith('/verify')) return route.fulfill({ json: { isValid: true } });
       if (u.endsWith('/settle')) return route.fulfill({ json: { success: true, transaction: tx } });
@@ -641,7 +641,7 @@ const AUDIO_STUB = `window.__audioLog = []; window.Audio = class { constructor()
   const WALLET_LATE = `window.__rpc = []; setTimeout(function(){ window.ethereum = { isMetaMask: true, request: async ({ method, params }) => { window.__rpc.push(method + (method === 'eth_signTypedData_v4' ? ':' + JSON.parse(params[1]).message.value : '')); if (method === 'eth_chainId') return '0x2105'; if (method === 'eth_signTypedData_v4') return '0x' + 'ab'.repeat(65); return ['0x1111111111111111111111111111111111111111']; } }; }, 500);`;
   const mk = async (q) => {
     const ctx = await ctxFor('nobody.example', { width: 390, height: 844 }, true);
-    await ctx.route('https://facilitator.payai.network/**', (route) => { const u = route.request().url(); if (u.endsWith('/verify')) return route.fulfill({ json: { isValid: true } }); if (u.endsWith('/settle')) return route.fulfill({ json: { success: true, transaction: '0x' + 'ef'.repeat(32) } }); return route.abort(); });
+    await ctx.route('https://gift-rail.opensourceorchestra.org/base/**', (route) => { const u = route.request().url(); if (u.endsWith('/verify')) return route.fulfill({ json: { isValid: true } }); if (u.endsWith('/settle')) return route.fulfill({ json: { success: true, transaction: '0x' + 'ef'.repeat(32) } }); return route.abort(); });
     await ctx.addInitScript(WALLET_LATE);
     const p = await ctx.newPage(); const errs = errsOf(p);
     await p.goto('http://nobody.example/narrow.html' + q, { waitUntil: 'load' });
@@ -667,6 +667,33 @@ const AUDIO_STUB = `window.__audioLog = []; window.Audio = class { constructor()
   await p.click('#oso-frames [data-slot=top-right] a[href="https://blessingpool.com/"]'); await p.waitForTimeout(900);
   ok(await p.evaluate(() => { const fb = document.querySelector('#oso-frames .osof-gift-fb'); return !!fb && !fb.hidden && /0x25965899f4600b3AA5362ee4f34be95E5E62c934/.test(fb.textContent) && /could not load/.test(document.querySelector('#oso-frames .osof-gift-st').textContent); }), 'lib/owh.js unavailable → the by-hand fallback shows the ʻohana address + copy, with a kind line (no dead end)');
   await ctx.close();
+}
+
+// 11f · Shaka's friend (28 Nov 2026): the wallet signed, then the card said "⚠️ hiccup: Load failed" — PayAI is server-to-server (no CORS), the gift rail's Base lane is the
+// browser-safe hop. FAILURE PATHS in plain words + the by-hand way on screen (a failure state must offer something to TAP).
+{
+  const WALLET = `window.ethereum = { isMetaMask: true, request: async ({ method }) => (method === 'eth_chainId' ? '0x2105' : method === 'eth_signTypedData_v4' ? '0x' + 'ab'.repeat(65) : ['0x1111111111111111111111111111111111111111']) };`;
+  const cases = [
+    ['rail unreachable (Safari "Load failed")', (route) => route.abort('failed'), /couldn.t reach the gift rail — nothing left your wallet/, true],
+    ['not enough USDC', (route) => route.fulfill({ json: { isValid: false, invalidReason: 'invalid_exact_evm_insufficient_balance' } }), /not enough USDC on Base in this wallet/, false],
+    ['rail resting', (route) => route.fulfill({ status: 503, json: { isValid: false, invalidReason: 'proxy_paused' } }), /gift rail is resting/, true],
+    ['settlement_pending is not a failure', (route) => (route.request().url().endsWith('/verify') ? route.fulfill({ json: { isValid: true } }) : route.fulfill({ json: { success: false, errorReason: 'settlement_pending' } })), /still settling — it may still land/, false],
+  ];
+  for (const [label, handler, re, fallback] of cases) {
+    const ctx = await ctxFor('nobody.example', { width: 1280, height: 800 });
+    await ctx.route('https://gift-rail.opensourceorchestra.org/base/**', handler);
+    await ctx.addInitScript(WALLET);
+    const p = await ctx.newPage();
+    await p.goto('http://nobody.example/narrow.html', { waitUntil: 'load' });
+    await p.waitForSelector('#oso-frames[data-osof-ready]', { state: 'attached' }); await p.waitForTimeout(900);
+    await p.click('#oso-frames [data-slot=top-right] a[href="https://blessingpool.com/"]'); await p.waitForTimeout(700);
+    await p.click('#oso-frames .owh-go'); await p.waitForTimeout(1500);
+    const r = await p.evaluate(() => ({ st: (document.querySelector('#oso-frames .osof-gift-st') || {}).textContent || '', addr: !!document.querySelector('#oso-frames .owh-addr:not([hidden])'), ex: !!document.querySelector('#oso-frames .owh-ex') }));
+    ok(re.test(r.st) && !/hiccup|Load failed|Failed to fetch/i.test(r.st), '11f ' + label + ': plain words, never "hiccup"/"Load failed" → ' + r.st.slice(0, 90));
+    if (fallback) ok(r.addr, '11f ' + label + ': the by-hand way (address + copy) is on screen');
+    if (label.startsWith('rail unreachable')) ok(r.ex, '11f the pre-sign explainer ("high-risk approval" / "untrusted EOA") is in the card');
+    await ctx.close();
+  }
 }
 
 // 12 · v0.1.9 THE TOTEM STAYS IN THE SCREEN (Shaka, 28 Nov 2026: "i like when you can talk to the totem in screen like devconpit.com as a standard")

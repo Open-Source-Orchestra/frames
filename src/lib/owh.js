@@ -97,6 +97,29 @@ var OWH = (function () {
   }
   function esc(v) { return String(v == null ? '' : v).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }   // network data (facilitator, wallet) never becomes markup
   function txOf(v) { return typeof v === 'string' && /^0x[0-9a-fA-F]{64}$/.test(v) ? v : null; }            // only a 64-hex hash may reach a link or an event (PAʻA SITE-2, 28 Nov 2026)
+  /* the gift rail's Base lane (https://gift-rail.opensourceorchestra.org/base — CORS *; PayAI itself is server-to-server and answers browsers 404 with no
+     Access-Control-Allow-*: "Load failed" on Safari, 28 Nov 2026). post() NEVER throws and never returns HTML: {net, status, json}. */
+  var NET = '⚠️ couldn’t reach the gift rail — nothing left your wallet. Try again in a moment, or copy the address below and send USDC on Base by hand to osoartist.eth';
+  var NETSETTLE = '⚠️ lost the connection at the very last step — it may or may not have gone through: check your wallet / BaseScan before tapping again, or copy the address below and send by hand';
+  var WHY = { invalid_exact_evm_insufficient_balance: 'not enough USDC on Base in this wallet', proxy_paused: 'the gift rail is resting 🌺 — copy the address below and send by hand',
+    proxy_rate_limited: 'a little too fast — try again in a minute', settlement_pending: '⏳ still settling — it may still land (check BaseScan in a minute)',
+    proxy_upstream_unreachable: 'the gift rail could not reach the payment network — try again in a moment', proxy_upstream_bad_reply: 'the gift rail could not reach the payment network — try again in a moment' };
+  function why(code) {
+    code = String(code || '');
+    if (WHY[code]) return WHY[code];
+    if (/valid_?before|expired/i.test(code)) return 'that took too long — tap again';
+    if (/^proxy_(pin_|bad_json|too_large)/.test(code)) return 'something looked off with that request';
+    if (/free_tier/.test(code)) return 'the gift rail is resting 🌺 — copy the address below and send by hand';
+    return 'the gift rail did not accept it' + (code ? ' (' + code + ')' : '');                     // callers escape this with esc()
+  }
+  function rest(code) { return /^proxy_(paused|rate_limited|upstream)|free_tier/.test(String(code || '')); }   // a lane that is resting → offer the by-hand way
+  async function post(base, path, body) {
+    try {
+      var r = await fetch(base + path, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) }), j = null;
+      try { j = await r.json(); } catch (e) {}
+      return { net: false, status: r.status, json: (j && typeof j === 'object') ? j : {} };
+    } catch (e) { return { net: true, status: 0, json: null }; }
+  }
   function el(tag, attrs, kids) {
     var n = D.createElement(tag), k;
     for (k in (attrs || {})) { if (attrs[k] === true) n.setAttribute(k, ''); else if (attrs[k] !== false && attrs[k] != null) n.setAttribute(k, attrs[k]); }
@@ -130,6 +153,7 @@ var OWH = (function () {
     R('.owh .owh-qr', 'margin:12px auto 0;width:208px;max-width:100%;padding:10px;background:#fff;border-radius:12px;line-height:0;color:#111;font:13px system-ui,sans-serif');
     R('.owh .owh-qr svg', 'display:block;width:100%;height:auto');
     R('.owh .owh-cap', 'margin:6px 0 0;text-align:center;font:11.5px/1.4 system-ui,-apple-system,sans-serif;color:#9d97c9');
+    R('.owh .owh-ex', 'margin-top:12px;font:12.5px/1.55 system-ui,-apple-system,sans-serif;color:#9d97c9');
     R('.owh [hidden]', 'display:none!important');
     D.head.appendChild(el('style', { id: 'owh-css' }, [out.join('\n')]));
   }
@@ -151,7 +175,7 @@ var OWH = (function () {
     if (N.clipboard && N.clipboard.writeText) N.clipboard.writeText(text).then(done, fb); else fb();
   }
   /* connect(o) → {el, refresh, setBusy, say, autostart, wallets}
-     o: {surface, usdc, payTo, chain, usd:()=>number, rail?:()=>string, send:(provider, info)=>Promise|void, t?:(key,fallback)=>string} */
+     o: {surface, usdc, payTo, chain, usd:()=>number, rail?:()=>string, send:(provider, info)=>Promise|void, t?:(key,fallback)=>string, hook?:false, payToName?:string} */
   function connect(o) {
     css();
     var E = env(), t = o.t || function (k, d) { return d; };
@@ -170,6 +194,8 @@ var OWH = (function () {
     var qrBox = el('div', { class: 'owh-qr', hidden: true });
     var qrCap = el('div', { class: 'owh-cap', hidden: true }, [t('owh.qrcap', 'scan with MetaMask · Coinbase Wallet · Trust · Rainbow — USDC on Base, amount filled in')]);
     var qrMode = el('button', { type: 'button', class: 'owh-more', hidden: true }, [t('owh.qraddr', 'address only (any wallet)')]);
+    var shortTo = o.payTo.slice(0, 6) + '…' + o.payTo.slice(-4);
+    var ex = el('div', { class: 'owh-ex' }, [t('owh.explain', 'Your wallet may call this a “high-risk approval” or say the recipient is an “untrusted EOA”. That is the wallet’s generic caution for any gasless USDC payment to an address it hasn’t seen. This signature sends exactly the amount you chose, once, to ' + (o.payToName ? o.payToName + ' (' + shortTo + ')' : shortTo) + ', and expires in 5 minutes — check the amount and address in the message.')]);
 
     function say(m) { note.textContent = m || ''; }
     function cfg() { return { surface: o.surface, usd: o.usd(), rail: o.rail ? o.rail() : '', usdc: o.usdc, payTo: o.payTo, chain: o.chain }; }
@@ -205,7 +231,7 @@ var OWH = (function () {
     function renderHook() {
       if (hook) { hook.remove(); hook = null; }
       /* owh-signup hook wiring */
-      if (root.getClientRects().length === 0 || pick.hidden) return;           // built hidden at page load, or the picker is folded (a wallet is detected) → fetch NOTHING
+      if (o.hook === false || root.getClientRects().length === 0 || pick.hidden) return;   // hook:false = the host handles sign-up itself (the Fountain: Base Pay is Base-only) · built hidden at page load, or the picker is folded (a wallet is detected) → fetch NOTHING
       var h = W.OWH_SIGNUP;
       if (!h) { loadHook(renderHook); return; }                                // first time the picker is visible: the 1.6 KB hook, from our own fleet origin
       if (!(h.href || typeof h.open === 'function')) return;
@@ -231,7 +257,7 @@ var OWH = (function () {
     more.addEventListener('click', function () { expanded = !expanded; render(); });
     go.addEventListener('click', function () { var d = detected(); if (d[0]) run(d[0]); });
 
-    root.appendChild(go); root.appendChild(list); root.appendChild(more); root.appendChild(pick); root.appendChild(note);
+    root.appendChild(go); root.appendChild(list); root.appendChild(more); root.appendChild(pick); root.appendChild(ex); root.appendChild(note);
 
     function render() {
       var d = detected();
@@ -255,8 +281,9 @@ var OWH = (function () {
       go.disabled = busy; Array.prototype.forEach.call(list.querySelectorAll('button'), function (b) { b.disabled = busy; });
       var L = links(cfg()), id; for (id in A) A[id].setAttribute('href', L[id]);
       renderHook();
-      if (!E.mobile && !pick.hidden && !qrOn) toggleQr(true);                                       // desktop: the QR is the answer
-      else if (qrOn) drawQr();
+      var shown = root.getClientRects().length > 0;                                                  // a card built hidden at page load fetches NOTHING
+      if (!E.mobile && !pick.hidden && !qrOn && shown) toggleQr(true);                              // desktop: the QR is the answer — once the card is on screen
+      else if (qrOn && shown) drawQr();
     }
     // EIP-6963: wallets announce themselves; we only listen (and ask once) — nothing is fetched
     W.addEventListener('eip6963:announceProvider', function (ev) {
@@ -267,10 +294,14 @@ var OWH = (function () {
     });
     try { W.dispatchEvent(new W.CustomEvent('eip6963:requestProvider')); } catch (e) {}
     render();
+    // the picker re-renders the moment it is ACTUALLY on screen (a card built hidden at page load fetches nothing; a host that
+    // mounts ui.el late, or opens its card without calling refresh(), still gets its QR / hook — no host contract needed)
+    if (W.IntersectionObserver) { try { new W.IntersectionObserver(function (es) { for (var i = 0; i < es.length; i++) if (es[i].isIntersecting) { render(); return; } }).observe(root); } catch (e) {} }
     return {
       el: root,
       refresh: render,
       say: say,
+      fallback: function () { expanded = true; render(); addr.hidden = false; try { addr.scrollIntoView({ block: 'nearest', behavior: 'smooth' }); } catch (e) {} },     // a failure state must offer something to TAP: open the picker + show the address
       wallets: detected,
       setBusy: function (b) { busy = !!b; render(); },
       autostart: function (p) {                              // we arrived inside a wallet's browser via a handoff link
@@ -284,5 +315,5 @@ var OWH = (function () {
       }
     };
   }
-  return { version: '1.0', env: env, links: links, pending: pending, connect: connect, authorize: authorize, nameOf: nameOf, esc: esc, txOf: txOf };
+  return { version: '1.0', env: env, links: links, pending: pending, connect: connect, authorize: authorize, nameOf: nameOf, esc: esc, txOf: txOf, post: post, why: why, rest: rest, NET: NET, NETSETTLE: NETSETTLE };
 })();

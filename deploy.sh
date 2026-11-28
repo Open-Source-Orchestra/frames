@@ -41,6 +41,13 @@ node build.mjs --check || { echo "✗ build/syntax gate failed"; exit 1; }
 rm -rf dist && mkdir -p dist
 cp -r frames.js frames schema media index.html llms.txt LICENSE NOTICE LICENSES dist/ 2>/dev/null
 [ -d builder ] && cp -r builder dist/
+# v0.1.13 (mobile flow, 28 Nov 2026): the SERVED frames.js is a minified build (299 KB → ~120 KB decoded, ~30 KB brotli — the frames origin was 58 % of the flagship's whole first
+# visit on a phone). The readable file stays beside it as /frames.src.js (AGPL: the source of the served bytes) and in the repo; the credit banner is preserved.
+cp frames.js dist/frames.src.js
+( npx --yes terser@5 frames.js --compress --mangle --comments '/^!/' -o dist/frames.js ) || { echo "✗ minify failed"; exit 1; }
+node --check dist/frames.js || { echo "✗ the minified frames.js fails the syntax gate"; exit 1; }
+head -c 200 dist/frames.js | grep -q 'Open Source Orchestra Frames v' || { echo "✗ the credit banner did not survive the minifier"; exit 1; }
+echo "frames.js served minified: $(wc -c < frames.js) → $(wc -c < dist/frames.js) bytes ($(gzip -9 -c dist/frames.js | wc -c) gzip)"
 [ -d lib ] && cp -r lib dist/          # v0.1.12: the lazy wallet connect module + QR + sign-up hook (+ the vendored Apache-2.0 SDK with its NOTICE)
 [ -d trademark ] && cp -r trademark dist/
 [ -f frames.min.js ] && cp frames.min.js dist/
@@ -56,13 +63,16 @@ cat > dist/_headers <<'H'
   Permissions-Policy: interest-cohort=()
 /frames.js
   ! Cache-Control
+  Cache-Control: public, max-age=300, stale-while-revalidate=3600
+/frames.src.js
+  ! Cache-Control
   Cache-Control: public, max-age=300
 /frames.min.js
   ! Cache-Control
   Cache-Control: public, max-age=300
 /frames/*
   ! Cache-Control
-  Cache-Control: public, max-age=300
+  Cache-Control: public, max-age=300, stale-while-revalidate=3600
 /media/*
   ! Cache-Control
   Cache-Control: public, max-age=86400

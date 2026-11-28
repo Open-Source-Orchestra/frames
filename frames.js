@@ -1,7 +1,7 @@
-/*! Open Source Orchestra Frames v0.1.12 · https://github.com/Open-Source-Orchestra/frames
+/*! Open Source Orchestra Frames v0.1.13 · https://github.com/Open-Source-Orchestra/frames
  *  SPDX-License-Identifier: AGPL-3.0-or-later · Copyright (C) 2026 Shaka Lei Kaumaka / Open Source Orchestra and the AI ʻohana
  *  AGPL §7(b): keep the credit "Built on Open Source Orchestra Frames by Open Source Orchestra: Shaka Lei Kaumaka & the AI ʻohana
- *  (https://opensourceorchestra.org)" visible in the frame. See NOTICE. Source of this exact file: https://github.com/Open-Source-Orchestra/frames */
+ *  (https://opensourceorchestra.org)" visible in the frame. See NOTICE. Source of this exact file: https://github.com/Open-Source-Orchestra/frames (the served /frames.js is a minified build of it; the readable file is /frames.src.js) */
 (function(){'use strict';
 // ── src/core.js ──
 /* Open Source Orchestra Frames · src/core.js
@@ -18,7 +18,7 @@
  */
 var FRAMES = (function (W) {
   'use strict';
-  var VERSION = '0.1.12';
+  var VERSION = '0.1.13';
   var MAJOR = VERSION.split('.')[0];
   if (W && W.OSOFrames && W.OSOFrames.__osof) {            // loaded twice: the first copy rules
     if (W.console) W.console.info('🎻 frames: already on this page; the second copy stays quiet.');
@@ -945,16 +945,41 @@ var FRAMES = (function (W) {
   }
   // BUTTON LAW (19 Nov 2026): a floating button never covers text. What sits under a square at (x,y,size)?
   // → the rect of a text block (> 20 characters) or of a small fixed/sticky control of the page; null when clear.
-  function ownTextLen(a) {                                       // characters in the element's OWN text nodes (any tag)
+  // PERF (mobile flow, 28 Nov 2026 — Shaka: "on mobil we have some slow UX … flow like water"): ONE probe pass (layout / scroll-stop /
+  // recheck) asks the SAME page elements the same questions hundreds of times (3×3 grid × rows × cols × every piece × every ancestor:
+  // ~1 300 hit-tests and ~260 k ancestor visits per pass). One WeakMap per pass answers each question once; the answers are identical
+  // (the pass is synchronous and the frame never mutates page elements), so the LAW decides exactly as before — it just asks less.
+  var PASS = null;
+  function passRun(fn) {
+    var top = !PASS;
+    if (top) PASS = { len: new WeakMap(), bub: new WeakMap(), sty: new WeakMap(), fix: new WeakMap(), itxt: new WeakMap() };
+    try { return fn(); } finally { if (top) PASS = null; }
+  }
+  function sty(a) {                                              // the four computed-style facts the probes read
+    var m = PASS && PASS.sty.get(a); if (m) return m;
+    var cs = W.getComputedStyle(a);
+    m = { visibility: cs.visibility, opacity: cs.opacity, position: cs.position, pointerEvents: cs.pointerEvents };
+    if (PASS) PASS.sty.set(a, m);
+    return m;
+  }
+  function innerLen(a) {                                          // normalised innerText length (memo)
+    var m = PASS && PASS.itxt.get(a); if (m !== undefined) return m;
+    m = (a.innerText || '').replace(/\s+/g, ' ').trim().length;
+    if (PASS) PASS.itxt.set(a, m);
+    return m;
+  }
+  function ownTextLen(a) {                                       // characters in the element's OWN text nodes (any tag); every caller compares with 2 → stop at 3
+    var m = PASS && PASS.len.get(a); if (m !== undefined) return m;
     var n = 0, c = a.childNodes;
-    for (var i = 0; i < c.length; i++) if (c[i].nodeType === 3) n += (c[i].nodeValue || '').replace(/\s+/g, ' ').trim().length;
+    for (var i = 0; i < c.length && n < 3; i++) if (c[i].nodeType === 3) n += (c[i].nodeValue || '').replace(/\s+/g, ' ').trim().length;
+    if (PASS) PASS.len.set(a, n);
     return n;
   }
   // ours = the frame itself and the ʻŌlelo host (#olelo). The LEGACY 🌐 corner (#olang) is page content: its label bar
   // ("every language — on a Planet We Share As One") is words the 🎻 must not sit on (blessingpool.com at 390px).
   function ours(a) { return (root && root.contains(a)) || a.id === 'olelo' || a.id === 'oso-frames'; }
-  function isBubble(a) { try { return !!(a.matches && a.matches('[class*="bubble"],[class*="caption"],[class*="speech"],[class*="balloon"],.cap,.kaaak,blockquote,figcaption,q,cite')); } catch (e) { return false; } }
-  function inFixed(a) { for (var f = a; f && f !== D.body && f !== D.documentElement; f = f.parentElement) { var p = W.getComputedStyle(f).position; if (p === 'fixed' || p === 'sticky') return true; } return false; }
+  function isBubble(a) { var m = PASS && PASS.bub.get(a); if (m !== undefined) return m; try { m = !!(a.matches && a.matches('[class*="bubble"],[class*="caption"],[class*="speech"],[class*="balloon"],.cap,.kaaak,blockquote,figcaption,q,cite')); } catch (e) { m = false; } if (PASS) PASS.bub.set(a, m); return m; }
+  function inFixed(a) { var m = PASS && PASS.fix.get(a); if (m !== undefined) return m; m = false; for (var f = a; f && f !== D.body && f !== D.documentElement; f = f.parentElement) { var p = sty(f).position; if (p === 'fixed' || p === 'sticky') { m = true; break; } } if (PASS) PASS.fix.set(a, m); return m; }
   function textUnder(x, y, size, textOnly) {
     if (!D.elementsFromPoint) return null;
     var vw = W.innerWidth, vh = W.innerHeight, pts = [], gx = [x + 2, x + size / 2, x + size - 2], gy = [y + 2, y + size / 2, y + size - 2];
@@ -967,10 +992,10 @@ var FRAMES = (function (W) {
         if (el === D.body || el === D.documentElement) continue;
         for (var a = el; a && a !== D.body && a !== D.documentElement; a = a.parentElement) {
           if (ours(a)) break;
-          var cs = W.getComputedStyle(a);
+          var cs = sty(a);
           if (cs.visibility === 'hidden' || +cs.opacity < 0.05) break;
           // v0.1.5: a speech bubble, a caption, a quote — words in a box of any tag (the comic's KAAAK bubble on /websitetour)
-          var tl = (TEXT_TAGS[a.tagName] || isBubble(a)) ? (a.innerText || '').replace(/\s+/g, ' ').trim().length : ownTextLen(a);
+          var tl = (TEXT_TAGS[a.tagName] || isBubble(a)) ? innerLen(a) : ownTextLen(a);
           if (tl > 2) {                                            // words are words: a 16-char link, a <div class=kick> kicker — any tag
             if (textOnly === 'flow' && inFixed(a)) break;          // 'flow': words of the page itself, not of its fixed widgets (those are cleared by the corner rules)
             var tr = a.getBoundingClientRect();
@@ -1007,7 +1032,7 @@ var FRAMES = (function (W) {
       for (var j = 0; j < els.length; j++) {
         var a = els[j];
         if (a === D.body || a === D.documentElement || ours(a) || seen.indexOf(a) >= 0) continue;
-        var f = a; while (f && f !== D.body && !ours(f)) { var cs = W.getComputedStyle(f); if (cs.position === 'fixed' || cs.position === 'sticky') break; f = f.parentElement; }
+        var f = a; while (f && f !== D.body && !ours(f)) { var cs = sty(f); if (cs.position === 'fixed' || cs.position === 'sticky') break; f = f.parentElement; }
         if (!f || f === D.body || ours(f)) continue;
         seen.push(a);
         var r = f.getBoundingClientRect(), cf = W.getComputedStyle(f);
@@ -1042,7 +1067,7 @@ var FRAMES = (function (W) {
         var el = els[j]; if (el === D.body || el === D.documentElement) continue;
         for (var a = el; a && a !== D.body && a !== D.documentElement; a = a.parentElement) {
           if (ours(a)) break;
-          var cs = W.getComputedStyle(a);
+          var cs = sty(a);
           if (cs.visibility === 'hidden' || +cs.opacity < 0.05 || cs.pointerEvents === 'none') break;
           if (cs.position === 'fixed' || cs.position === 'sticky') { var r = a.getBoundingClientRect(); if (r.width * r.height < vw * vh * 0.35) return true; break; }
         }
@@ -1101,7 +1126,8 @@ var FRAMES = (function (W) {
     return out;
   }
   // the probe: every piece on its anchor — blocked → fold in place; clear → unfold (unless the visitor folded it)
-  function probeAll(mobile) {
+  function probeAll(mobile) { return passRun(function () { return probeAll0(mobile); }); }
+  function probeAll0(mobile) {
     if (!root || state.off || state.asleep || !D.elementsFromPoint) return;
     recs.concat(moreRecs()).forEach(function (r) {
       if (!r.wrap || r.spot || !live(r) || r.wrap.hidden || r.wrap.hasAttribute('data-osof-hid')) return;
@@ -2035,7 +2061,7 @@ var FRAMES = (function (W) {
           if (tg && tg.nodeType === 1 && (tg === root || root.contains(tg) || tg.id === 'olelo')) continue;
           if (ms[i].type === 'attributes') { clearTimeout(mt); mt = setTimeout(recheck, 250); return; }
           var nodes = [].slice.call(ms[i].addedNodes).concat([].slice.call(ms[i].removedNodes));
-          if (nodes.some(function (n) { return n !== root && n.nodeType === 1 && n.tagName !== 'SCRIPT' && n.tagName !== 'STYLE' && !root.contains(n); })) { clearTimeout(mt); mt = setTimeout(recheck, 150); return; }
+          if (nodes.some(function (n) { return n !== root && n.nodeType === 1 && n.tagName !== 'SCRIPT' && n.tagName !== 'STYLE' && !(n.classList && n.classList.contains('onote')) && !(n.hasAttribute && n.hasAttribute('data-osof-ignore')) && !root.contains(n); })) { clearTimeout(mt); mt = setTimeout(recheck, 150); return; }   // v0.1.13: a page's floating ♪ notes (.onote) or any node marked data-osof-ignore is decoration, not "the page changed" — it no longer wakes a full probe every 1.5 s
         }
       });
       mo.observe(D.body, { childList: true, subtree: true, attributes: true, attributeFilter: ['class', 'style', 'hidden'] });
@@ -3976,7 +4002,7 @@ FRAMES.define('signature', function (ctx, item) {
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 (function () {
-  var FACILITATOR = 'https://facilitator.payai.network';
+  var FACILITATOR = 'https://gift-rail.opensourceorchestra.org/base';    // the gift rail's Base lane (CORS-enabled; pins payee/asset/amount). PayAI itself is server-to-server: browsers get 404 + no CORS → "Load failed" on Safari (28 Nov 2026)
   var USDC = '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913';
   var PAYTO = '0x25965899f4600b3AA5362ee4f34be95E5E62c934';
   var BASE_CHAIN = 8453;
@@ -4067,20 +4093,24 @@ FRAMES.define('signature', function (ctx, item) {
           sayT(w === 'connect' ? '🦊 connecting ' + ((info && info.name) || 'your wallet') + '…' : w === 'switch' ? '🌉 switching to Base…' : '✍️ sign the aloha (EIP-3009 — gas-free for you)…'); } });
         var payload = { x402Version: 1, scheme: 'exact', network: 'base', payload: { signature: A.signature, authorization: A.authorization } };
         var req = { scheme: 'exact', network: 'base', maxAmountRequired: A.authorization.value, resource: RESOURCE, description: 'pennies of aloha 🤙 — every drop keeps a door open', mimeType: 'application/json', payTo: PAYTO, maxTimeoutSeconds: 300, asset: USDC, extra: { name: 'USD Coin', version: '2' } };
-        sayT('🌊 verifying with the facilitator…');
-        var vr = await fetch(FACILITATOR + '/verify', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ x402Version: 1, paymentPayload: payload, paymentRequirements: req }) });
-        var vj = await vr.json();
-        if (!vj.isValid) { sayT('⚠️ the facilitator did not bless it: ' + (vj.invalidReason || 'unknown') + ' — nothing left your wallet'); return; }
+        var body = { x402Version: 1, paymentPayload: payload, paymentRequirements: req };
+        sayT('🌊 verifying with the gift rail…');
+        var V = await owh.post(FACILITATOR, '/verify', body);
+        if (V.net) { sayT(owh.NET); ui.fallback(); return; }
+        var vj = V.json;
+        if (!vj.isValid) { var vc = vj.invalidReason || vj.invalidMessage || ''; sayT('⚠️ ' + owh.why(vc) + ' — nothing left your wallet'); if (owh.rest(vc)) ui.fallback(); return; }
         sayT('🌊 settling on Base… (seconds)');
-        var sr = await fetch(FACILITATOR + '/settle', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ x402Version: 1, paymentPayload: payload, paymentRequirements: req }) });
-        var sj = await sr.json();
+        var S = await owh.post(FACILITATOR, '/settle', body);
+        if (S.net) { sayT(owh.NETSETTLE); ui.fallback(); return; }
+        var sj = S.json;
         if (sj.success) {
           // PAʻA finding SITE-2 (28 Nov 2026): the facilitator's `transaction` is NETWORK DATA — only a 64-hex hash may reach markup
           var txh = owh.txOf(sj.transaction);
           say('🌊🤙 <b>ALOHA RECEIVED.</b> mahalo nui!' + (txh ? ('<br>✦ recorded on-chain: <a href="https://basescan.org/tx/' + txh + '" target="_blank" rel="noopener">' + txh.slice(0, 14) + '…' + txh.slice(-8) + '</a> ✦') : ''));
           ctx.emit('gift:sent', { tx: txh, amount: amt });
         } else {
-          sayT('⚠️ settlement hiccup: ' + (sj.error || sj.errorReason || 'unknown') + ' — nothing left your wallet without success');
+          var sc = sj.errorReason || sj.errorMessage || sj.error || '';
+          sayT(/settlement_pending/.test(sc) ? owh.why(sc) : '⚠️ ' + owh.why(sc) + ' — nothing left your wallet without success'); if (owh.rest(sc)) ui.fallback();
         }
       } catch (e) {
         if (e && e.code === 4001) { sayT('🦊 declined for now — the aloha waits patiently 🌺'); }
@@ -4095,7 +4125,7 @@ FRAMES.define('signature', function (ctx, item) {
       mounting = true; slot.textContent = '…';
       loadOWH(ctx).then(function (O) {
         owh = O;
-        ui = O.connect({ surface: 'frames', usdc: USDC, payTo: PAYTO, chain: BASE_CHAIN, usd: function () { return amt; }, send: sendWith, t: t });
+        ui = O.connect({ surface: 'frames', usdc: USDC, payTo: PAYTO, payToName: 'osoartist.eth', chain: BASE_CHAIN, usd: function () { return amt; }, send: sendWith, t: t });
         slot.textContent = ''; slot.appendChild(ui.el);
         mounting = false; ui.refresh();
         if (pend) { var p = pend; pend = null; setAmt(p.usd); ui.autostart(p); }

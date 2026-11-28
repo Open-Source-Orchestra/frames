@@ -28,7 +28,7 @@ if (!VERSION) { console.error('✗ cannot find VERSION in src/core.js'); process
 const BANNER = `/*! Open Source Orchestra Frames v${VERSION} · https://github.com/Open-Source-Orchestra/frames
  *  SPDX-License-Identifier: AGPL-3.0-or-later · Copyright (C) 2026 Shaka Lei Kaumaka / Open Source Orchestra and the AI ʻohana
  *  AGPL §7(b): keep the credit "Built on Open Source Orchestra Frames by Open Source Orchestra: Shaka Lei Kaumaka & the AI ʻohana
- *  (https://opensourceorchestra.org)" visible in the frame. See NOTICE. Source of this exact file: https://github.com/Open-Source-Orchestra/frames */
+ *  (https://opensourceorchestra.org)" visible in the frame. See NOTICE. Source of this exact file: https://github.com/Open-Source-Orchestra/frames (the served /frames.js is a minified build of it; the readable file is /frames.src.js) */
 `;
 
 const pieces = ORDER.map((k) => ({ k, p: `src/pieces/${k}.js` })).filter((x) => existsSync(join(ROOT, x.p)));
@@ -71,7 +71,7 @@ if (CHECK_ONLY) {
 // Built from the readable src/lib/owh.js; it sets window.OWH only if absent (idempotent beside an inlined copy) and carries no dependency.
 const owhSrc = existsSync(join(ROOT, 'src/lib/owh.js')) ? read('src/lib/owh.js') : '';
 if (owhSrc) {
-  const OWH_VERSION = (/version: '([0-9.]+)'/.exec(owhSrc) || [])[1] || '?';
+  const OWH_VERSION = (/return \{ version: '([0-9.]+)'/.exec(owhSrc) || [])[1] || '?';
   const owhBundle = `/*! owh · ʻohana wallet connect v${OWH_VERSION} · standalone lazy module of Open Source Orchestra Frames v${VERSION}\n *  SPDX-License-Identifier: GPL-3.0-or-later · Built by Open Source Orchestra: Shaka Lei Kaumaka & the AI ʻohana (https://opensourceorchestra.org)\n *  Source of this exact file: https://github.com/Open-Source-Orchestra/frames → src/lib/owh.js (sets window.OWH only if absent) */\n` +
     "(function(){'use strict';if(window.OWH)return;\n" + owhSrc.trim() + "\nwindow.OWH=OWH;})();\n";
   const tmp2 = mkdtempSync(join(tmpdir(), 'osof-'));
@@ -158,7 +158,9 @@ for (const p of doorFiles) {
   gallery.push({ host, file: p.replace(/^frames\/doors\//, ''), id: merged ? merged.id : d.id, name: merged ? merged.name : d.name, emoji: (merged && merged.emoji) || d.emoji || '🎻', accent: (merged && merged.accent) || '', extends: d.extends, items, doors, signature: merged ? merged.slots.overlay.some((it) => it.kind === 'signature') : false, url: 'https://' + host + '/' });
 }
 // gate 2c · v0.1.12 — every dataset's Blessing Pool door must carry "gift": true (frames/oso.json lacked it from v0.1.7 to v0.1.11: the flagship's 🌊 never opened the card)
-for (const p of dsFiles) { const d = loadJSON(p); if (!d) continue; for (const [slot, items] of Object.entries(d.slots || {})) for (const it of (Array.isArray(items) ? items : [])) if (it && it.kind === 'door' && /^https:\/\/blessingpool\.com\/?$/.test(it.href || '') && it.gift !== true) { dsBad++; fail(`${p} → ${slot}: the Blessing Pool door must carry "gift": true (the 🌊 opens the pennies-of-aloha card)`); } }
+// the flagship (frames/oso.json) is EXEMPT on purpose: SPEC §10 "No fundraising magnets on opensourceorchestra.org" — its 🌊 stays a plain link to the pool page until Shaka says yes (28 Nov 2026)
+const GIFT_EXEMPT = new Set(['frames/oso.json']);
+for (const p of dsFiles) { if (GIFT_EXEMPT.has(p)) continue; const d = loadJSON(p); if (!d) continue; for (const [slot, items] of Object.entries(d.slots || {})) for (const it of (Array.isArray(items) ? items : [])) if (it && it.kind === 'door' && /^https:\/\/blessingpool\.com\/?$/.test(it.href || '') && it.gift !== true) { dsBad++; fail(`${p} → ${slot}: the Blessing Pool door must carry "gift": true (the 🌊 opens the pennies-of-aloha card)`); } }
 if (!dsBad) ok(`${dsFiles.length} dataset(s) + ${doorFiles.length} door frame(s) validate against schema/frame-0.1.json (door frames also merged)`);
 if (doorFiles.length) {
   gallery.sort((a, b) => a.host.localeCompare(b.host));

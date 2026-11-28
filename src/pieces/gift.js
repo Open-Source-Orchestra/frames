@@ -22,7 +22,7 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 (function () {
-  var FACILITATOR = 'https://facilitator.payai.network';
+  var FACILITATOR = 'https://gift-rail.opensourceorchestra.org/base';    // the gift rail's Base lane (CORS-enabled; pins payee/asset/amount). PayAI itself is server-to-server: browsers get 404 + no CORS → "Load failed" on Safari (28 Nov 2026)
   var USDC = '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913';
   var PAYTO = '0x25965899f4600b3AA5362ee4f34be95E5E62c934';
   var BASE_CHAIN = 8453;
@@ -113,20 +113,24 @@
           sayT(w === 'connect' ? '🦊 connecting ' + ((info && info.name) || 'your wallet') + '…' : w === 'switch' ? '🌉 switching to Base…' : '✍️ sign the aloha (EIP-3009 — gas-free for you)…'); } });
         var payload = { x402Version: 1, scheme: 'exact', network: 'base', payload: { signature: A.signature, authorization: A.authorization } };
         var req = { scheme: 'exact', network: 'base', maxAmountRequired: A.authorization.value, resource: RESOURCE, description: 'pennies of aloha 🤙 — every drop keeps a door open', mimeType: 'application/json', payTo: PAYTO, maxTimeoutSeconds: 300, asset: USDC, extra: { name: 'USD Coin', version: '2' } };
-        sayT('🌊 verifying with the facilitator…');
-        var vr = await fetch(FACILITATOR + '/verify', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ x402Version: 1, paymentPayload: payload, paymentRequirements: req }) });
-        var vj = await vr.json();
-        if (!vj.isValid) { sayT('⚠️ the facilitator did not bless it: ' + (vj.invalidReason || 'unknown') + ' — nothing left your wallet'); return; }
+        var body = { x402Version: 1, paymentPayload: payload, paymentRequirements: req };
+        sayT('🌊 verifying with the gift rail…');
+        var V = await owh.post(FACILITATOR, '/verify', body);
+        if (V.net) { sayT(owh.NET); ui.fallback(); return; }
+        var vj = V.json;
+        if (!vj.isValid) { var vc = vj.invalidReason || vj.invalidMessage || ''; sayT('⚠️ ' + owh.why(vc) + ' — nothing left your wallet'); if (owh.rest(vc)) ui.fallback(); return; }
         sayT('🌊 settling on Base… (seconds)');
-        var sr = await fetch(FACILITATOR + '/settle', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ x402Version: 1, paymentPayload: payload, paymentRequirements: req }) });
-        var sj = await sr.json();
+        var S = await owh.post(FACILITATOR, '/settle', body);
+        if (S.net) { sayT(owh.NETSETTLE); ui.fallback(); return; }
+        var sj = S.json;
         if (sj.success) {
           // PAʻA finding SITE-2 (28 Nov 2026): the facilitator's `transaction` is NETWORK DATA — only a 64-hex hash may reach markup
           var txh = owh.txOf(sj.transaction);
           say('🌊🤙 <b>ALOHA RECEIVED.</b> mahalo nui!' + (txh ? ('<br>✦ recorded on-chain: <a href="https://basescan.org/tx/' + txh + '" target="_blank" rel="noopener">' + txh.slice(0, 14) + '…' + txh.slice(-8) + '</a> ✦') : ''));
           ctx.emit('gift:sent', { tx: txh, amount: amt });
         } else {
-          sayT('⚠️ settlement hiccup: ' + (sj.error || sj.errorReason || 'unknown') + ' — nothing left your wallet without success');
+          var sc = sj.errorReason || sj.errorMessage || sj.error || '';
+          sayT(/settlement_pending/.test(sc) ? owh.why(sc) : '⚠️ ' + owh.why(sc) + ' — nothing left your wallet without success'); if (owh.rest(sc)) ui.fallback();
         }
       } catch (e) {
         if (e && e.code === 4001) { sayT('🦊 declined for now — the aloha waits patiently 🌺'); }
@@ -141,7 +145,7 @@
       mounting = true; slot.textContent = '…';
       loadOWH(ctx).then(function (O) {
         owh = O;
-        ui = O.connect({ surface: 'frames', usdc: USDC, payTo: PAYTO, chain: BASE_CHAIN, usd: function () { return amt; }, send: sendWith, t: t });
+        ui = O.connect({ surface: 'frames', usdc: USDC, payTo: PAYTO, payToName: 'osoartist.eth', chain: BASE_CHAIN, usd: function () { return amt; }, send: sendWith, t: t });
         slot.textContent = ''; slot.appendChild(ui.el);
         mounting = false; ui.refresh();
         if (pend) { var p = pend; pend = null; setAmt(p.usd); ui.autostart(p); }
