@@ -67,6 +67,26 @@ if (CHECK_ONLY) {
   ok('wrote frames.js');
 }
 
+// gate 2a · lib/owh.js — the ʻohana wallet connect picker as a standalone LAZY module (fetched by the 🌊 card on the first intent, never on page load).
+// Built from the readable src/lib/owh.js; it sets window.OWH only if absent (idempotent beside an inlined copy) and carries no dependency.
+const owhSrc = existsSync(join(ROOT, 'src/lib/owh.js')) ? read('src/lib/owh.js') : '';
+if (owhSrc) {
+  const OWH_VERSION = (/version: '([0-9.]+)'/.exec(owhSrc) || [])[1] || '?';
+  const owhBundle = `/*! owh · ʻohana wallet connect v${OWH_VERSION} · standalone lazy module of Open Source Orchestra Frames v${VERSION}\n *  SPDX-License-Identifier: GPL-3.0-or-later · Built by Open Source Orchestra: Shaka Lei Kaumaka & the AI ʻohana (https://opensourceorchestra.org)\n *  Source of this exact file: https://github.com/Open-Source-Orchestra/frames → src/lib/owh.js (sets window.OWH only if absent) */\n` +
+    "(function(){'use strict';if(window.OWH)return;\n" + owhSrc.trim() + "\nwindow.OWH=OWH;})();\n";
+  const tmp2 = mkdtempSync(join(tmpdir(), 'osof-'));
+  const f2 = join(tmp2, 'owh.js'); writeFileSync(f2, owhBundle);
+  syntax('lib/owh.js (bundle, strict mode)', f2); rmSync(tmp2, { recursive: true, force: true });
+  if (CHECK_ONLY) {
+    const disk = existsSync(join(ROOT, 'lib/owh.js')) ? read('lib/owh.js') : '';
+    if (disk === owhBundle) ok('lib/owh.js is up to date with src/lib/owh.js'); else fail('lib/owh.js is stale or missing — run: node build.mjs');
+  } else if (!failed) { writeFileSync(join(ROOT, 'lib/owh.js'), owhBundle); ok('wrote lib/owh.js'); }
+  // the vendored lazy files must exist (the card and the sign-up row fetch them from our own origin, never a third party)
+  for (const f of ['lib/owh-qr.min.js', 'lib/owh-signup.min.js', 'lib/base-account-2.6.0.min.js', 'lib/base-account-2.6.0.min.js.NOTICE.txt', 'LICENSES/Apache-2.0.txt']) {
+    if (existsSync(join(ROOT, f))) ok(`present ${f}`); else fail(`missing ${f}`);
+  }
+}
+
 // gate 2b · every dataset validates against schema/frame-0.1.json (a small built-in validator: the subset the schema uses),
 // door frames (frames/doors/<host>.json) are also merged onto their parent with the SAME code the browser runs
 // (src/core.js → FRAMES._.mergeFrame) and the merged frame validates too. frames/doors/index.json (the gallery) is rebuilt.

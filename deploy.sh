@@ -41,6 +41,7 @@ node build.mjs --check || { echo "✗ build/syntax gate failed"; exit 1; }
 rm -rf dist && mkdir -p dist
 cp -r frames.js frames schema media index.html llms.txt LICENSE NOTICE LICENSES dist/ 2>/dev/null
 [ -d builder ] && cp -r builder dist/
+[ -d lib ] && cp -r lib dist/          # v0.1.12: the lazy wallet connect module + QR + sign-up hook (+ the vendored Apache-2.0 SDK with its NOTICE)
 [ -d trademark ] && cp -r trademark dist/
 [ -f frames.min.js ] && cp frames.min.js dist/
 [ -f 404.html ] && cp 404.html dist/
@@ -65,6 +66,20 @@ cat > dist/_headers <<'H'
 /media/*
   ! Cache-Control
   Cache-Control: public, max-age=86400
+/lib/owh.js
+  ! Cache-Control
+  Cache-Control: public, max-age=300
+/lib/owh-signup.min.js
+  ! Cache-Control
+  Cache-Control: public, max-age=300
+/lib/owh-qr.min.js
+  ! Cache-Control
+  Cache-Control: public, max-age=86400
+/lib/base-account-2.6.0.min.js
+  ! Cache-Control
+  Cache-Control: public, max-age=31536000, immutable
+/lib/*.txt
+  Content-Type: text/plain; charset=utf-8
 /*.md
   Content-Type: text/markdown; charset=utf-8
 /LICENSE

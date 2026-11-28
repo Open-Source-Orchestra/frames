@@ -117,7 +117,7 @@ const errsOf = (p) => { const e = []; p.on('pageerror', (x) => e.push('PE:' + St
   ok(r.id === 'pit-protocol', `data-door=auto on publicinform.com → id ${r.id}`);
   ok(r.accent === '#7fe0ff', `accent applied (${r.accent})`);
   ok(r.first === 'home' && r.pitGone && r.n >= 10, `slot ops: prepend + remove (left: ${r.n} items, first ${r.first})`);
-  ok(r.version === '0.1.11' && r.gear, `v${r.version} with the ⚙ gear in the credit mark`);
+  ok(r.version === '0.1.12' && r.gear, `v${r.version} with the ⚙ gear in the credit mark`);
   ok(!errs.length, 'no console/page errors' + (errs.length ? ' → ' + errs.join(' | ') : ''));
   await ctx.close();
 }
@@ -498,17 +498,21 @@ const AUDIO_STUB = `window.__audioLog = []; window.Audio = class { constructor()
   ok(!errs2.length, '📱 no errors' + (errs2.length ? ' → ' + errs2.join(' | ') : ''));
   await ctx2.close();
 }
-// 11 · v0.1.7 PENNIES OF ALOHA — the 🌊 Blessing Pool (gift:true) opens the x402 card instead of navigating;
-// the card pays through a fake wallet + fail-closed mocked facilitator; the legacy #x4-wrap pill is absorbed.
+// 11 · v0.1.7 PENNIES OF ALOHA — the 🌊 Blessing Pool (gift:true) opens the x402 card instead of navigating; v0.1.12 the card mounts
+// the ʻohana wallet connect picker (lib/owh.js, lazy). The wallet below is a fake EIP-1193 provider that signs by itself (no ethers):
+// the card pays through it + a fail-closed mocked facilitator; the legacy #x4-wrap pill is absorbed.
 {
   const WALLET = `
-    window.ethereum = { request: async ({ method }) => (method === 'eth_requestAccounts' ? ['0x1111111111111111111111111111111111111111'] : null) };
-    window.ethers = {
-      BrowserProvider: class { async send() { return []; } async getNetwork() { return { chainId: 8453n }; }
-        async getSigner() { return { getAddress: async () => '0x1111111111111111111111111111111111111111', signTypedData: async () => '0x' + 'ab'.repeat(65) }; } },
-      hexlify: (b) => '0x' + Array.from(b).map((x) => x.toString(16).padStart(2, '0')).join(''), randomBytes: (n) => new Uint8Array(n) };
+    window.__rpc = [];
+    window.ethereum = { isMetaMask: true, request: async ({ method, params }) => {
+      window.__rpc.push(method + (method === 'eth_signTypedData_v4' ? ':' + JSON.parse(params[1]).message.value + ':' + JSON.parse(params[1]).message.to : ''));
+      if (method === 'eth_requestAccounts') return ['0x1111111111111111111111111111111111111111'];
+      if (method === 'eth_chainId') return '0x2105';
+      if (method === 'eth_signTypedData_v4') return '0x' + 'ab'.repeat(65);
+      return null; } };
     window.__giftSent = []; document.addEventListener('osoframes:gift:sent', (e) => window.__giftSent.push(e.detail));`;
   const ctx = await ctxFor('nobody.example', { width: 1280, height: 800 });
+  const libHits = []; ctx.on('request', (r) => { if (/\/lib\//.test(r.url())) libHits.push(new URL(r.url()).pathname); });
   // fail-closed: the facilitator is mocked; registered AFTER ctxFor's catch-all so it wins for these URLs only
   await ctx.route('https://facilitator.payai.network/**', (route) => {
     const u = route.request().url();
@@ -520,20 +524,26 @@ const AUDIO_STUB = `window.__audioLog = []; window.Audio = class { constructor()
   const p = await ctx.newPage(); const errs = errsOf(p);
   await p.goto('http://nobody.example/narrow.html', { waitUntil: 'load' });
   await p.waitForSelector('#oso-frames[data-osof-ready]', { state: 'attached' }); await p.waitForTimeout(1200);
+  ok(libHits.length === 0, 'v0.1.12 PAGE-LOAD COST: nothing under /lib/ is fetched until the visitor shows intent' + (libHits.length ? ' → ' + libHits.join(',') : ''));
   const bp = '#oso-frames [data-slot=top-right] a[href="https://blessingpool.com/"]';
   ok(await p.evaluate((s) => { const a = document.querySelector(s); return !!a && a.getAttribute('aria-haspopup') === 'dialog'; }, bp), '🌊 Blessing Pool pinned top-right, href kept (SEO/no-JS), aria-haspopup=dialog');
+  await p.hover(bp); await p.waitForTimeout(500);
+  ok(libHits.includes('/lib/owh.js'), 'v0.1.12 first INTENT (hover/touch/focus on the 🌊) fetches the wallet picker module — the tap then feels instant');
   const urlBefore = p.url();
-  await p.click(bp); await p.waitForTimeout(400);
+  await p.click(bp); await p.waitForTimeout(500);
   const card = await p.evaluate(() => { const d = document.querySelector('#oso-frames .osof-dlg[id*="gift"]'); if (!d || d.hidden) return null; return { role: d.getAttribute('role'), modal: d.getAttribute('aria-modal'), title: (d.querySelector('.osof-dlg-title') || {}).textContent || '' }; });
   ok(!!card && card.role === 'dialog' && card.modal === 'true' && /pennies of aloha/.test(card.title), 'a tap opens the pennies-of-aloha card (modal dialog), no navigation' + (card ? '' : ' (card not found)'));
   ok(p.url() === urlBefore, 'the tap did NOT navigate away');
   ok(await p.evaluate(() => { const r = document.querySelector('#oso-frames .osof-gift-rails'); return !!r && /Stripe/.test(r.textContent) && /PayPal/.test(r.textContent) && /Venmo/.test(r.textContent) && /x402/.test(r.textContent) && !!r.querySelector('a[href^="https://blessingpool.com"]'); }), 'the card carries the rails: pool page + Stripe · PayPal · Venmo + the x402 agent instructions');
+  ok(await p.evaluate(() => { const g = document.querySelector('#oso-frames .owh-go'); return !!g && !g.hidden && /send USDC with MetaMask/.test(g.textContent); }), 'v0.1.12 a detected wallet → ONE big button "send USDC with MetaMask" (2 taps from the 🌊 to the wallet prompt)');
   await p.click('#oso-frames .osof-gift-amt[data-v="0.10"]');
-  await p.click('#oso-frames .osof-gift-send');
+  await p.click('#oso-frames .owh-go');
   await p.waitForFunction(() => /ALOHA RECEIVED/.test((document.querySelector('#oso-frames .osof-gift-st') || {}).innerHTML || ''), { timeout: 8000 });
-  ok(true, 'gift flow settles through the mocked facilitator (EIP-3009 → PayAI verify+settle)');
+  ok(true, 'gift flow settles through the mocked facilitator (the WALLET signs EIP-3009 itself → PayAI verify+settle)');
   ok(await p.evaluate(() => !!document.querySelector('#oso-frames .osof-gift-st a[href*="basescan.org/tx/0xcdcd"]')), 'on-chain receipt link shown');
   ok(await p.evaluate(() => window.__giftSent.length === 1 && window.__giftSent[0].amount === 0.1), 'gift:sent event emitted with the amount');
+  ok(await p.evaluate(() => window.__rpc.filter((x) => x.startsWith('eth_signTypedData_v4')).join() === 'eth_signTypedData_v4:100000:0x25965899f4600b3AA5362ee4f34be95E5E62c934'), 'the wallet was asked to sign exactly 100000 USDC units (10¢) to the ʻohana wallet');
+  ok(await p.evaluate(() => !window.ethers), 'v0.1.12 no ethers.js, no cdnjs — the signing library is gone');
   await p.keyboard.press('Escape'); await p.waitForTimeout(250);
   ok(await p.evaluate(() => { const d = document.querySelector('#oso-frames .osof-dlg[id*="gift"]'); return d && d.hidden; }), 'Esc closes the card');
   // ABSORB: a legacy #x4-wrap on the page is hidden while the frame is on
@@ -565,11 +575,7 @@ const AUDIO_STUB = `window.__audioLog = []; window.Audio = class { constructor()
 // 11b · PAʻA SITE-2 (28 Nov 2026): the facilitator's reply is NETWORK DATA — a hostile `transaction` must never become markup or an event payload
 {
   const WALLET = `
-    window.ethereum = { request: async ({ method }) => (method === 'eth_requestAccounts' ? ['0x1111111111111111111111111111111111111111'] : null) };
-    window.ethers = {
-      BrowserProvider: class { async send() { return []; } async getNetwork() { return { chainId: 8453n }; }
-        async getSigner() { return { getAddress: async () => '0x1111111111111111111111111111111111111111', signTypedData: async () => '0x' + 'ab'.repeat(65) }; } },
-      hexlify: (b) => '0x' + Array.from(b).map((x) => x.toString(16).padStart(2, '0')).join(''), randomBytes: (n) => new Uint8Array(n) };
+    window.ethereum = { isMetaMask: true, request: async ({ method }) => (method === 'eth_chainId' ? '0x2105' : method === 'eth_signTypedData_v4' ? '0x' + 'ab'.repeat(65) : ['0x1111111111111111111111111111111111111111']) };
     window.__giftSent = []; document.addEventListener('osoframes:gift:sent', (e) => window.__giftSent.push(e.detail));`;
   const HOSTILE = '0x"><img src=x onerror="window.__xss=1"><a href="javascript:window.__xss=2">x</a>';
   for (const [label, tx] of [['hostile markup', HOSTILE], ['not a hash (short hex)', '0xabc'], ['not a string', 12345]]) {
@@ -584,9 +590,9 @@ const AUDIO_STUB = `window.__audioLog = []; window.Audio = class { constructor()
     const p = await ctx.newPage(); const errs = errsOf(p);
     await p.goto('http://nobody.example/narrow.html', { waitUntil: 'load' });
     await p.waitForSelector('#oso-frames[data-osof-ready]', { state: 'attached' }); await p.waitForTimeout(1000);
-    await p.click('#oso-frames [data-slot=top-right] a[href="https://blessingpool.com/"]'); await p.waitForTimeout(400);
+    await p.click('#oso-frames [data-slot=top-right] a[href="https://blessingpool.com/"]'); await p.waitForTimeout(600);
     await p.click('#oso-frames .osof-gift-amt[data-v="0.10"]');
-    await p.click('#oso-frames .osof-gift-send');
+    await p.click('#oso-frames .owh-go');
     await p.waitForFunction(() => /ALOHA RECEIVED/.test((document.querySelector('#oso-frames .osof-gift-st') || {}).textContent || ''), { timeout: 8000 });
     await p.waitForTimeout(300);
     const r = await p.evaluate(() => { const st = document.querySelector('#oso-frames .osof-gift-st'); return { imgs: st.querySelectorAll('img,script,iframe,svg').length, links: Array.from(st.querySelectorAll('a')).map((a) => a.getAttribute('href')), xss: window.__xss || 0, sent: window.__giftSent.map((e) => e.tx) }; });
@@ -595,6 +601,72 @@ const AUDIO_STUB = `window.__audioLog = []; window.Audio = class { constructor()
     { const e2 = errs.filter((e) => !/ERR_FAILED|net::|ERR_ABORTED/.test(e)); ok(!e2.length, '11b ' + label + ': no console/page errors' + (e2.length ? ' → ' + e2.slice(0, 3).join(' | ') : '')); }
     await ctx.close();
   }
+}
+
+// 11c · v0.1.12 THE PHONE (Shaka, 28 Nov 2026, on his phone: "pressing the wallet button on the x402 gift rail doesn't work"):
+// no wallet in the browser → NO dead end: the picker opens the wallet APP by universal link; the page comes back inside the wallet and starts.
+{
+  const IPHONE = 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.5 Mobile/15E148 Safari/604.1';
+  const ctx = await b.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true, userAgent: IPHONE });
+  const navs = [];
+  await ctx.route('**/*', (route) => {
+    const u = new URL(route.request().url());
+    if (u.hostname === 'nobody.example' || u.hostname === '127.0.0.1') return route.continue({ url: `http://127.0.0.1:${srv.port}${u.pathname}${u.search}` });
+    if (/^(link\.metamask\.io|go\.cb-w\.com|phantom\.(app|com)|link\.trustwallet\.com)$/.test(u.hostname)) { navs.push(u.href); return route.fulfill({ body: '<h1>wallet landing</h1>', contentType: 'text/html' }); }
+    if (/lang\.opensourceorchestra\.org/.test(u.hostname)) return route.fulfill({ status: 200, contentType: 'text/javascript', body: '/* lang.js stub */' });
+    return route.abort();
+  });
+  const p = await ctx.newPage(); const errs = errsOf(p);
+  await p.goto('http://nobody.example/narrow.html', { waitUntil: 'load' });
+  await p.waitForSelector('#oso-frames[data-osof-ready]', { state: 'attached' }); await p.waitForTimeout(1200);
+  // on a phone the rail folds into the 🎻 sheet: the Blessing Pool tile is the door (same as test 11's phone block)
+  await p.tap('#oso-frames .osof-sheetbtn'); await p.waitForTimeout(400);
+  for (let i = 0; i < 3 && !(await p.evaluate(() => !!document.querySelector('#osof-dlg-sheet:not([hidden])'))); i++) { await p.tap('#oso-frames .osof-sheetbtn'); await p.waitForTimeout(400); }
+  await p.tap('#osof-dlg-sheet a[href="https://blessingpool.com/"]'); await p.waitForTimeout(1200);
+  const txt = await p.evaluate(() => (document.querySelector('#osof-dlg-gift') || {}).innerText || '');
+  ok(!/no wallet (found|detected)/i.test(txt) && /MetaMask/.test(txt) && /Coinbase Wallet/.test(txt) && /Phantom/.test(txt) && /Trust Wallet/.test(txt) && /another wallet/.test(txt), '📱 no wallet in the browser → NO dead end: MetaMask · Coinbase Wallet · Phantom · Trust Wallet · another wallet' + (txt ? '' : ' (card empty)'));
+  ok(await p.evaluate(() => { const d = document.querySelector('#osof-dlg-gift .osof-dlg-box, #osof-dlg-gift'); const r = d.getBoundingClientRect(); return r.left >= 0 && r.right <= innerWidth + 0.5 && document.documentElement.scrollWidth <= innerWidth + 1; }), '📱 the card fits the 390 px screen (no sideways scroll)');
+  await p.tap('#oso-frames .osof-gift-amt[data-v="1"]'); await p.waitForTimeout(200);
+  const href = await p.locator('#osof-dlg-gift .owh-grid a[data-w=eip681]').getAttribute('href');
+  ok(/uint256=1000000$/.test(href || ''), '📱 picking $1 rewrites every wallet link (1000000 USDC units)');
+  const req = p.waitForRequest((r) => r.url().startsWith('https://link.metamask.io/dapp/'), { timeout: 5000 }).catch(() => null);
+  await p.tap('#osof-dlg-gift .owh-grid a[data-w=metamask]');
+  const rq = await req;
+  ok(!!rq && /osogift=frames%3A1%3A%3Ago/.test(rq.url()) && /nobody\.example\/narrow\.html/.test(rq.url()), '📱 tap MetaMask → universal link carrying THIS page + ?osogift=frames:1 (the way back)' + (rq ? '' : ' (no navigation)'));
+  { const e2 = errs.filter((e) => !/ERR_FAILED|net::|ERR_ABORTED/.test(e)); ok(!e2.length, '📱 no console/page errors' + (e2.length ? ' → ' + e2.slice(0, 3).join(' | ') : '')); }
+  await ctx.close();
+}
+// 11d · the way back: opened INSIDE a wallet by our own link → the card opens by itself, amount kept, the wallet is asked ONCE; $50 never auto-starts
+{
+  const WALLET_LATE = `window.__rpc = []; setTimeout(function(){ window.ethereum = { isMetaMask: true, request: async ({ method, params }) => { window.__rpc.push(method + (method === 'eth_signTypedData_v4' ? ':' + JSON.parse(params[1]).message.value : '')); if (method === 'eth_chainId') return '0x2105'; if (method === 'eth_signTypedData_v4') return '0x' + 'ab'.repeat(65); return ['0x1111111111111111111111111111111111111111']; } }; }, 500);`;
+  const mk = async (q) => {
+    const ctx = await ctxFor('nobody.example', { width: 390, height: 844 }, true);
+    await ctx.route('https://facilitator.payai.network/**', (route) => { const u = route.request().url(); if (u.endsWith('/verify')) return route.fulfill({ json: { isValid: true } }); if (u.endsWith('/settle')) return route.fulfill({ json: { success: true, transaction: '0x' + 'ef'.repeat(32) } }); return route.abort(); });
+    await ctx.addInitScript(WALLET_LATE);
+    const p = await ctx.newPage(); const errs = errsOf(p);
+    await p.goto('http://nobody.example/narrow.html' + q, { waitUntil: 'load' });
+    return { ctx, p, errs };
+  };
+  let r = await mk('?osogift=frames:0.1::go&keep=1');
+  await r.p.waitForFunction(() => /ALOHA RECEIVED/.test((document.querySelector('#oso-frames .osof-gift-st') || {}).textContent || ''), { timeout: 14000 });
+  ok(await r.p.evaluate(() => document.querySelector('#oso-frames .osof-gift-amt[aria-pressed="true"]').dataset.v === '0.10' && window.__rpc.filter((x) => x.startsWith('eth_signTypedData_v4')).join() === 'eth_signTypedData_v4:100000'), '🔙 way back: the card opened itself, 10¢ selected, the wallet asked ONCE for 100000 units, settled');
+  ok(await r.p.evaluate(() => location.search === '?keep=1'), '🔙 way back: ?osogift removed from the URL, other params kept');
+  await r.ctx.close();
+  r = await mk('?osogift=frames:50::go');
+  await r.p.waitForTimeout(3500);
+  ok(await r.p.evaluate(() => { const d = document.querySelector('#oso-frames .osof-dlg[id*="gift"]'); return !!d && !d.hidden && document.querySelector('#oso-frames .osof-gift-custom').value === '50' && window.__rpc.filter((x) => x.startsWith('eth_sign')).length === 0; }), '🔙 way back with $50: the card opens with 50 in the box, the wallet is NOT prompted (auto-start cap $10)');
+  await r.ctx.close();
+}
+// 11e · fail-soft: if lib/owh.js cannot load, the card never dead-ends — the by-hand way (copy the address) appears with a kind line
+{
+  const ctx = await ctxFor('nobody.example', { width: 1280, height: 800 });
+  await ctx.route('**/lib/owh.js', (route) => route.abort());
+  const p = await ctx.newPage();
+  await p.goto('http://nobody.example/narrow.html', { waitUntil: 'load' });
+  await p.waitForSelector('#oso-frames[data-osof-ready]', { state: 'attached' }); await p.waitForTimeout(1000);
+  await p.click('#oso-frames [data-slot=top-right] a[href="https://blessingpool.com/"]'); await p.waitForTimeout(900);
+  ok(await p.evaluate(() => { const fb = document.querySelector('#oso-frames .osof-gift-fb'); return !!fb && !fb.hidden && /0x25965899f4600b3AA5362ee4f34be95E5E62c934/.test(fb.textContent) && /could not load/.test(document.querySelector('#oso-frames .osof-gift-st').textContent); }), 'lib/owh.js unavailable → the by-hand fallback shows the ʻohana address + copy, with a kind line (no dead end)');
+  await ctx.close();
 }
 
 // 12 · v0.1.9 THE TOTEM STAYS IN THE SCREEN (Shaka, 28 Nov 2026: "i like when you can talk to the totem in screen like devconpit.com as a standard")

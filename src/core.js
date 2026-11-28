@@ -12,7 +12,7 @@
  */
 var FRAMES = (function (W) {
   'use strict';
-  var VERSION = '0.1.11';
+  var VERSION = '0.1.12';
   var MAJOR = VERSION.split('.')[0];
   if (W && W.OSOFrames && W.OSOFrames.__osof) {            // loaded twice: the first copy rules
     if (W.console) W.console.info('🎻 frames: already on this page; the second copy stays quiet.');
@@ -58,10 +58,10 @@ var FRAMES = (function (W) {
     'hide': 'Hide the whole frame — every button at once (a small 🎻 dot stays and brings it back)', 'sheet.hide': 'Hide the whole frame',
     'g.thanks': 'Gift line (3 s)',
     // v0.1.7 · the pennies-of-aloha card (the 🌊 Blessing Pool opens it)
-    'gift.title': 'pennies of aloha', 'gift.send': '🦊 send with MetaMask', 'gift.custom': 'custom $',
+    'gift.title': 'pennies of aloha', 'gift.custom': 'custom $',
     'gift.copy': '📋 copy address', 'gift.copied': '✅ copied — mahalo!',
-    'gift.nofox': 'no fox? no worries — send USDC on Base by hand to the ʻohana wallet:',
-    'gift.nowallet': '🦊 no wallet found — install MetaMask (or any EIP-1193 fox), or use the address below 🌺',
+    'gift.byhand': 'send USDC on Base by hand to the ʻohana wallet:',
+    'gift.nopicker': '🌺 the wallet picker could not load — send USDC on Base by hand to the ʻohana wallet below',
     'gift.poolpage': 'the Blessing Pool page ↗', 'gift.agents': 'agents: x402 instructions 🤖',
     'gift.honest': 'made by the ʻohana (machines), blessed by Shaka (a human) · every drop keeps a door open 🌺',
     'g.doors': 'Doors', 'g.pills': 'Pills', 'g.theater': 'Theater', 'g.totem': 'OHAN(ai) the Totem', 'g.chat': 'Talk line', 'g.radio': 'Radio', 'g.signature': 'Signature', 'g.tour': 'Tour'

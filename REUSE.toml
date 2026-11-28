@@ -20,3 +20,22 @@ path = ["media/signature.svg"]
 precedence = "override"
 SPDX-FileCopyrightText = "2026 Shaka Lei Kaumaka"
 SPDX-License-Identifier = "LicenseRef-Shaka-Signature"
+
+# v0.1.12 · the lazy wallet connect files (lib/) — each keeps its OWN license; AGPL/GPL/MIT/Apache-2.0 combine one-way into the AGPL whole
+[[annotations]]
+path = ["lib/owh.js", "src/lib/owh.js", "lib/owh-signup.min.js", "src/lib/owh-signup.js"]
+precedence = "override"
+SPDX-FileCopyrightText = "2026 Shaka Lei Kaumaka / Open Source Orchestra and the AI ʻohana"
+SPDX-License-Identifier = "GPL-3.0-or-later"
+
+[[annotations]]
+path = ["lib/owh-qr.min.js"]
+precedence = "override"
+SPDX-FileCopyrightText = "2009 Kazuhiko Arase (qrcode-generator 1.4.4)"
+SPDX-License-Identifier = "MIT"
+
+[[annotations]]
+path = ["lib/base-account-2.6.0.min.js", "lib/base-account-2.6.0.min.js.NOTICE.txt"]
+precedence = "override"
+SPDX-FileCopyrightText = "2018-2025 Coinbase, Inc. (@base-org/account 2.6.0, unmodified)"
+SPDX-License-Identifier = "Apache-2.0"

@@ -75,12 +75,20 @@
       if (e.defaultPrevented || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || (e.button && e.button !== 0)) return;
       if (FRAMES.gift.open(ctx, item)) e.preventDefault();
     }
-    if (item.gift) { a.setAttribute('aria-haspopup', 'dialog'); a.addEventListener('click', giftTap); }
+    if (item.gift) {
+      a.setAttribute('aria-haspopup', 'dialog'); a.addEventListener('click', giftTap);
+      // v0.1.12: the wallet picker is fetched on the first INTENT (hover / touch / focus), never on page load — so the tap feels instant
+      var warmed = false;
+      var warm = function () { if (warmed || !(FRAMES.gift && FRAMES.gift.warm)) return; warmed = true; FRAMES.gift.warm(ctx); };
+      ['pointerenter', 'touchstart', 'focus'].forEach(function (ev) { a.addEventListener(ev, warm, { once: true, passive: true }); });
+      // …and when a wallet app opened this page from our own gift link (?osogift=frames:…), the card opens itself
+      if (FRAMES.gift && FRAMES.gift.autoOpen && /[?&]osogift=frames/.test(window.location.search)) setTimeout(function () { FRAMES.gift.autoOpen(ctx, item); }, 700);
+    }
     return {
       el: a,
       tour: item.tip || label,
       open: function () { a.click(); },
-      tile: function () { var tl = tile(ctx, href, item, emoji, label); if (item.gift) tl.addEventListener('click', giftTap); return tl; }
+      tile: function () { var tl = tile(ctx, href, item, emoji, label); if (item.gift) { tl.setAttribute('aria-haspopup', 'dialog'); tl.addEventListener('click', giftTap); } return tl; }   // v0.1.12: the sheet's tile says 'dialog' too — a page's road shell (bl-shell.js) yields to it instead of opening the road over the card (found live on shakaleikaumaka.com, phone)
     };
   });
 
