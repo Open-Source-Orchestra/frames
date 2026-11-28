@@ -1,4 +1,4 @@
-/* ── gift: the pennies-of-aloha card (v0.1.7, 27 Nov 2026 — Shaka: "finish the x402 pennies of aloha
+/* ── gift: the gifts-of-aloha card (v0.1.7 — first called "pennies of aloha", 27 Nov 2026 — Shaka: "finish the x402 pennies of aloha
  * button fix on all doors and frames") · v0.1.12 wallet connect (28 Nov 2026) ───────────────────────────────
  * A door rec with "gift": true (the 🌊 Blessing Pool, top-right on every door) keeps its href (SEO,
  * middle-click, no-JS) but a TAP opens this card instead of navigating: USDC on Base straight to the
@@ -69,7 +69,7 @@
 
   function build(ctx) {
     var h = ctx.h, t = ctx.t;
-    var d = ctx.panel({ id: 'gift', title: '🌊 ' + t('gift.title', 'pennies of aloha') });
+    var d = ctx.panel({ id: 'gift', title: '🌊 ' + t('gift.title', 'gifts of aloha') });
     var amt = DEFAULT_USD, ui = null, owh = null, mounting = false, pend = null;
     var st = h('div', { class: 'osof-gift-st', role: 'status', 'aria-live': 'polite' });
     var slot = h('div', { class: 'osof-gift-slot' });
@@ -113,7 +113,7 @@
         var A = await owh.authorize(wp, { usd: amt, payTo: PAYTO, usdc: USDC, chain: BASE_CHAIN, step: function (w) {
           sayT(w === 'connect' ? '🦊 connecting ' + ((info && info.name) || 'your wallet') + '…' : w === 'switch' ? '🌉 switching to Base…' : '✍️ sign the aloha (EIP-3009 — gas-free for you)…'); } });
         var payload = { x402Version: 1, scheme: 'exact', network: 'base', payload: { signature: A.signature, authorization: A.authorization } };
-        var req = { scheme: 'exact', network: 'base', maxAmountRequired: A.authorization.value, resource: RESOURCE, description: 'pennies of aloha 🤙 — every drop keeps a door open', mimeType: 'application/json', payTo: PAYTO, maxTimeoutSeconds: 300, asset: USDC, extra: { name: 'USD Coin', version: '2' } };
+        var req = { scheme: 'exact', network: 'base', maxAmountRequired: A.authorization.value, resource: RESOURCE, description: 'gifts of aloha 🤙 — every drop keeps a door open', mimeType: 'application/json', payTo: PAYTO, maxTimeoutSeconds: 300, asset: USDC, extra: { name: 'USD Coin', version: '2' } };
         var body = { x402Version: 1, paymentPayload: payload, paymentRequirements: req };
         sayT('🌊 verifying with the gift rail…');
         var V = await owh.post(FACILITATOR, '/verify', body);
@@ -146,7 +146,8 @@
       mounting = true; slot.textContent = '…';
       loadOWH(ctx).then(function (O) {
         owh = O;
-        ui = O.connect({ surface: 'frames', usdc: USDC, payTo: PAYTO, payToName: 'osoartist.eth', safetyUrl: 'https://shakaleikaumaka.com/gift-safety/', chain: BASE_CHAIN, usd: function () { return amt; }, send: sendWith, t: t });
+        ui = O.connect({ surface: 'frames', usdc: USDC, payTo: PAYTO, payToName: 'osoartist.eth', safetyUrl: 'https://shakaleikaumaka.com/gift-safety/', chain: BASE_CHAIN, usd: function () { return amt; }, send: sendWith, t: t,
+          onPlain: function (e) { ctx.emit('gift:sent', { tx: e.tx, amount: e.amount, route: 'plain' }); } });     // the plain 🪙 send (a normal USDC transfer) is a gift too
         slot.textContent = ''; slot.appendChild(ui.el);
         mounting = false; ui.refresh();
         if (pend) { var p = pend; pend = null; setAmt(p.usd); ui.autostart(p); }
@@ -158,7 +159,7 @@
 
     d.body.appendChild(h('div', { class: 'osof-gift-sub' },
       'USDC on ', h('b', {}, 'Base'), ' straight to the ʻohana’s agent-launch wallet — gas-free for you (EIP-3009; the pool settles it via ',
-      h('a', { href: 'https://facilitator.payai.network', target: '_blank', rel: 'noopener' }, 'PayAI'), ').'));
+      h('a', { href: 'https://facilitator.payai.network', target: '_blank', rel: 'noopener' }, 'PayAI'), '), or a plain transfer from your own wallet.'));
     d.body.appendChild(h('div', { class: 'osof-gift-amts' }, amts, custom));
     d.body.appendChild(slot);
     d.body.appendChild(st);

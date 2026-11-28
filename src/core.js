@@ -12,7 +12,7 @@
  */
 var FRAMES = (function (W) {
   'use strict';
-  var VERSION = '0.1.15';
+  var VERSION = '0.1.16';
   var MAJOR = VERSION.split('.')[0];
   if (W && W.OSOFrames && W.OSOFrames.__osof) {            // loaded twice: the first copy rules
     if (W.console) W.console.info('🎻 frames: already on this page; the second copy stays quiet.');
@@ -58,7 +58,7 @@ var FRAMES = (function (W) {
     'hide': 'Hide the whole frame — every button at once (a small 🎻 dot stays and brings it back)', 'sheet.hide': 'Hide the whole frame',
     'g.thanks': 'Gift line (3 s)',
     // v0.1.7 · the pennies-of-aloha card (the 🌊 Blessing Pool opens it)
-    'gift.title': 'pennies of aloha', 'gift.custom': 'custom $',
+    'gift.title': 'gifts of aloha', 'gift.custom': 'custom $',
     'gift.copy': '📋 copy address', 'gift.copied': '✅ copied — mahalo!',
     'gift.byhand': 'send USDC on Base by hand to the ʻohana wallet:',
     'gift.nopicker': '🌺 the wallet picker could not load — send USDC on Base by hand to the ʻohana wallet below',
@@ -1942,12 +1942,19 @@ var FRAMES = (function (W) {
   function scriptBase() {
     try { return new URL('.', (SCRIPT && SCRIPT.src) || D.baseURI).href; } catch (e) { return ''; }
   }
+  // One request per URL per page: a door frame's parent IS the fallback dataset that is already in flight. The TEXT is shared, every caller
+  // parses its own copy (the merge never sees another caller's object).
+  var fetched = {};
   function fetchJSON(url) {
-    return W.fetch(url, { credentials: 'omit', mode: 'cors' }).then(function (r) {
+    var p = fetched[url] || (fetched[url] = W.fetch(url, { credentials: 'omit', mode: 'cors' }).then(function (r) {
       if (!r.ok) throw new Error('HTTP ' + r.status + ' for ' + url);
-      return r.json();
-    });
+      return r.text();
+    }));
+    return p.then(function (txt) { return JSON.parse(txt); });
   }
+  // The hosts that have their own frames/doors/<host>.json — baked in by build.mjs (the readable source keeps []), so a door goes straight to its
+  // own file beside the fallback: ONE round trip instead of index.json → door file → parent. A host this build does not know takes the index route.
+  var DOOR_HOSTS = /*DOORHOSTS*/[]/*END*/;
   // "extends": a dataset built on another one (relative to the child's own URL); at most 4 deep
   function withParents(d, url, depth) {
     if (!isObj(d) || !str(d.extends) || depth > 3) return Promise.resolve({ data: d, url: url });
@@ -2005,6 +2012,10 @@ var FRAMES = (function (W) {
     // data-door="auto" → frames/doors/<this host>.json next to frames.js (data-door="example.org" names a host). The index
     // (frames/doors/index.json, built by build.mjs) is read first so a door without its own frame costs no 404: it wears the fallback.
     var host = doorHost(door === 'auto' || door === '' ? (W.location && W.location.hostname) : door);
+    if (host && DOOR_HOSTS.indexOf(host) >= 0) {
+      var kurl = resolveURL('frames/doors/' + host + '.json', base, true);
+      if (kurl) return fetchJSON(kurl).then(function (d) { return withParents(d, kurl, 0); }).catch(function (e) { info('door frame ' + kurl + ' failed (' + (e && e.message) + ') — wearing the fallback'); return main; });
+    }
     var iurl = host ? resolveURL('frames/doors/index.json', base, true) : '';
     if (!iurl) return main;
     return fetchJSON(iurl).then(function (idx) {

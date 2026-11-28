@@ -35,8 +35,14 @@ const pieces = ORDER.map((k) => ({ k, p: `src/pieces/${k}.js` })).filter((x) => 
 const extra = existsSync(join(ROOT, 'src/pieces')) ? readdirSync(join(ROOT, 'src/pieces')).filter((f) => f.endsWith('.js') && !ORDER.includes(f.slice(0, -3))) : [];
 if (extra.length) console.log(`  · not in the build order (ignored): ${extra.join(', ')}`);
 
+// v0.1.16 — bake the list of hosts that own a frames/doors/<host>.json into the bundle (the readable src keeps `[]`): a door then fetches its own file
+// straight away instead of reading index.json first (index → door → parent was three sequential round trips on a phone). A host not in the list still takes the index route.
+const doorHosts = existsSync(join(ROOT, 'frames/doors')) ? readdirSync(join(ROOT, 'frames/doors')).filter((f) => f.endsWith('.json') && f !== 'index.json').map((f) => f.slice(0, -5)).sort() : [];
+const BAKE = /\/\*DOORHOSTS\*\/\[[^\]]*\]\/\*END\*\//;
+if (!BAKE.test(core)) { console.error('✗ src/core.js lost its /*DOORHOSTS*/[]/*END*/ marker'); process.exit(1); }
+const coreBundle = core.replace(BAKE, () => '/*DOORHOSTS*/' + JSON.stringify(doorHosts) + '/*END*/');
 const bundle = BANNER + "(function(){'use strict';\n" +
-  '// ── src/core.js ──\n' + core.trim() + '\n' +
+  '// ── src/core.js ──\n' + coreBundle.trim() + '\n' +
   pieces.map((x) => `// ── ${x.p} ──\n` + read(x.p).trim() + '\n').join('') +
   'FRAMES.boot();\n})();\n';
 
@@ -158,9 +164,8 @@ for (const p of doorFiles) {
   gallery.push({ host, file: p.replace(/^frames\/doors\//, ''), id: merged ? merged.id : d.id, name: merged ? merged.name : d.name, emoji: (merged && merged.emoji) || d.emoji || '🎻', accent: (merged && merged.accent) || '', extends: d.extends, items, doors, signature: merged ? merged.slots.overlay.some((it) => it.kind === 'signature') : false, url: 'https://' + host + '/' });
 }
 // gate 2c · v0.1.12 — every dataset's Blessing Pool door must carry "gift": true (frames/oso.json lacked it from v0.1.7 to v0.1.11: the flagship's 🌊 never opened the card)
-// the flagship (frames/oso.json) is EXEMPT on purpose: SPEC §10 "No fundraising magnets on opensourceorchestra.org" — its 🌊 stays a plain link to the pool page until Shaka says yes (28 Nov 2026)
-const GIFT_EXEMPT = new Set(['frames/oso.json']);
-for (const p of dsFiles) { if (GIFT_EXEMPT.has(p)) continue; const d = loadJSON(p); if (!d) continue; for (const [slot, items] of Object.entries(d.slots || {})) for (const it of (Array.isArray(items) ? items : [])) if (it && it.kind === 'door' && /^https:\/\/blessingpool\.com\/?$/.test(it.href || '') && it.gift !== true) { dsBad++; fail(`${p} → ${slot}: the Blessing Pool door must carry "gift": true (the 🌊 opens the pennies-of-aloha card)`); } }
+// 28 Nov 2026 (Shaka: "yes you can do all these yourself with my blessing"): the flagship wears the card too — no dataset is exempt any more.
+for (const p of dsFiles) { const d = loadJSON(p); if (!d) continue; for (const [slot, items] of Object.entries(d.slots || {})) for (const it of (Array.isArray(items) ? items : [])) if (it && it.kind === 'door' && /^https:\/\/blessingpool\.com\/?$/.test(it.href || '') && it.gift !== true) { dsBad++; fail(`${p} → ${slot}: the Blessing Pool door must carry "gift": true (the 🌊 opens the gifts-of-aloha card)`); } }
 if (!dsBad) ok(`${dsFiles.length} dataset(s) + ${doorFiles.length} door frame(s) validate against schema/frame-0.1.json (door frames also merged)`);
 if (doorFiles.length) {
   gallery.sort((a, b) => a.host.localeCompare(b.host));

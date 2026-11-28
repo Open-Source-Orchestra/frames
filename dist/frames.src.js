@@ -1,4 +1,4 @@
-/*! Open Source Orchestra Frames v0.1.15 · https://github.com/Open-Source-Orchestra/frames
+/*! Open Source Orchestra Frames v0.1.16 · https://github.com/Open-Source-Orchestra/frames
  *  SPDX-License-Identifier: AGPL-3.0-or-later · Copyright (C) 2026 Shaka Lei Kaumaka / Open Source Orchestra and the AI ʻohana
  *  AGPL §7(b): keep the credit "Built on Open Source Orchestra Frames by Open Source Orchestra: Shaka Lei Kaumaka & the AI ʻohana
  *  (https://opensourceorchestra.org)" visible in the frame. See NOTICE. Source of this exact file: https://github.com/Open-Source-Orchestra/frames (the served /frames.js is a minified build of it; the readable file is /frames.src.js) */
@@ -18,7 +18,7 @@
  */
 var FRAMES = (function (W) {
   'use strict';
-  var VERSION = '0.1.15';
+  var VERSION = '0.1.16';
   var MAJOR = VERSION.split('.')[0];
   if (W && W.OSOFrames && W.OSOFrames.__osof) {            // loaded twice: the first copy rules
     if (W.console) W.console.info('🎻 frames: already on this page; the second copy stays quiet.');
@@ -64,7 +64,7 @@ var FRAMES = (function (W) {
     'hide': 'Hide the whole frame — every button at once (a small 🎻 dot stays and brings it back)', 'sheet.hide': 'Hide the whole frame',
     'g.thanks': 'Gift line (3 s)',
     // v0.1.7 · the pennies-of-aloha card (the 🌊 Blessing Pool opens it)
-    'gift.title': 'pennies of aloha', 'gift.custom': 'custom $',
+    'gift.title': 'gifts of aloha', 'gift.custom': 'custom $',
     'gift.copy': '📋 copy address', 'gift.copied': '✅ copied — mahalo!',
     'gift.byhand': 'send USDC on Base by hand to the ʻohana wallet:',
     'gift.nopicker': '🌺 the wallet picker could not load — send USDC on Base by hand to the ʻohana wallet below',
@@ -1948,12 +1948,19 @@ var FRAMES = (function (W) {
   function scriptBase() {
     try { return new URL('.', (SCRIPT && SCRIPT.src) || D.baseURI).href; } catch (e) { return ''; }
   }
+  // One request per URL per page: a door frame's parent IS the fallback dataset that is already in flight. The TEXT is shared, every caller
+  // parses its own copy (the merge never sees another caller's object).
+  var fetched = {};
   function fetchJSON(url) {
-    return W.fetch(url, { credentials: 'omit', mode: 'cors' }).then(function (r) {
+    var p = fetched[url] || (fetched[url] = W.fetch(url, { credentials: 'omit', mode: 'cors' }).then(function (r) {
       if (!r.ok) throw new Error('HTTP ' + r.status + ' for ' + url);
-      return r.json();
-    });
+      return r.text();
+    }));
+    return p.then(function (txt) { return JSON.parse(txt); });
   }
+  // The hosts that have their own frames/doors/<host>.json — baked in by build.mjs (the readable source keeps []), so a door goes straight to its
+  // own file beside the fallback: ONE round trip instead of index.json → door file → parent. A host this build does not know takes the index route.
+  var DOOR_HOSTS = /*DOORHOSTS*/["affordagents.com","agentohana.org","agentpartys.com","agentscraving.com","agentsraving.com","agentsreading.com","aquariusagents.org","ariesagents.org","artist.opensourceorchestra.org","blessingpool.com","canceragents.org","capricornagents.org","creationology369.com","dashboardpad.app","devconpit.com","eefpit.com","eefpod.com","esmeraldapit.com","geminiagents.club","globyagent.com","grantmagnet.org","infinitepit.com","islpoap.xyz","kaleikaumaka.org","karaokeprotocol.com","learnfromagents.com","leoagents.org","libraagents.org","myagentfamily.com","myagentohana.com","myagentsparty.com","ohanapit.com","ology369.com","opensourceorchestra.org","orchestrator.opensourceorchestra.org","osodaomeet.opensourceorchestra.org","osopit.com","piscesagents.org","piscesinstitute.com","piscisagents.org","piscisinstitute.com","piscispit.com","pitfans.com","pitgoa.com","pitlip.com","pitprovides.com","pretty.agentohana.org","privateinform.com","publicinform.com","sagittariusagents.org","scorpioagents.org","shakafans.com","shakaleikaumaka.com","shakapit.com","shakaverse.com","tauruspit.com","teleprompit.com","terribleagents.com","theinfinitegard.org","tracewaste.org","virgoagents.org","vlogprompting.com","wastetrace.org","zodiacagents.org","zodiacpit.com","zuchiangmai.app","zupit.org","zuzaluagents.com"]/*END*/;
   // "extends": a dataset built on another one (relative to the child's own URL); at most 4 deep
   function withParents(d, url, depth) {
     if (!isObj(d) || !str(d.extends) || depth > 3) return Promise.resolve({ data: d, url: url });
@@ -2011,6 +2018,10 @@ var FRAMES = (function (W) {
     // data-door="auto" → frames/doors/<this host>.json next to frames.js (data-door="example.org" names a host). The index
     // (frames/doors/index.json, built by build.mjs) is read first so a door without its own frame costs no 404: it wears the fallback.
     var host = doorHost(door === 'auto' || door === '' ? (W.location && W.location.hostname) : door);
+    if (host && DOOR_HOSTS.indexOf(host) >= 0) {
+      var kurl = resolveURL('frames/doors/' + host + '.json', base, true);
+      if (kurl) return fetchJSON(kurl).then(function (d) { return withParents(d, kurl, 0); }).catch(function (e) { info('door frame ' + kurl + ' failed (' + (e && e.message) + ') — wearing the fallback'); return main; });
+    }
     var iurl = host ? resolveURL('frames/doors/index.json', base, true) : '';
     if (!iurl) return main;
     return fetchJSON(iurl).then(function (idx) {
@@ -3978,7 +3989,7 @@ FRAMES.define('signature', function (ctx, item) {
   });
 }
 // ── src/pieces/gift.js ──
-/* ── gift: the pennies-of-aloha card (v0.1.7, 27 Nov 2026 — Shaka: "finish the x402 pennies of aloha
+/* ── gift: the gifts-of-aloha card (v0.1.7 — first called "pennies of aloha", 27 Nov 2026 — Shaka: "finish the x402 pennies of aloha
  * button fix on all doors and frames") · v0.1.12 wallet connect (28 Nov 2026) ───────────────────────────────
  * A door rec with "gift": true (the 🌊 Blessing Pool, top-right on every door) keeps its href (SEO,
  * middle-click, no-JS) but a TAP opens this card instead of navigating: USDC on Base straight to the
@@ -4049,7 +4060,7 @@ FRAMES.define('signature', function (ctx, item) {
 
   function build(ctx) {
     var h = ctx.h, t = ctx.t;
-    var d = ctx.panel({ id: 'gift', title: '🌊 ' + t('gift.title', 'pennies of aloha') });
+    var d = ctx.panel({ id: 'gift', title: '🌊 ' + t('gift.title', 'gifts of aloha') });
     var amt = DEFAULT_USD, ui = null, owh = null, mounting = false, pend = null;
     var st = h('div', { class: 'osof-gift-st', role: 'status', 'aria-live': 'polite' });
     var slot = h('div', { class: 'osof-gift-slot' });
@@ -4093,7 +4104,7 @@ FRAMES.define('signature', function (ctx, item) {
         var A = await owh.authorize(wp, { usd: amt, payTo: PAYTO, usdc: USDC, chain: BASE_CHAIN, step: function (w) {
           sayT(w === 'connect' ? '🦊 connecting ' + ((info && info.name) || 'your wallet') + '…' : w === 'switch' ? '🌉 switching to Base…' : '✍️ sign the aloha (EIP-3009 — gas-free for you)…'); } });
         var payload = { x402Version: 1, scheme: 'exact', network: 'base', payload: { signature: A.signature, authorization: A.authorization } };
-        var req = { scheme: 'exact', network: 'base', maxAmountRequired: A.authorization.value, resource: RESOURCE, description: 'pennies of aloha 🤙 — every drop keeps a door open', mimeType: 'application/json', payTo: PAYTO, maxTimeoutSeconds: 300, asset: USDC, extra: { name: 'USD Coin', version: '2' } };
+        var req = { scheme: 'exact', network: 'base', maxAmountRequired: A.authorization.value, resource: RESOURCE, description: 'gifts of aloha 🤙 — every drop keeps a door open', mimeType: 'application/json', payTo: PAYTO, maxTimeoutSeconds: 300, asset: USDC, extra: { name: 'USD Coin', version: '2' } };
         var body = { x402Version: 1, paymentPayload: payload, paymentRequirements: req };
         sayT('🌊 verifying with the gift rail…');
         var V = await owh.post(FACILITATOR, '/verify', body);
@@ -4126,7 +4137,8 @@ FRAMES.define('signature', function (ctx, item) {
       mounting = true; slot.textContent = '…';
       loadOWH(ctx).then(function (O) {
         owh = O;
-        ui = O.connect({ surface: 'frames', usdc: USDC, payTo: PAYTO, payToName: 'osoartist.eth', safetyUrl: 'https://shakaleikaumaka.com/gift-safety/', chain: BASE_CHAIN, usd: function () { return amt; }, send: sendWith, t: t });
+        ui = O.connect({ surface: 'frames', usdc: USDC, payTo: PAYTO, payToName: 'osoartist.eth', safetyUrl: 'https://shakaleikaumaka.com/gift-safety/', chain: BASE_CHAIN, usd: function () { return amt; }, send: sendWith, t: t,
+          onPlain: function (e) { ctx.emit('gift:sent', { tx: e.tx, amount: e.amount, route: 'plain' }); } });     // the plain 🪙 send (a normal USDC transfer) is a gift too
         slot.textContent = ''; slot.appendChild(ui.el);
         mounting = false; ui.refresh();
         if (pend) { var p = pend; pend = null; setAmt(p.usd); ui.autostart(p); }
@@ -4138,7 +4150,7 @@ FRAMES.define('signature', function (ctx, item) {
 
     d.body.appendChild(h('div', { class: 'osof-gift-sub' },
       'USDC on ', h('b', {}, 'Base'), ' straight to the ʻohana’s agent-launch wallet — gas-free for you (EIP-3009; the pool settles it via ',
-      h('a', { href: 'https://facilitator.payai.network', target: '_blank', rel: 'noopener' }, 'PayAI'), ').'));
+      h('a', { href: 'https://facilitator.payai.network', target: '_blank', rel: 'noopener' }, 'PayAI'), '), or a plain transfer from your own wallet.'));
     d.body.appendChild(h('div', { class: 'osof-gift-amts' }, amts, custom));
     d.body.appendChild(slot);
     d.body.appendChild(st);

@@ -76,6 +76,7 @@ function serve() {
         if (u.pathname === '/ownchat.html') return rsp.writeHead(200, { 'content-type': TYPES['.html'] }).end(u.searchParams.get('fab') ? OWNCHAT.replace('id="oso-fab"', 'id="' + u.searchParams.get('fab').replace(/[^A-Za-z0-9_-]/g, '') + '"') : OWNCHAT);
         if (u.pathname === '/shell.html') return rsp.writeHead(200, { 'content-type': TYPES['.html'] }).end(SHELL);
         if (u.pathname === '/allow.html') return rsp.writeHead(200, { 'content-type': TYPES['.html'] }).end(NARROW.replace('data-door="auto"', 'data-door="auto" data-embed="allow"'));
+        if (u.pathname === '/oso.html') return rsp.writeHead(200, { 'content-type': TYPES['.html'] }).end(NARROW.replace('data-door="auto"', 'data-frame="/frames/oso.json"'));
         if (u.pathname === '/overlay.json') return rsp.writeHead(200, { 'content-type': TYPES['.json'] }).end(JSON.stringify(OVERLAY));
         if (u.pathname === '/attr.html') return rsp.writeHead(200, { 'content-type': TYPES['.html'] }).end(NARROW.replace('data-door="auto"', 'data-door="auto" data-frame-overlay="/overlay.json"'));
         if (u.pathname.startsWith('/__hub')) { rsp.writeHead(500).end('{}'); return; }
@@ -111,24 +112,30 @@ const errsOf = (p) => { const e = []; p.on('pageerror', (x) => e.push('PE:' + St
 {
   const ctx = await ctxFor('publicinform.com', { width: 1280, height: 800 });
   const p = await ctx.newPage(); const errs = errsOf(p);
+  const reqs = []; p.on('request', (q) => { const u = new URL(q.url()); if (/^\/frames\/.*\.json$/.test(u.pathname)) reqs.push(u.pathname); });
   await p.goto('http://publicinform.com/narrow.html?frame=fresh', { waitUntil: 'load' });
   await p.waitForSelector('#oso-frames[data-osof-ready]', { state: 'attached', timeout: 15000 });
   const r = await p.evaluate(() => ({ id: OSOFrames.data.id, accent: getComputedStyle(document.getElementById('oso-frames')).getPropertyValue('--osof-accent').trim(), first: OSOFrames.data.slots.left[0].id, pitGone: !OSOFrames.data.slots.left.some((i) => i.id === 'pit'), n: OSOFrames.data.slots.left.length, version: OSOFrames.version, gear: !!document.querySelector('#oso-frames .osof-credit-g') }));
   ok(r.id === 'pit-protocol', `data-door=auto on publicinform.com → id ${r.id}`);
   ok(r.accent === '#7fe0ff', `accent applied (${r.accent})`);
   ok(r.first === 'home' && r.pitGone && r.n >= 10, `slot ops: prepend + remove (left: ${r.n} items, first ${r.first})`);
-  ok(r.version === '0.1.15' && r.gear, `v${r.version} with the ⚙ gear in the credit mark`);
+  ok(r.version === '0.1.16' && r.gear, `v${r.version} with the ⚙ gear in the credit mark`);
   ok(!errs.length, 'no console/page errors' + (errs.length ? ' → ' + errs.join(' | ') : ''));
+  // v0.1.16 the dataset waterfall: a known door goes straight to its own file (index.json is NOT read), the parent is the fallback already in flight (one request)
+  ok(reqs.includes('/frames/doors/publicinform.com.json') && !reqs.includes('/frames/doors/index.json'), 'v0.1.16 known door → its own file straight away, NO index.json round trip (' + reqs.join(' ') + ')');
+  ok(reqs.filter((x) => x === '/frames/universe.json').length === 1, 'v0.1.16 the parent dataset is requested ONCE (shared with the fallback already in flight)');
   await ctx.close();
 }
 // 2 · unknown host → the universe frame (fallback), no error
 {
   const ctx = await ctxFor('nobody.example', { width: 1280, height: 800 });
   const p = await ctx.newPage(); const errs = errsOf(p);
+  const reqs = []; p.on('request', (q) => { const u = new URL(q.url()); if (/^\/frames\/.*\.json$/.test(u.pathname)) reqs.push(u.pathname); });
   await p.goto('http://nobody.example/narrow.html', { waitUntil: 'load' });
   await p.waitForSelector('#oso-frames[data-osof-ready]', { state: 'attached', timeout: 15000 });
   const id = await p.evaluate(() => OSOFrames.data.id);
   ok(id === 'oso-universe', `unknown host falls back to universe (${id})`);
+  ok(reqs.includes('/frames/doors/index.json') && !reqs.some((x) => /\/doors\/nobody\.example\.json$/.test(x)), 'v0.1.16 an unknown host takes the index route and never requests a door file that does not exist (no 404): ' + reqs.join(' '));
   ok(!errs.length, 'fallback without errors' + (errs.length ? ' → ' + errs.join(' | ') : ''));
   await ctx.close();
 }
@@ -532,7 +539,7 @@ const AUDIO_STUB = `window.__audioLog = []; window.Audio = class { constructor()
   const urlBefore = p.url();
   await p.click(bp); await p.waitForTimeout(500);
   const card = await p.evaluate(() => { const d = document.querySelector('#oso-frames .osof-dlg[id*="gift"]'); if (!d || d.hidden) return null; return { role: d.getAttribute('role'), modal: d.getAttribute('aria-modal'), title: (d.querySelector('.osof-dlg-title') || {}).textContent || '' }; });
-  ok(!!card && card.role === 'dialog' && card.modal === 'true' && /pennies of aloha/.test(card.title), 'a tap opens the pennies-of-aloha card (modal dialog), no navigation' + (card ? '' : ' (card not found)'));
+  ok(!!card && card.role === 'dialog' && card.modal === 'true' && /gifts of aloha/.test(card.title), 'a tap opens the gifts-of-aloha card (modal dialog), no navigation' + (card ? '' : ' (card not found)'));
   ok(p.url() === urlBefore, 'the tap did NOT navigate away');
   ok(await p.evaluate(() => { const r = document.querySelector('#oso-frames .osof-gift-rails'); return !!r && /Stripe/.test(r.textContent) && /PayPal/.test(r.textContent) && /Venmo/.test(r.textContent) && /x402/.test(r.textContent) && !!r.querySelector('a[href^="https://blessingpool.com"]'); }), 'the card carries the rails: pool page + Stripe · PayPal · Venmo + the x402 agent instructions');
   ok(await p.evaluate(() => { const g = document.querySelector('#oso-frames .owh-go'); return !!g && !g.hidden && /send USDC with MetaMask/.test(g.textContent); }), 'v0.1.12 a detected wallet → ONE big button "send USDC with MetaMask" (2 taps from the 🌊 to the wallet prompt)');
@@ -713,6 +720,52 @@ const AUDIO_STUB = `window.__audioLog = []; window.Audio = class { constructor()
     if (label.startsWith('rail unreachable')) ok(r.ex, '11f the pre-sign explainer ("high-risk approval" / "untrusted EOA") is in the card');
     await ctx.close();
   }
+}
+
+// 11g · v0.1.16 THE PLAIN TRANSFER (Shaka, 28 Nov 2026: "yes you can do all these yourself"): beside the gas-free button, a 🪙 plain transfer = a normal USDC send from the visitor's own wallet
+// (no typed-data screen → no "high-risk approval / untrusted EOA" warning). It never touches the gift rail.
+{
+  const ctx = await ctxFor('nobody.example', { width: 1280, height: 800 });
+  let railHits = 0; await ctx.route('https://gift-rail.opensourceorchestra.org/base/**', (route) => { railHits++; return route.abort(); });
+  await ctx.addInitScript(`window.__rpc = []; window.__txs = []; window.__giftSent = []; document.addEventListener('osoframes:gift:sent', (e) => window.__giftSent.push(e.detail));
+    var polls = 0; window.ethereum = { isMetaMask: true, request: async ({ method, params }) => { window.__rpc.push(method);
+      if (method === 'eth_requestAccounts') return ['0x1111111111111111111111111111111111111111'];
+      if (method === 'eth_chainId') return '0x2105';
+      if (method === 'eth_call') return '0x' + (500000000).toString(16).padStart(64, '0');
+      if (method === 'eth_sendTransaction') { window.__txs.push(params[0]); return '0x' + 'ef'.repeat(32); }
+      if (method === 'eth_getTransactionReceipt') { polls++; return polls < 2 ? null : { status: '0x1' }; }
+      throw new Error('unexpected ' + method); } };`);
+  const p = await ctx.newPage(); const errs = errsOf(p);
+  await p.goto('http://nobody.example/narrow.html', { waitUntil: 'load' });
+  await p.waitForSelector('#oso-frames[data-osof-ready]', { state: 'attached' }); await p.waitForTimeout(900);
+  await p.click('#oso-frames [data-slot=top-right] a[href="https://blessingpool.com/"]'); await p.waitForTimeout(700);
+  ok(await p.evaluate(() => { const b = document.querySelector('#oso-frames .owh-plain'); return !!b && !b.hidden && /plain transfer/.test(b.textContent) && /no signature screens/.test(b.textContent); }), '11g a detected wallet → the 🪙 "plain transfer" row sits beside the gas-free button, in words a stranger understands');
+  await p.evaluate(() => { OWH.timeouts.poll = 20; });
+  await p.click('#oso-frames .osof-gift-amt[data-v="1"]'); await p.click('#oso-frames .owh-plain');
+  await p.waitForFunction(() => /ALOHA RECEIVED/.test((document.querySelector('#oso-frames .osof-gift-st') || {}).textContent + (document.querySelector('#oso-frames .owh-n') || {}).textContent), { timeout: 8000 });
+  const r = await p.evaluate(() => ({ tx: window.__txs[0], rpc: window.__rpc.slice(), sent: window.__giftSent, link: (document.querySelector('#oso-frames .owh-n a') || {}).href }));
+  ok(r.tx && r.tx.to.toLowerCase() === '0x833589fcd6edb6e08f4c7c32d4f71b54bda02913' && r.tx.value === '0x0' && r.tx.data === '0xa9059cbb' + '00000000000000000000000025965899f4600b3aa5362ee4f34be95e5e62c934' + (1000000).toString(16).padStart(64, '0'), '11g the wallet was asked for a plain USDC transfer(osoartist.eth, 1000000) — to the USDC contract, value 0, exact calldata');
+  ok(!r.rpc.includes('eth_signTypedData_v4') && railHits === 0, '11g no typed-data signature was requested and the gift rail was never called (a plain send is peer to peer)');
+  ok(r.link === 'https://basescan.org/tx/0x' + 'ef'.repeat(32), '11g the card shows the BaseScan receipt for exactly that hash');
+  ok(r.sent.length === 1 && r.sent[0].route === 'plain' && r.sent[0].amount === 1 && r.sent[0].tx === '0x' + 'ef'.repeat(32), '11g gift:sent fires once with route "plain", the amount and the hash');
+  { const e2 = errs.filter((e) => !/ERR_FAILED|net::|ERR_ABORTED/.test(e)); ok(!e2.length, '11g no console/page errors' + (e2.length ? ' → ' + e2.slice(0, 4).join(' | ') : '')); }
+  await ctx.close();
+}
+// 11h · v0.1.16 THE FLAGSHIP (Shaka, 28 Nov 2026: "yes you can do all these yourself with my blessing" — SPEC §10 relaxed): opensourceorchestra.org's 🌊 opens the same card on a tap
+{
+  const ctx = await ctxFor('opensourceorchestra.org', { width: 1280, height: 800 });
+  const p = await ctx.newPage(); const errs = errsOf(p);
+  await p.goto('http://opensourceorchestra.org/oso.html', { waitUntil: 'load' });
+  await p.waitForSelector('#oso-frames[data-osof-ready]', { state: 'attached' }); await p.waitForTimeout(900);
+  const id = await p.evaluate(() => OSOFrames.data.id);
+  ok(id === 'oso-flagship', '11h the flagship dataset is worn (id ' + id + ')');
+  const bp = '#oso-frames [data-slot=top-right] a[href="https://blessingpool.com/"]';
+  ok(await p.evaluate((s) => { const a = document.querySelector(s); return !!a && a.getAttribute('aria-haspopup') === 'dialog'; }, bp), '11h the flagship 🌊 carries aria-haspopup=dialog (it opens the gift card)');
+  const urlBefore = p.url(); await p.click(bp); await p.waitForTimeout(700);
+  ok(await p.evaluate(() => { const d = document.querySelector('#oso-frames .osof-dlg[id*="gift"]'); return !!d && !d.hidden && d.getAttribute('role') === 'dialog'; }) && p.url() === urlBefore, '11h a tap on the flagship 🌊 opens the gifts-of-aloha card, no navigation');
+  ok(await p.evaluate(() => !document.querySelector('#oso-frames .osof-gift-banner') && !document.querySelector('#oso-frames [data-osof-kind=gift]')), '11h still no magnet: the card opens ONLY on the visitor\'s tap (nothing auto-opens, no banner)');
+  { const e2 = errs.filter((e) => !/ERR_FAILED|net::|ERR_ABORTED/.test(e)); ok(!e2.length, '11h no console/page errors' + (e2.length ? ' → ' + e2.slice(0, 4).join(' | ') : '')); }
+  await ctx.close();
 }
 
 // 12 · v0.1.9 THE TOTEM STAYS IN THE SCREEN (Shaka, 28 Nov 2026: "i like when you can talk to the totem in screen like devconpit.com as a standard")
