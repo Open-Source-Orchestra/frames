@@ -61,7 +61,7 @@
     var fb = h('div', { class: 'osof-gift-fb', hidden: true });
     var custom = h('input', { class: 'osof-gift-custom', type: 'number', min: '0.001', step: '0.001', placeholder: t('gift.custom', 'custom $'), 'aria-label': t('gift.custom', 'custom amount in dollars') });
     var send = h('button', { type: 'button', class: 'osof-gift-send' }, t('gift.send', '🦊 send with MetaMask'));
-    function say(m) { st.innerHTML = m || ''; }     // trusted, our own markup only (tx hash is hex)
+    function say(m) { st.innerHTML = m || ''; }     // OUR OWN markup only: never interpolate a value that came from the network (the tx hash is validated against TX_RE first)
     function sayT(m) { st.textContent = m; }
     var amts = [['0.01', '1¢'], ['0.10', '10¢'], ['1', '$1']].map(function (pair, i) {
       return h('button', { type: 'button', class: 'osof-gift-amt', 'data-v': pair[0], 'aria-pressed': i === 0 ? 'true' : 'false', on: {
@@ -125,8 +125,10 @@
         var sr = await fetch(FACILITATOR + '/settle', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ x402Version: 1, paymentPayload: payload, paymentRequirements: req }) });
         var sj = await sr.json();
         if (sj.success) {
-          say('🌊🤙 <b>ALOHA RECEIVED.</b> mahalo nui!' + (sj.transaction ? ('<br>✦ on-chain forever: <a href="https://basescan.org/tx/' + sj.transaction + '" target="_blank" rel="noopener">' + sj.transaction.slice(0, 14) + '…' + sj.transaction.slice(-8) + '</a> ✦') : ''));
-          ctx.emit('gift:sent', { tx: sj.transaction || null, amount: amt });
+          // PAʻA finding SITE-2 (28 Nov 2026): the facilitator's `transaction` is NETWORK DATA — only a 64-hex hash may reach markup
+          var txh = (typeof sj.transaction === 'string' && /^0x[0-9a-fA-F]{64}$/.test(sj.transaction)) ? sj.transaction : null;
+          say('🌊🤙 <b>ALOHA RECEIVED.</b> mahalo nui!' + (txh ? ('<br>✦ recorded on-chain: <a href="https://basescan.org/tx/' + txh + '" target="_blank" rel="noopener">' + txh.slice(0, 14) + '…' + txh.slice(-8) + '</a> ✦') : ''));
+          ctx.emit('gift:sent', { tx: txh, amount: amt });
         } else {
           sayT('⚠️ settlement hiccup: ' + (sj.error || sj.errorReason || 'unknown') + ' — nothing left your wallet without success');
         }

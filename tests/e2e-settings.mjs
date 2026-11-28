@@ -562,6 +562,41 @@ const AUDIO_STUB = `window.__audioLog = []; window.Audio = class { constructor()
   await ctx2.close();
 }
 
+// 11b · PAʻA SITE-2 (28 Nov 2026): the facilitator's reply is NETWORK DATA — a hostile `transaction` must never become markup or an event payload
+{
+  const WALLET = `
+    window.ethereum = { request: async ({ method }) => (method === 'eth_requestAccounts' ? ['0x1111111111111111111111111111111111111111'] : null) };
+    window.ethers = {
+      BrowserProvider: class { async send() { return []; } async getNetwork() { return { chainId: 8453n }; }
+        async getSigner() { return { getAddress: async () => '0x1111111111111111111111111111111111111111', signTypedData: async () => '0x' + 'ab'.repeat(65) }; } },
+      hexlify: (b) => '0x' + Array.from(b).map((x) => x.toString(16).padStart(2, '0')).join(''), randomBytes: (n) => new Uint8Array(n) };
+    window.__giftSent = []; document.addEventListener('osoframes:gift:sent', (e) => window.__giftSent.push(e.detail));`;
+  const HOSTILE = '0x"><img src=x onerror="window.__xss=1"><a href="javascript:window.__xss=2">x</a>';
+  for (const [label, tx] of [['hostile markup', HOSTILE], ['not a hash (short hex)', '0xabc'], ['not a string', 12345]]) {
+    const ctx = await ctxFor('nobody.example', { width: 1280, height: 800 });
+    await ctx.route('https://facilitator.payai.network/**', (route) => {
+      const u = route.request().url();
+      if (u.endsWith('/verify')) return route.fulfill({ json: { isValid: true } });
+      if (u.endsWith('/settle')) return route.fulfill({ json: { success: true, transaction: tx } });
+      return route.abort();
+    });
+    await ctx.addInitScript(WALLET);
+    const p = await ctx.newPage(); const errs = errsOf(p);
+    await p.goto('http://nobody.example/narrow.html', { waitUntil: 'load' });
+    await p.waitForSelector('#oso-frames[data-osof-ready]', { state: 'attached' }); await p.waitForTimeout(1000);
+    await p.click('#oso-frames [data-slot=top-right] a[href="https://blessingpool.com/"]'); await p.waitForTimeout(400);
+    await p.click('#oso-frames .osof-gift-amt[data-v="0.10"]');
+    await p.click('#oso-frames .osof-gift-send');
+    await p.waitForFunction(() => /ALOHA RECEIVED/.test((document.querySelector('#oso-frames .osof-gift-st') || {}).textContent || ''), { timeout: 8000 });
+    await p.waitForTimeout(300);
+    const r = await p.evaluate(() => { const st = document.querySelector('#oso-frames .osof-gift-st'); return { imgs: st.querySelectorAll('img,script,iframe,svg').length, links: Array.from(st.querySelectorAll('a')).map((a) => a.getAttribute('href')), xss: window.__xss || 0, sent: window.__giftSent.map((e) => e.tx) }; });
+    ok(r.imgs === 0 && !r.xss, '11b ' + label + ': no element injected from the facilitator reply, no script ran');
+    ok(r.links.length === 0 && r.sent.length === 1 && r.sent[0] === null, '11b ' + label + ': no receipt link, gift:sent carries tx = null (never the hostile value)');
+    { const e2 = errs.filter((e) => !/ERR_FAILED|net::|ERR_ABORTED/.test(e)); ok(!e2.length, '11b ' + label + ': no console/page errors' + (e2.length ? ' → ' + e2.slice(0, 3).join(' | ') : '')); }
+    await ctx.close();
+  }
+}
+
 // 12 · v0.1.9 THE TOTEM STAYS IN THE SCREEN (Shaka, 28 Nov 2026: "i like when you can talk to the totem in screen like devconpit.com as a standard")
 {
   const ctx = await ctxFor('nobody.example', { width: 1280, height: 800 });
