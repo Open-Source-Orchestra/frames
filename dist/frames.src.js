@@ -1,4 +1,4 @@
-/*! Open Source Orchestra Frames v0.1.14 · https://github.com/Open-Source-Orchestra/frames
+/*! Open Source Orchestra Frames v0.1.15 · https://github.com/Open-Source-Orchestra/frames
  *  SPDX-License-Identifier: AGPL-3.0-or-later · Copyright (C) 2026 Shaka Lei Kaumaka / Open Source Orchestra and the AI ʻohana
  *  AGPL §7(b): keep the credit "Built on Open Source Orchestra Frames by Open Source Orchestra: Shaka Lei Kaumaka & the AI ʻohana
  *  (https://opensourceorchestra.org)" visible in the frame. See NOTICE. Source of this exact file: https://github.com/Open-Source-Orchestra/frames (the served /frames.js is a minified build of it; the readable file is /frames.src.js) */
@@ -18,7 +18,7 @@
  */
 var FRAMES = (function (W) {
   'use strict';
-  var VERSION = '0.1.14';
+  var VERSION = '0.1.15';
   var MAJOR = VERSION.split('.')[0];
   if (W && W.OSOFrames && W.OSOFrames.__osof) {            // loaded twice: the first copy rules
     if (W.console) W.console.info('🎻 frames: already on this page; the second copy stays quiet.');
@@ -4097,7 +4097,7 @@ FRAMES.define('signature', function (ctx, item) {
         var body = { x402Version: 1, paymentPayload: payload, paymentRequirements: req };
         sayT('🌊 verifying with the gift rail…');
         var V = await owh.post(FACILITATOR, '/verify', body);
-        if (V.net) { sayT(owh.NET); ui.fallback(); return; }
+        if (V.net) { sayT(V.timeout ? owh.SLOW : owh.NET); ui.fallback(); return; }
         var vj = V.json;
         if (!vj.isValid) { var vc = vj.invalidReason || vj.invalidMessage || ''; sayT('⚠️ ' + owh.why(vc) + ' — nothing left your wallet'); if (owh.rest(vc)) ui.fallback(); return; }
         sayT('🌊 settling on Base… (seconds)');
