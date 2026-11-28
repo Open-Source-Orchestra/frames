@@ -1,4 +1,4 @@
-/*! Open Source Orchestra Frames v0.1.16 · https://github.com/Open-Source-Orchestra/frames
+/*! Open Source Orchestra Frames v0.1.17 · https://github.com/Open-Source-Orchestra/frames
  *  SPDX-License-Identifier: AGPL-3.0-or-later · Copyright (C) 2026 Shaka Lei Kaumaka / Open Source Orchestra and the AI ʻohana
  *  AGPL §7(b): keep the credit "Built on Open Source Orchestra Frames by Open Source Orchestra: Shaka Lei Kaumaka & the AI ʻohana
  *  (https://opensourceorchestra.org)" visible in the frame. See NOTICE. Source of this exact file: https://github.com/Open-Source-Orchestra/frames (the served /frames.js is a minified build of it; the readable file is /frames.src.js) */
@@ -18,7 +18,7 @@
  */
 var FRAMES = (function (W) {
   'use strict';
-  var VERSION = '0.1.16';
+  var VERSION = '0.1.17';
   var MAJOR = VERSION.split('.')[0];
   if (W && W.OSOFrames && W.OSOFrames.__osof) {            // loaded twice: the first copy rules
     if (W.console) W.console.info('🎻 frames: already on this page; the second copy stays quiet.');
@@ -61,7 +61,7 @@ var FRAMES = (function (W) {
     'settings.url': '?frame=off on any address hides the frame for one page view.',
     'dot.label': '🎻 frame — bring back the frame by the ʻohana', 'dot.tip': '🎻 frame · The frame is off. Tap to bring it back.',
     'fold': 'Hide the frame button (a small dot stays)', 'unfold': 'Show the frame button',
-    'hide': 'Hide the whole frame — every button at once (a small 🎻 dot stays and brings it back)', 'sheet.hide': 'Hide the whole frame',
+    'hide': 'Hide frame — the whole frame, every button at once (a small 🎻 dot stays and brings it back)', 'sheet.hide': 'Hide the whole frame',
     'g.thanks': 'Gift line (3 s)',
     // v0.1.7 · the pennies-of-aloha card (the 🌊 Blessing Pool opens it)
     'gift.title': 'gifts of aloha', 'gift.custom': 'custom $',

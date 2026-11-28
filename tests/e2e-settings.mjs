@@ -17,6 +17,7 @@
 // usage: node tests/e2e-settings.mjs
 import http from 'node:http';
 import { readFile } from 'node:fs/promises';
+import { existsSync } from 'node:fs';
 import { join, dirname, extname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createRequire } from 'node:module';
@@ -119,7 +120,7 @@ const errsOf = (p) => { const e = []; p.on('pageerror', (x) => e.push('PE:' + St
   ok(r.id === 'pit-protocol', `data-door=auto on publicinform.com → id ${r.id}`);
   ok(r.accent === '#7fe0ff', `accent applied (${r.accent})`);
   ok(r.first === 'home' && r.pitGone && r.n >= 10, `slot ops: prepend + remove (left: ${r.n} items, first ${r.first})`);
-  ok(r.version === '0.1.16' && r.gear, `v${r.version} with the ⚙ gear in the credit mark`);
+  ok(r.version === '0.1.17' && r.gear, `v${r.version} with the ⚙ gear in the credit mark`);
   ok(!errs.length, 'no console/page errors' + (errs.length ? ' → ' + errs.join(' | ') : ''));
   // v0.1.16 the dataset waterfall: a known door goes straight to its own file (index.json is NOT read), the parent is the fallback already in flight (one request)
   ok(reqs.includes('/frames/doors/publicinform.com.json') && !reqs.includes('/frames/doors/index.json'), 'v0.1.16 known door → its own file straight away, NO index.json round trip (' + reqs.join(' ') + ')');
@@ -766,6 +767,23 @@ const AUDIO_STUB = `window.__audioLog = []; window.Audio = class { constructor()
   ok(await p.evaluate(() => !document.querySelector('#oso-frames .osof-gift-banner') && !document.querySelector('#oso-frames [data-osof-kind=gift]')), '11h still no magnet: the card opens ONLY on the visitor\'s tap (nothing auto-opens, no banner)');
   { const e2 = errs.filter((e) => !/ERR_FAILED|net::|ERR_ABORTED/.test(e)); ok(!e2.length, '11h no console/page errors' + (e2.length ? ' → ' + e2.slice(0, 4).join(' | ') : '')); }
   await ctx.close();
+}
+
+// 11i · v0.1.17 ACCESSIBILITY (SPEC §9 "axe: 0 serious/critical inside #oso-frames"): the credit ✕'s accessible name must CONTAIN its visible label ("hide frame", shown on hover/focus and once for 4 s on a first visit)
+// — axe `label-content-name-mismatch` (serious) flagged "Hide the whole frame …" on the live flagship. axe-core is looked up beside the playwright cache; no axe → the test says so and is skipped (never silently green).
+{
+  const AXE = [process.env.AXE_JS, '/workspace/.cache/pw/node_modules/axe-core/axe.min.js', '/usr/lib/node_modules/axe-core/axe.min.js'].filter(Boolean).find((f) => existsSync(f));
+  if (!AXE) console.log('⚠ 11i skipped: axe-core not found (set AXE_JS=/path/to/axe.min.js)');
+  else for (const [label, vp, mobile] of [['desktop', { width: 1280, height: 800 }, false], ['phone', { width: 390, height: 844 }, true]]) {
+    const ctx = await ctxFor('nobody.example', vp, mobile); const p = await ctx.newPage();
+    await p.goto('http://nobody.example/narrow.html?frame=fresh', { waitUntil: 'load' });
+    await p.waitForSelector('#oso-frames[data-osof-ready]', { state: 'attached' }); await p.waitForTimeout(1200);
+    await p.evaluate(() => { const x = document.querySelector('#oso-frames .osof-credit-x'); if (x) x.classList.add('osof-say'); });      // the visible "✕ hide frame" label is ON while axe looks
+    await p.addScriptTag({ path: AXE });
+    const v = await p.evaluate(async () => { const res = await axe.run('#oso-frames', { resultTypes: ['violations'] }); return res.violations.filter((x) => x.impact === 'serious' || x.impact === 'critical').map((x) => x.id + ' → ' + x.nodes[0].target.join(' ')); });
+    ok(v.length === 0, '11i ' + label + ': axe finds 0 serious/critical inside #oso-frames' + (v.length ? ' → ' + v.join(' | ') : ''));
+    await ctx.close();
+  }
 }
 
 // 12 · v0.1.9 THE TOTEM STAYS IN THE SCREEN (Shaka, 28 Nov 2026: "i like when you can talk to the totem in screen like devconpit.com as a standard")

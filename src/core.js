@@ -12,7 +12,7 @@
  */
 var FRAMES = (function (W) {
   'use strict';
-  var VERSION = '0.1.16';
+  var VERSION = '0.1.17';
   var MAJOR = VERSION.split('.')[0];
   if (W && W.OSOFrames && W.OSOFrames.__osof) {            // loaded twice: the first copy rules
     if (W.console) W.console.info('🎻 frames: already on this page; the second copy stays quiet.');
@@ -55,7 +55,7 @@ var FRAMES = (function (W) {
     'settings.url': '?frame=off on any address hides the frame for one page view.',
     'dot.label': '🎻 frame — bring back the frame by the ʻohana', 'dot.tip': '🎻 frame · The frame is off. Tap to bring it back.',
     'fold': 'Hide the frame button (a small dot stays)', 'unfold': 'Show the frame button',
-    'hide': 'Hide the whole frame — every button at once (a small 🎻 dot stays and brings it back)', 'sheet.hide': 'Hide the whole frame',
+    'hide': 'Hide frame — the whole frame, every button at once (a small 🎻 dot stays and brings it back)', 'sheet.hide': 'Hide the whole frame',
     'g.thanks': 'Gift line (3 s)',
     // v0.1.7 · the pennies-of-aloha card (the 🌊 Blessing Pool opens it)
     'gift.title': 'gifts of aloha', 'gift.custom': 'custom $',

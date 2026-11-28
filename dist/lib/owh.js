@@ -1,4 +1,4 @@
-/*! owh · ʻohana wallet connect v1.0 · standalone lazy module of Open Source Orchestra Frames v0.1.16
+/*! owh · ʻohana wallet connect v1.0 · standalone lazy module of Open Source Orchestra Frames v0.1.17
  *  SPDX-License-Identifier: GPL-3.0-or-later · Built by Open Source Orchestra: Shaka Lei Kaumaka & the AI ʻohana (https://opensourceorchestra.org)
  *  Source of this exact file: https://github.com/Open-Source-Orchestra/frames → src/lib/owh.js (sets window.OWH only if absent) */
 (function(){'use strict';if(window.OWH)return;
