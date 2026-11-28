@@ -15,6 +15,20 @@
 /media/*
   ! Cache-Control
   Cache-Control: public, max-age=86400
+/lib/owh.js
+  ! Cache-Control
+  Cache-Control: public, max-age=300
+/lib/owh-signup.min.js
+  ! Cache-Control
+  Cache-Control: public, max-age=300
+/lib/owh-qr.min.js
+  ! Cache-Control
+  Cache-Control: public, max-age=86400
+/lib/base-account-2.6.0.min.js
+  ! Cache-Control
+  Cache-Control: public, max-age=31536000, immutable
+/lib/*.txt
+  Content-Type: text/plain; charset=utf-8
 /*.md
   Content-Type: text/markdown; charset=utf-8
 /LICENSE
