@@ -117,7 +117,7 @@
         var body = { x402Version: 1, paymentPayload: payload, paymentRequirements: req };
         sayT('🌊 verifying with the gift rail…');
         var V = await owh.post(FACILITATOR, '/verify', body);
-        if (V.net) { sayT(owh.NET); ui.fallback(); return; }
+        if (V.net) { sayT(V.timeout ? owh.SLOW : owh.NET); ui.fallback(); return; }
         var vj = V.json;
         if (!vj.isValid) { var vc = vj.invalidReason || vj.invalidMessage || ''; sayT('⚠️ ' + owh.why(vc) + ' — nothing left your wallet'); if (owh.rest(vc)) ui.fallback(); return; }
         sayT('🌊 settling on Base… (seconds)');
