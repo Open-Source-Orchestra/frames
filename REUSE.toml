@@ -28,6 +28,19 @@ precedence = "override"
 SPDX-FileCopyrightText = "2026 Shaka Lei Kaumaka / Open Source Orchestra and the AI ʻohana"
 SPDX-License-Identifier = "GPL-3.0-or-later"
 
+# v0.1.18 · the Universe Fountain (vendored build + its readable source; tools/vendor-fountain.mjs) — GPL-3.0-or-later, one-way compatible with the AGPL whole
+[[annotations]]
+path = ["lib/fountain.js", "lib/fountain.src.js", "lib/fountain.SOURCE.txt"]
+precedence = "override"
+SPDX-FileCopyrightText = "2026 Shaka Lei Kaumaka / Open Source Orchestra and the AI ʻohana"
+SPDX-License-Identifier = "GPL-3.0-or-later"
+
+[[annotations]]
+path = ["fountain-config.json"]
+precedence = "override"
+SPDX-FileCopyrightText = "2026 Shaka Lei Kaumaka / Open Source Orchestra and the AI ʻohana"
+SPDX-License-Identifier = "CC-BY-SA-4.0"
+
 [[annotations]]
 path = ["lib/owh-qr.min.js"]
 precedence = "override"

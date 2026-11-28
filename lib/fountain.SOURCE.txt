@@ -1,0 +1,4 @@
+lib/fountain.js = the Universe Fountain v0.1.0 (minified build) · lib/fountain.src.js = the readable source of those exact bytes
+License: GPL-3.0-or-later · Built by Open Source Orchestra: Shaka Lei Kaumaka & the AI ʻohana (https://opensourceorchestra.org) — a machine made it
+Vendored from the Fountain repo at commit 45c61de on 2026-11-28T14:16:19.775Z by tools/vendor-fountain.mjs (frames repo: https://github.com/Open-Source-Orchestra/frames)
+Kill switch: /fountain-config.json (served no-cache) — {enabled, disabledChains[], message, payTo}; the payee is pinned in code, a config naming another payee is refused.

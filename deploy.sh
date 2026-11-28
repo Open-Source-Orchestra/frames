@@ -48,7 +48,9 @@ cp frames.js dist/frames.src.js
 node --check dist/frames.js || { echo "✗ the minified frames.js fails the syntax gate"; exit 1; }
 head -c 200 dist/frames.js | grep -q 'Open Source Orchestra Frames v' || { echo "✗ the credit banner did not survive the minifier"; exit 1; }
 echo "frames.js served minified: $(wc -c < frames.js) → $(wc -c < dist/frames.js) bytes ($(gzip -9 -c dist/frames.js | wc -c) gzip)"
-[ -d lib ] && cp -r lib dist/          # v0.1.12: the lazy wallet connect module + QR + sign-up hook (+ the vendored Apache-2.0 SDK with its NOTICE)
+[ -d lib ] && cp -r lib dist/          # v0.1.12: the lazy wallet connect module + QR + sign-up hook (+ the vendored Apache-2.0 SDK with its NOTICE); v0.1.18: + lib/fountain.js (the Universe Fountain, GPL) + its readable source
+# v0.1.18: the Fountain's KILL SWITCH — a tiny JSON every open Fountain reads with ?t=<now> + cache:'no-store'; served `no-cache` below so a flip reaches visitors at once
+[ -f fountain-config.json ] && cp fountain-config.json dist/
 [ -d trademark ] && cp -r trademark dist/
 [ -f frames.min.js ] && cp frames.min.js dist/
 [ -f 404.html ] && cp 404.html dist/
@@ -88,6 +90,15 @@ cat > dist/_headers <<'H'
 /lib/base-account-2.6.0.min.js
   ! Cache-Control
   Cache-Control: public, max-age=31536000, immutable
+/lib/fountain.js
+  ! Cache-Control
+  Cache-Control: public, max-age=300
+/lib/fountain.src.js
+  ! Cache-Control
+  Cache-Control: public, max-age=300
+/fountain-config.json
+  ! Cache-Control
+  Cache-Control: no-cache
 /lib/*.txt
   Content-Type: text/plain; charset=utf-8
 /*.md
@@ -97,6 +108,9 @@ cat > dist/_headers <<'H'
 /NOTICE
   Content-Type: text/plain; charset=utf-8
 H
+# v0.1.18 gate: the Base Account SDK (passkey sign-up) refuses a page/origin that sends Cross-Origin-Opener-Policy: same-origin — this origin must never send COOP (LAUNCHER.md)
+grep -qi 'Cross-Origin-Opener-Policy' dist/_headers && { echo "✗ dist/_headers sends a COOP header — the Fountain's passkey row would refuse it; remove it"; exit 1; }
+[ -f dist/lib/fountain.js ] && [ -f dist/fountain-config.json ] || { echo "✗ dist lacks lib/fountain.js or fountain-config.json — run: node tools/vendor-fountain.mjs"; exit 1; }
 find dist -name '*.md' -o -name '*.json' | head -0
 echo "dist: $(find dist -type f | wc -l) files, $(du -sh dist | cut -f1)"
 [ "${1:-}" = "--dry" ] && { echo "dry run: not deploying"; exit 0; }

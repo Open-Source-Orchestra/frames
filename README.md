@@ -54,7 +54,7 @@ One tag for **every page of every door** — the frame picks the door's own smal
 | 💬 talk line | live chat on the open PIT chat protocol (connects only when opened) |
 | 📻 radio | consented songs; nothing loads before you press play |
 | 🌺 ceremony | top-left, always: the welcome in Shaka's twin voice (a machine, and it says so) with the same words as captions, button by button, ending at the 🌊 Blessing Pool (top-right, always). Plays only when tapped; ▶⏸ · 🔇 · Skip ✕ |
-| 🌊 Blessing Pool | top-right, always: a tap opens the **gifts-of-aloha card** (v0.1.7, first called "pennies of aloha") — x402 USDC on Base, gas-free for the giver, straight to the ʻohana wallet; human rails (Stripe · PayPal · Venmo) and the pool page inside. The href stays for SEO / middle-click / no-JS |
+| 🌊 Blessing Pool | top-right, always: a tap opens the **Universe Fountain** (v0.1.18 — one big calm sheet: Apple Pay · Google Pay · card, Venmo + PayPal prefilled, a crypto wallet on 12 chains with Base gas-free, stage QR; `lib/fountain.js`, lazy, GPL) — and if it cannot load, the **gifts-of-aloha card** (v0.1.7, first called "pennies of aloha") exactly as before: x402 USDC on Base, gas-free for the giver, straight to the ʻohana wallet; human rails (Stripe · PayPal · Venmo) and the pool page inside. The href stays for SEO / middle-click / no-JS |
 | ✍️ signature | the steward signs the page in real time, once, then the ink fades |
 | doors & pills | emoji links down both edges + small pills for what's next |
 

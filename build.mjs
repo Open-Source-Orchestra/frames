@@ -93,6 +93,25 @@ if (owhSrc) {
   }
 }
 
+// gate 2a2 · v0.1.18 — the Universe Fountain (lib/fountain.js = the minified build the doors run · lib/fountain.src.js = its readable source, GPL-3.0-or-later ·
+// fountain-config.json = the kill switch, served no-cache). Vendored by `node tools/vendor-fountain.mjs` from the Fountain repo; the 🌊 gift piece lazy-loads
+// lib/fountain.js on the visitor's tap and keeps the gifts-of-aloha card as the exact fallback. The payee is pinned in both the module and the config.
+{
+  const FOUNTAIN_PAYTO = '0x25965899f4600b3AA5362ee4f34be95E5E62c934';
+  for (const f of ['lib/fountain.js', 'lib/fountain.src.js', 'lib/fountain.SOURCE.txt', 'fountain-config.json']) { if (existsSync(join(ROOT, f))) ok(`present ${f}`); else fail(`missing ${f} — run: node tools/vendor-fountain.mjs`); }
+  if (existsSync(join(ROOT, 'lib/fountain.js'))) {
+    syntax('lib/fountain.js (the Fountain, minified)', join(ROOT, 'lib/fountain.js'));
+    const fm = read('lib/fountain.js');
+    if (!/OSOFountain/.test(fm) || !fm.includes(FOUNTAIN_PAYTO)) fail('lib/fountain.js must define OSOFountain and pin the ʻohana wallet ' + FOUNTAIN_PAYTO);
+    const srcDist = '/shared/fountain/dist/fountain.min.js';   // the build box only: forks have no /shared
+    if (existsSync(srcDist) && readFileSync(srcDist, 'utf8') !== fm) console.log('  ⚠ lib/fountain.js differs from ' + srcDist + ' — the Fountain moved on; re-vendor with: node tools/vendor-fountain.mjs (then re-test)');
+  }
+  if (existsSync(join(ROOT, 'fountain-config.json'))) {
+    try { const c = JSON.parse(read('fountain-config.json')); if (c.payTo !== FOUNTAIN_PAYTO) fail('fountain-config.json names another payee: ' + c.payTo); else if (typeof c.enabled !== 'boolean' || !Array.isArray(c.disabledChains)) fail('fountain-config.json: {enabled:boolean, disabledChains:[]} expected'); else ok(`fountain-config.json (enabled=${c.enabled}, ${c.disabledChains.length} chain(s) resting, payee pinned)`); }
+    catch (e) { fail('fountain-config.json is not valid JSON: ' + e.message); }
+  }
+}
+
 // gate 2b · every dataset validates against schema/frame-0.1.json (a small built-in validator: the subset the schema uses),
 // door frames (frames/doors/<host>.json) are also merged onto their parent with the SAME code the browser runs
 // (src/core.js → FRAMES._.mergeFrame) and the merged frame validates too. frames/doors/index.json (the gallery) is rebuilt.

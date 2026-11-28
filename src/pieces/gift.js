@@ -45,11 +45,76 @@
     F + ' .osof-gift-copy{background:#1c1230;color:#7fd8a4;border:1px solid #7fd8a4;border-radius:10px;padding:10px 14px;min-height:44px;font:13px system-ui,-apple-system,sans-serif;cursor:pointer;margin-top:8px;touch-action:manipulation}',
     F + ' .osof-gift-rails{margin-top:14px;border-top:1px solid #2c2140;padding-top:10px;color:#cdbce8;font:13px/1.8 system-ui,-apple-system,sans-serif}',
     F + ' .osof-gift-rails a{color:#fbe2a0}',
-    F + ' .osof-gift-honest{margin-top:10px;color:#8b84ad;font:11.5px/1.5 system-ui,-apple-system,sans-serif}'
+    F + ' .osof-gift-honest{margin-top:10px;color:#8b84ad;font:11.5px/1.5 system-ui,-apple-system,sans-serif}',
+    F + ' [data-osof-busy]{opacity:.65;transition:opacity .2s ease}'                      // v0.1.18: the tapped 🌊 while the Fountain is on its way (≤ 4 s); no motion, no layout change
   ].join('\n');
 
   var built = null;   // one card per frame (per page)
   var owhP = null;    // the wallet connect module, once per page
+
+  /* ── v0.1.18 · THE UNIVERSE FOUNTAIN (Shaka, 28 Nov 2026: "not a small magnet but a universe fountain of blessings" · "lets ship and do these") ──
+   * A tap on the 🌊 now opens the Fountain — one big calm sheet (Apple Pay · Google Pay · card first, Venmo + PayPal prefilled, a crypto wallet on
+   * 12 chains with Base gas-free, stage QR) — lazy-loaded from lib/fountain.js beside frames.js (ctx.base; on every door of ours that is
+   * https://frames.opensourceorchestra.org/lib/fountain.js — the LAUNCHER.md contract). The Fountain pins osoartist.eth in code and reads its kill
+   * switch from <frames origin>/fountain-config.json. The card below stays as the EXACT fallback: a 404, a block, a 4-s timeout, a file without
+   * OSOFountain → the card opens as before. The first copy of the module on a page wins (shakafans.com's root mounts it inline), so a page that
+   * already carries window.OSOFountain is never given a second script, and a page with an inline Fountain is scrolled to it instead of a sheet. */
+  var OFN_TIMEOUT = 4000;
+  var ofnP = null;        // the Fountain module, once per page
+  var ofnOpening = false; // single flight: a second tap while the script is in flight does nothing
+  var ofnBridged = false;
+  function hasFountain() { return !!(window.OSOFountain && typeof window.OSOFountain.open === 'function'); }
+  function loadFountain(ctx) {
+    if (hasFountain()) return Promise.resolve(window.OSOFountain);
+    if (!ofnP) {
+      ofnP = new Promise(function (res, rej) {
+        var done = false, tm = null, s = document.createElement('script');
+        function fin(err) { if (done) return; done = true; clearTimeout(tm); if (err) { ofnP = null; rej(err); } else res(window.OSOFountain); }
+        tm = setTimeout(function () { fin(new Error('fountain timeout')); }, OFN_TIMEOUT);
+        try { s.src = new URL('lib/fountain.js', ctx.base || document.baseURI).href; } catch (e) { fin(e); return; }
+        s.async = true;
+        s.onload = function () { fin(hasFountain() ? null : new Error('fountain missing')); };
+        s.onerror = function () { fin(new Error('fountain failed to load')); };
+        document.head.appendChild(s);
+      });
+    }
+    return ofnP;
+  }
+  // the element focus returns to when the Fountain closes: the tapped 🌊 (rail door) — or, on a phone, the 🎻 button once its sheet has closed
+  function vis(el) { return !!el && el.isConnected && el.getClientRects().length > 0; }
+  function fountainAnchor(ctx, item) {
+    var root = document.getElementById('oso-frames'), a = document.activeElement;
+    if (root && a && a !== document.body && root.contains(a) && vis(a)) return a;
+    var href = item && item.href ? String(item.href) : '';
+    var all = root ? root.querySelectorAll('a[aria-haspopup="dialog"]') : [];
+    for (var i = 0; i < all.length; i++) if (vis(all[i]) && (!href || all[i].getAttribute('href') === href)) return all[i];
+    var sb = root && root.querySelector('.osof-sheetbtn'); return vis(sb) ? sb : null;
+  }
+  // the phone 🎻 sheet is a frame dialog: it steps aside for the Fountain exactly as it does for the card (never a sheet under a sheet)
+  function closeSheet(ctx) {
+    var el = document.getElementById('osof-dlg-sheet'); if (!el || el.hidden) return;
+    try { var d = ctx.panel({ id: 'sheet' }); if (d && d.isOpen && d.isOpen()) d.close(); } catch (e) {}
+  }
+  function bridge(ctx) {                                    // the Fountain's gift event → the frame's gift:sent, once per page (tx = network data: 64-hex or nothing)
+    if (ofnBridged) return; ofnBridged = true;
+    window.addEventListener('fountain:gift', function (e) {
+      var d = (e && e.detail) || {}; var tx = /^0x[0-9a-fA-F]{64}$/.test(String(d.tx || '')) ? String(d.tx) : null;
+      ctx.emit('gift:sent', { tx: tx, amount: d.usd, chainId: d.chainId, route: 'fountain' });
+    });
+  }
+  function openFountain(ctx, item, from, pend) {           // resolves true when the Fountain is on screen (or already was); rejects → the caller opens the card
+    return loadFountain(ctx).then(function (F) {
+      bridge(ctx);
+      if (F.isOpen && F.isOpen()) return true;
+      var inline = document.querySelector('.ofn.ofn-page');  // a page that mounts its own Fountain: go there, never a second one on top
+      if (inline && !pend) { try { inline.scrollIntoView({ behavior: ctx.reduced ? 'auto' : 'smooth', block: 'start' }); var f = inline.querySelector('[data-focus]'); if (f) f.focus({ preventScroll: true }); } catch (e) {} return true; }
+      closeSheet(ctx);
+      if (!vis(from)) from = fountainAnchor(ctx, item);     // the tapped tile went away with the sheet → focus will return to the 🎻 button (or the rail door)
+      var o = { surface: 'frames' }; if (from) o.from = from; if (pend) o.pending = pend;
+      F.open(o);
+      return true;
+    });
+  }
 
   // lib/owh.js lives next to frames.js (ctx.base = the directory of this script). It sets window.OWH only if absent.
   function loadOWH(ctx) {
@@ -188,28 +253,49 @@
     };
   }
 
+  // ── the gifts-of-aloha CARD (v0.1.7 → v0.1.17 behaviour, unchanged) — since v0.1.18 the exact fallback of the Fountain ──
+  function openCard(ctx, item) {
+    ctx.css('gift', CSS);
+    if (!built) built = build(ctx);
+    built.sync(item || ctx.item);
+    built.reset();
+    ctx.panel({ id: 'gift' }).open();
+    ctx.emit('gift:open', { id: item && item.id, via: 'card' });
+    return true;
+  }
+  // a wallet app opened this page from our own link (?osogift=frames:<usd>:…) and the Fountain could not load: the card opens itself, amount kept, starts ≤ $10
+  function autoOpenCard(ctx, item) {
+    loadOWH(ctx).then(function (O) {
+      var p = O.pending('frames'); if (!p) return;
+      if (!openCard(ctx, item)) return;
+      built.setAmt(p.usd); built.pend(p);
+    }).catch(function () {});
+  }
+  function hasReturn() { return /[?&]osogift=frames:/.test(window.location.search); }
+
   FRAMES.gift = {
+    // a TAP on the 🌊 (rail door or sheet tile): the Fountain, lazily — or the card, exactly as before. Always true: the tap never navigates.
     open: function (ctx, item) {
       if (!ctx || typeof ctx.panel !== 'function') return false;
+      if (hasFountain() && window.OSOFountain.isOpen && window.OSOFountain.isOpen()) return true;   // one sheet, never two
+      if (ofnOpening) return true;                                                                 // the script is on its way (single flight)
+      var from = fountainAnchor(ctx, item);
+      ofnOpening = true; if (from) { from.setAttribute('aria-busy', 'true'); from.setAttribute('data-osof-busy', ''); }
+      function settle() { ofnOpening = false; if (from) { from.removeAttribute('aria-busy'); from.removeAttribute('data-osof-busy'); } }
       ctx.css('gift', CSS);
-      if (!built) built = build(ctx);
-      built.sync(item || ctx.item);
-      built.reset();
-      ctx.panel({ id: 'gift' }).open();
-      ctx.emit('gift:open', { id: item && item.id });
+      openFountain(ctx, item, from, null).then(function () { settle(); ctx.emit('gift:open', { id: item && item.id, via: 'fountain' }); },
+        function () { settle(); openCard(ctx, item); });
       return true;
     },
-    // first INTENT on the 🌊 (hover / touch / focus): fetch the picker so it is ready by the tap — never on page load
-    warm: function (ctx) { if (ctx) loadOWH(ctx).catch(function () {}); },
-    // a wallet app opened this page from our own link (?osogift=frames:<usd>:…): the card opens itself, amount kept, starts ≤ $10
+    // first INTENT on the 🌊 (hover / touch / focus): fetch the Fountain and the picker so the tap feels instant — never on page load
+    warm: function (ctx) { if (!ctx) return; loadFountain(ctx).catch(function () {}); loadOWH(ctx).catch(function () {}); },
+    // RETURN (mandatory for every launcher — LAUNCHER.md): back from a wallet app as ?osogift=frames:<usd>:c<chainId>:go → the Fountain opens at the
+    // wallet step with pending:true (it reads + cleans the URL itself; ≤ $10 auto-starts). If it cannot load, the card handles the way back as before.
     autoOpen: function (ctx, item) {
-      var v = ''; try { v = new URLSearchParams(window.location.search).get('osogift') || ''; } catch (e) {}
-      if (v.indexOf('frames:') !== 0) return;
-      loadOWH(ctx).then(function (O) {
-        var p = O.pending('frames'); if (!p) return;
-        if (!FRAMES.gift.open(ctx, item)) return;
-        built.setAmt(p.usd); built.pend(p);
-      }).catch(function () {});
+      if (!ctx || !hasReturn()) return;
+      var from = fountainAnchor(ctx, item);
+      openFountain(ctx, item, from, true).then(function () { ctx.emit('gift:open', { id: item && item.id, via: 'fountain', pending: true }); },
+        function () { if (hasReturn()) autoOpenCard(ctx, item); });
     }
   };
 })();

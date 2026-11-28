@@ -53,6 +53,9 @@ const COMIC = PAGE('comic', `<style>body{overflow-x:hidden}</style><div style="h
   `<p class="kaaak" style="position:absolute;right:calc(10px - 10vw);bottom:30px;width:250px;background:#fff;color:#111;padding:16px 14px;border-radius:18px;font:800 17px/1.4 sans-serif">See you inside!!! Bring your songs!!! The seat with your name on it.</p>` +
   `</div><div style="height:120vh"></div>`);
 const HERO = PAGE('hero then text', `<div style="height:280px"></div><div style="max-width:560px;margin:0 auto">` + Array.from({ length: 30 }, (_, i) => `<p>Paragraph ${i + 1}. ${'Words below a quiet hero. '.repeat(8)}</p>`).join('') + '</div>');
+// 28 Nov 2026 (v0.1.18): a page that mounts its OWN Universe Fountain inline (shakafans.com's root) and also wears the frame — and one that only carries the module
+const FOUNTAINPAGE = NARROW.replace('</main>', `</main><div id="fountain" style="min-height:640px;margin:1400px auto 0;max-width:560px"></div><script src="/lib/fountain.js"></script><script>OSOFountain.mount(document.getElementById('fountain'), { configUrl: '/fountain-config.json' });</script>`);
+const FOUNTAINLIB = NARROW.replace('</main>', `</main><script src="/lib/fountain.js"></script>`);
 
 async function loadPlaywright() {
   try { return await import('playwright'); } catch (e) { /* next */ }
@@ -72,6 +75,8 @@ function serve() {
         if (u.pathname === '/wide.html') return rsp.writeHead(200, { 'content-type': TYPES['.html'] }).end(WIDE);
         if (u.pathname === '/narrow.html') return rsp.writeHead(200, { 'content-type': TYPES['.html'] }).end(NARROW);
         if (u.pathname === '/hero.html') return rsp.writeHead(200, { 'content-type': TYPES['.html'] }).end(HERO);
+        if (u.pathname === '/fountainpage.html') return rsp.writeHead(200, { 'content-type': TYPES['.html'] }).end(FOUNTAINPAGE);
+        if (u.pathname === '/fountainlib.html') return rsp.writeHead(200, { 'content-type': TYPES['.html'] }).end(FOUNTAINLIB);
         if (u.pathname === '/comic.html') return rsp.writeHead(200, { 'content-type': TYPES['.html'] }).end(COMIC);
         if (u.pathname === '/navleak.html') return rsp.writeHead(200, { 'content-type': TYPES['.html'] }).end(NAVLEAK);
         if (u.pathname === '/ownchat.html') return rsp.writeHead(200, { 'content-type': TYPES['.html'] }).end(u.searchParams.get('fab') ? OWNCHAT.replace('id="oso-fab"', 'id="' + u.searchParams.get('fab').replace(/[^A-Za-z0-9_-]/g, '') + '"') : OWNCHAT);
@@ -97,11 +102,25 @@ const { chromium } = await loadPlaywright();
 const srv = await serve();
 const b = await chromium.launch();
 // every request is pinned to our local server, whatever host the page claims (publicinform.com → 127.0.0.1); nothing else is allowed
-async function ctxFor(host, viewport, mobile) {
+// v0.1.18 · opts.fountain: the Universe Fountain (lib/fountain.js, its kill switch and the files it pulls from the frames origin) is served from THIS repo
+// only when a test asks for it — true (the real built file) · '404' · 'slow' (the real file after 5 s, past the 4-s tap timeout). Every other test keeps the
+// 🌊 on the gifts-of-aloha CARD — the exact fallback — so the card's own guards (11, 11a2…11i) stay meaningful.
+async function fulfillLocal(route, pathname) {
+  try { const body = await readFile(join(ROOT, decodeURIComponent(pathname))); return route.fulfill({ status: 200, contentType: TYPES[extname(pathname)] || 'application/octet-stream', headers: { 'access-control-allow-origin': '*', 'cache-control': 'no-cache' }, body }); }
+  catch (e) { return route.fulfill({ status: 404, body: 'not found' }); }
+}
+async function ctxFor(host, viewport, mobile, opts) {
+  opts = opts || {};
   const ctx = await b.newContext({ viewport, isMobile: !!mobile, hasTouch: !!mobile });
-  await ctx.route('**/*', (route) => {
+  await ctx.route('**/*', async (route) => {
     const u = new URL(route.request().url());
+    if (/\/lib\/fountain\.js$/.test(u.pathname)) {
+      if (opts.fountain === '404') return route.fulfill({ status: 404, body: 'not found' });
+      if (opts.fountain === 'slow') { await new Promise((r) => setTimeout(r, 5000)); return fulfillLocal(route, u.pathname); }
+      if (!opts.fountain) return route.abort();
+    }
     if (u.hostname === host || u.hostname === '127.0.0.1') return route.continue({ url: `http://127.0.0.1:${srv.port}${u.pathname}${u.search}` });
+    if (opts.fountain && u.hostname === 'frames.opensourceorchestra.org') return fulfillLocal(route, u.pathname);   // the Fountain pins its config / owh / qr URLs to the frames origin (https → served from the repo)
     if (/lang\.opensourceorchestra\.org/.test(u.hostname)) return route.fulfill({ status: 200, contentType: 'text/javascript', body: '/* lang.js stub */' });
     return route.abort();            // FAIL CLOSED: no real hub, no real door
   });
@@ -120,7 +139,7 @@ const errsOf = (p) => { const e = []; p.on('pageerror', (x) => e.push('PE:' + St
   ok(r.id === 'pit-protocol', `data-door=auto on publicinform.com → id ${r.id}`);
   ok(r.accent === '#7fe0ff', `accent applied (${r.accent})`);
   ok(r.first === 'home' && r.pitGone && r.n >= 10, `slot ops: prepend + remove (left: ${r.n} items, first ${r.first})`);
-  ok(r.version === '0.1.17' && r.gear, `v${r.version} with the ⚙ gear in the credit mark`);
+  ok(r.version === '0.1.18' && r.gear, `v${r.version} with the ⚙ gear in the credit mark`);
   ok(!errs.length, 'no console/page errors' + (errs.length ? ' → ' + errs.join(' | ') : ''));
   // v0.1.16 the dataset waterfall: a known door goes straight to its own file (index.json is NOT read), the parent is the fallback already in flight (one request)
   ok(reqs.includes('/frames/doors/publicinform.com.json') && !reqs.includes('/frames/doors/index.json'), 'v0.1.16 known door → its own file straight away, NO index.json round trip (' + reqs.join(' ') + ')');
@@ -638,6 +657,7 @@ const AUDIO_STUB = `window.__audioLog = []; window.Audio = class { constructor()
   const navs = [];
   await ctx.route('**/*', (route) => {
     const u = new URL(route.request().url());
+    if (/\/lib\/fountain\.js$/.test(u.pathname)) return route.abort();   // v0.1.18: this guard is about the CARD's phone links (the Fountain's fallback) — the Fountain itself is 11j
     if (u.hostname === 'nobody.example' || u.hostname === '127.0.0.1') return route.continue({ url: `http://127.0.0.1:${srv.port}${u.pathname}${u.search}` });
     if (/^(link\.metamask\.io|go\.cb-w\.com|phantom\.(app|com)|link\.trustwallet\.com)$/.test(u.hostname)) { navs.push(u.href); return route.fulfill({ body: '<h1>wallet landing</h1>', contentType: 'text/html' }); }
     if (/lang\.opensourceorchestra\.org/.test(u.hostname)) return route.fulfill({ status: 200, contentType: 'text/javascript', body: '/* lang.js stub */' });
@@ -782,6 +802,165 @@ const AUDIO_STUB = `window.__audioLog = []; window.Audio = class { constructor()
     await p.addScriptTag({ path: AXE });
     const v = await p.evaluate(async () => { const res = await axe.run('#oso-frames', { resultTypes: ['violations'] }); return res.violations.filter((x) => x.impact === 'serious' || x.impact === 'critical').map((x) => x.id + ' → ' + x.nodes[0].target.join(' ')); });
     ok(v.length === 0, '11i ' + label + ': axe finds 0 serious/critical inside #oso-frames' + (v.length ? ' → ' + v.join(' | ') : ''));
+    await ctx.close();
+  }
+}
+
+// 11j · v0.1.18 THE UNIVERSE FOUNTAIN (Shaka, 28 Nov 2026: "not a small magnet but a universe fountain of blessings" · "lets ship and do these"):
+// a tap on the 🌊 lazy-loads lib/fountain.js (the real built file, served from this repo) and opens the Fountain; the gifts-of-aloha card is the EXACT
+// fallback (404 / blocked / slow); the RETURN handler hands the way back from a wallet app to the Fountain; one sheet, never two; no second script/mount.
+{
+  // the mock wallet of the Fountain's own suite (EIP-6963 + legacy window.ethereum): records every call, signs, answers symbol/decimals/balance
+  const MOCK6963 = (init) => `(() => {
+    const cfg = window.__mock = Object.assign({ chain: '0x2105', unknown: [], balance: (1000n*10n**6n).toString(16), decimals: {}, accounts: ['0x1111111111111111111111111111111111111111'], hash: '0x' + 'ab'.repeat(32), receipt: '0x1' }, ${JSON.stringify(init || {})});
+    window.__calls = [];
+    const provider = { isMetaMask: true, on() {}, removeListener() {}, async request({ method, params }) {
+      window.__calls.push(method + (method === 'eth_signTypedData_v4' ? ':' + JSON.parse(params[1]).message.value + ':' + JSON.parse(params[1]).message.to : ''));
+      switch (method) {
+        case 'eth_requestAccounts': case 'eth_accounts': return cfg.accounts;
+        case 'eth_chainId': return cfg.chain;
+        case 'wallet_switchEthereumChain': cfg.chain = params[0].chainId; return null;
+        case 'wallet_addEthereumChain': cfg.chain = params[0].chainId; return null;
+        case 'eth_getCode': return '0x6080604052';
+        case 'eth_call': { const d = params[0].data; if (d.startsWith('0x95d89b41')) return '0x' + '20'.padStart(64, '0') + (4).toString(16).padStart(64, '0') + '55534443'.padEnd(64, '0'); if (d.startsWith('0x313ce567')) return '0x' + (cfg.decimals[cfg.chain] ?? 6).toString(16).padStart(64, '0'); if (d.startsWith('0x70a08231')) return '0x' + cfg.balance.padStart(64, '0'); return '0x'; }
+        case 'eth_signTypedData_v4': return '0x' + '11'.repeat(65);
+        case 'eth_sendTransaction': return cfg.hash;
+        case 'eth_getTransactionReceipt': return { status: cfg.receipt };
+        default: throw Object.assign(new Error('mock: unsupported ' + method), { code: -32601 });
+      } } };
+    window.ethereum = provider;
+    const info = { uuid: '11111111-1111-4111-8111-111111111111', name: 'MockWallet', icon: '', rdns: 'io.mock' };
+    const announce = () => window.dispatchEvent(new CustomEvent('eip6963:announceProvider', { detail: Object.freeze({ info, provider }) }));
+    window.addEventListener('eip6963:requestProvider', announce); announce();
+  })();`;
+  const LISTEN = `window.__ev = []; window.addEventListener('fountain:open', (e) => window.__ev.push('open:' + (e.detail && e.detail.surface))); window.addEventListener('fountain:close', () => window.__ev.push('close'));
+    window.__giftSent = []; document.addEventListener('osoframes:gift:sent', (e) => window.__giftSent.push(e.detail)); window.__giftOpen = []; document.addEventListener('osoframes:gift:open', (e) => window.__giftOpen.push(e.detail));`;
+  // the gift rail's Base lane, mocked fail-closed (registered after ctxFor's catch-all so it wins for these URLs only)
+  const rail = (ctx, seen) => ctx.route('https://gift-rail.opensourceorchestra.org/base/**', (route) => { const u = route.request().url(); if (seen) seen.push(u.replace(/^.*\/base/, '')); const H = { 'access-control-allow-origin': '*' };
+    if (u.endsWith('/verify')) return route.fulfill({ json: { isValid: true }, headers: H }); if (u.endsWith('/settle')) return route.fulfill({ json: { success: true, transaction: '0x' + 'fa'.repeat(32) }, headers: H }); return route.abort(); });
+  const SHEET = '.ofn-ovl .ofn.ofn-sheet', bp = '#oso-frames [data-slot=top-right] a[href="https://blessingpool.com/"]';
+  const noise = (errs) => errs.filter((e) => !/ERR_FAILED|net::|ERR_ABORTED/.test(e));
+
+  // (a) desktop: intent prefetch → tap → the Fountain, not the card · one script · Esc returns focus · a double tap = one sheet · the wallet flow → 🌺 thanks + the bridged gift:sent
+  {
+    const ctx = await ctxFor('nobody.example', { width: 1280, height: 800 }, false, { fountain: true });
+    const libHits = [], cfgHits = []; ctx.on('request', (r) => { const u = new URL(r.url()); if (/\/lib\//.test(u.pathname)) libHits.push(u.pathname); if (/fountain-config\.json/.test(u.pathname)) cfgHits.push(u.host + u.pathname + u.search); });
+    const seen = []; await rail(ctx, seen);
+    await ctx.addInitScript(MOCK6963() + LISTEN);
+    const p = await ctx.newPage(); const errs = errsOf(p);
+    await p.goto('http://nobody.example/narrow.html', { waitUntil: 'load' });
+    await p.waitForSelector('#oso-frames[data-osof-ready]', { state: 'attached' }); await p.waitForTimeout(1200);
+    ok(libHits.length === 0 && !(await p.evaluate(() => 'OSOFountain' in window)), '11j page load: no Fountain, no picker — nothing under /lib/ before the visitor shows intent');
+    await p.hover(bp); await p.waitForTimeout(700);
+    ok(libHits.includes('/lib/fountain.js') && libHits.includes('/lib/owh.js'), '11j first INTENT (hover) prefetches lib/fountain.js beside the picker — the tap then opens at once' + (libHits.length ? ' (' + libHits.join(', ') + ')' : ''));
+    const urlBefore = p.url();
+    await p.click(bp); await p.waitForSelector(SHEET, { timeout: 6000 });
+    const r = await p.evaluate(() => { const s = document.querySelector('.ofn-ovl .ofn.ofn-sheet'), card = document.querySelector('#osof-dlg-gift');
+      return { role: s.getAttribute('role'), modal: s.getAttribute('aria-modal'), chips: s.querySelectorAll('.ofn-chips.big .ofn-chip').length, apple: /Apple Pay/.test((s.querySelector('a.ofn-cta.big') || {}).textContent || ''), cardOpen: !!card && !card.hidden,
+        scripts: document.querySelectorAll('script[src*="lib/fountain.js"]').length, ev: window.__ev.slice(), open: window.__giftOpen.slice(), z: getComputedStyle(document.querySelector('.ofn-ovl')).zIndex, fz: getComputedStyle(document.querySelector('#oso-frames .osof-slot')).zIndex, busy: !!document.querySelector('#oso-frames [data-osof-busy]') }; });
+    ok(r.role === 'dialog' && r.modal === 'true' && r.chips === 4 && r.apple, '11j a tap on the 🌊 opens the Universe Fountain (modal dialog, 4 big amounts, Apple Pay · Google Pay · card first)');
+    ok(!r.cardOpen && p.url() === urlBefore, '11j the gifts-of-aloha card stayed closed and the tap did not navigate');
+    ok(r.scripts === 1 && r.ev.join() === 'open:frames', '11j ONE lib/fountain.js <script> on the page; fountain:open fired with surface "frames"');
+    ok(r.open.length === 1 && r.open[0].via === 'fountain' && !r.busy, '11j gift:open says via "fountain"; the 🌊 is no longer marked busy');
+    ok(Number(r.z) > Number(r.fz), `11j the sheet (z ${r.z}) sits above every piece of the frame (z ${r.fz}) — nothing of ours covers its words`);
+    await p.evaluate((s) => document.querySelector(s).click(), bp); await p.waitForTimeout(300);
+    ok(await p.evaluate(() => document.querySelectorAll('.ofn-ovl').length === 1), '11j a second tap while the Fountain is open → still ONE sheet');
+    await p.keyboard.press('Escape'); await p.waitForTimeout(350);
+    const after = await p.evaluate((s) => ({ ovl: document.querySelectorAll('.ofn-ovl').length, focusBack: document.activeElement === document.querySelector(s), ev: window.__ev.slice() }), bp);
+    ok(after.ovl === 0 && after.ev.join() === 'open:frames,close', '11j Esc closes the Fountain (fountain:close)');
+    ok(after.focusBack, '11j focus returns to the 🌊 that opened it');
+    // the wallet flow INSIDE the Fountain: 🔌 Crypto wallet → Base (gas-free) → the detected wallet signs EIP-3009 → the mocked rail verifies + settles → 🌺 thanks; the frame hears gift:sent
+    await p.click(bp); await p.waitForSelector(SHEET, { timeout: 6000 });
+    await p.click('.ofn-ovl .ofn-stream'); await p.waitForSelector('.ofn-ovl .owh-go:not([hidden])', { timeout: 12000 });
+    ok(cfgHits.length >= 1 && cfgHits.every((c) => /^frames\.opensourceorchestra\.org\/fountain-config\.json\?t=\d+/.test(c)), '11j the wallet step read the kill switch from the frames origin with ?t=<now> (' + cfgHits[0] + ')');
+    await p.click('.ofn-ovl .owh-go'); await p.waitForSelector('.ofn-ovl .ofn-thanks', { timeout: 15000 });
+    const g = await p.evaluate(() => ({ sent: window.__giftSent.slice(), signed: window.__calls.filter((c) => c.startsWith('eth_signTypedData_v4')) }));
+    ok(seen.join() === '/verify,/settle' && g.signed.join() === 'eth_signTypedData_v4:10000000:0x25965899f4600b3AA5362ee4f34be95E5E62c934', '11j the wallet signed exactly 10000000 units ($10 default) to the ʻohana wallet; the rail saw verify then settle');
+    ok(g.sent.length === 1 && g.sent[0].route === 'fountain' && g.sent[0].tx === '0x' + 'fa'.repeat(32) && g.sent[0].amount === 10 && g.sent[0].chainId === 8453, '11j 🌺 thanks — and the frame\'s gift:sent carries route "fountain", the hash, $10, Base' + (g.sent.length ? ' → ' + JSON.stringify(g.sent[0]) : ''));
+    { const e2 = noise(errs); ok(!e2.length, '11j no console/page errors' + (e2.length ? ' → ' + e2.slice(0, 4).join(' | ') : '')); }
+    await ctx.close();
+  }
+  // (b) phone: the 🎻 sheet's Blessing Pool tile opens the Fountain and the sheet closes (never a sheet under a sheet); the Fountain fits the screen
+  {
+    const ctx = await ctxFor('nobody.example', { width: 390, height: 844 }, true, { fountain: true });
+    await ctx.addInitScript(LISTEN);
+    const p = await ctx.newPage(); const errs = errsOf(p);
+    await p.goto('http://nobody.example/narrow.html', { waitUntil: 'load' });
+    await p.waitForSelector('#oso-frames[data-osof-ready]', { state: 'attached' }); await p.waitForTimeout(1200);
+    await p.click('#oso-frames .osof-sheetbtn'); await p.waitForTimeout(400);
+    for (let i = 0; i < 3 && !(await p.evaluate(() => !!document.querySelector('#osof-dlg-sheet:not([hidden])'))); i++) { await p.click('#oso-frames .osof-sheetbtn'); await p.waitForTimeout(400); }
+    await p.click('#osof-dlg-sheet a[href="https://blessingpool.com/"]'); await p.waitForSelector(SHEET, { timeout: 6000 });
+    const r = await p.evaluate(() => { const s = document.querySelector('#osof-dlg-sheet'), c = document.querySelector('#osof-dlg-gift'), sh = document.querySelector('.ofn-ovl .ofn-sheet'), b = sh.getBoundingClientRect();
+      return { sheetHidden: !s || s.hidden, cardOpen: !!c && !c.hidden, w: b.width, right: b.right, chips: sh.querySelectorAll('.ofn-chips.big .ofn-chip').length, ev: window.__ev.slice() }; });
+    ok(r.sheetHidden && !r.cardOpen && r.chips === 4 && r.ev.join() === 'open:frames', '11j 📱 the sheet\'s Blessing Pool tile opens the Fountain; the 🎻 sheet closes; the card stays closed');
+    ok(r.w <= 390 && r.right <= 390, `11j 📱 the Fountain fits the phone (${Math.round(r.w)} px wide, right edge ${Math.round(r.right)})`);
+    await p.evaluate(() => document.querySelector('.ofn-ovl .ofn-x').click()); await p.waitForTimeout(350);
+    ok(await p.evaluate(() => document.querySelectorAll('.ofn-ovl').length === 0 && document.activeElement && !!document.activeElement.closest('#oso-frames')), '11j 📱 ✕ closes it and focus comes back into the frame (the 🎻 button, the tile is gone with the sheet)');
+    { const e2 = noise(errs); ok(!e2.length, '11j 📱 no console/page errors' + (e2.length ? ' → ' + e2.slice(0, 4).join(' | ') : '')); }
+    await ctx.close();
+  }
+  // (c) THE FALLBACK: lib/fountain.js 404 · blocked · 5 s slow (past the 4-s tap timeout) → the gifts-of-aloha card opens exactly as before; a late file never opens a sheet by itself
+  for (const [mode, label] of [['404', 'lib/fountain.js answers 404'], [false, 'lib/fountain.js is blocked'], ['slow', 'lib/fountain.js takes 5 s']]) {
+    const ctx = await ctxFor('nobody.example', { width: 1280, height: 800 }, false, { fountain: mode });
+    await ctx.addInitScript(LISTEN);
+    const p = await ctx.newPage(); const errs = errsOf(p);
+    await p.goto('http://nobody.example/narrow.html', { waitUntil: 'load' });
+    await p.waitForSelector('#oso-frames[data-osof-ready]', { state: 'attached' }); await p.waitForTimeout(1000);
+    const t0 = Date.now(); await p.click(bp);
+    await p.waitForSelector('#osof-dlg-gift:not([hidden])', { timeout: 9000 }).catch(() => {});
+    const dt = Date.now() - t0;
+    const r = await p.evaluate(() => { const c = document.querySelector('#osof-dlg-gift'); return { cardOpen: !!c && !c.hidden, title: c ? (c.querySelector('.osof-dlg-title') || {}).textContent || '' : '', ovl: document.querySelectorAll('.ofn-ovl').length, open: window.__giftOpen.slice(), busy: !!document.querySelector('#oso-frames [data-osof-busy]') }; });
+    ok(r.cardOpen && r.ovl === 0 && /gifts of aloha/.test(r.title) && r.open.length === 1 && r.open[0].via === 'card' && !r.busy, `11j FALLBACK · ${label} → the gifts-of-aloha card opens (${dt} ms), no Fountain, gift:open via "card"`);
+    if (mode === 'slow') {
+      ok(dt >= 3600 && dt < 7500, `11j FALLBACK · slow: the card answers the tap at the 4-s timeout (${dt} ms), not never`);
+      await p.waitForTimeout(2500);
+      ok(await p.evaluate(() => document.querySelectorAll('.ofn-ovl').length === 0 && !!window.OSOFountain), '11j FALLBACK · slow: when the file lands later no sheet appears by itself (the card already answered the tap); the module is simply ready for the next tap');
+    } else ok(dt < 3000, `11j FALLBACK · ${label}: the card answers quickly (${dt} ms)`);
+    { const e2 = noise(errs).filter((e) => !(mode === '404' && /HTTP404.*fountain\.js|Failed to load resource.*404/.test(e))); ok(!e2.length, `11j FALLBACK · ${label}: no console/page errors (the 404 itself is the scenario)` + (e2.length ? ' → ' + e2.slice(0, 4).join(' | ') : '')); }
+    await ctx.close();
+  }
+  // (d) RETURN (mandatory): back from a wallet app as ?osogift=frames:1:c8453:go → the Fountain opens at the wallet step and auto-starts $1 (wallet arrives late, as in 11d); the URL is cleaned; $50 opens and waits
+  {
+    const mk = async (q, init) => {
+      const ctx = await ctxFor('nobody.example', { width: 390, height: 844 }, true, { fountain: true });
+      const seen = []; await rail(ctx, seen);
+      await ctx.addInitScript(LISTEN + 'setTimeout(function(){' + MOCK6963(init) + '}, 500);');
+      const p = await ctx.newPage(); const errs = errsOf(p);
+      await p.goto('http://nobody.example/narrow.html' + q, { waitUntil: 'load' });
+      return { ctx, p, errs, seen };
+    };
+    let r = await mk('?osogift=frames:1:c8453:go&keep=1');
+    await r.p.waitForSelector('.ofn-ovl .ofn-thanks', { timeout: 16000 }).catch(() => {});
+    const a = await r.p.evaluate(() => ({ thanks: !!document.querySelector('.ofn-ovl .ofn-thanks'), search: location.search, signed: (window.__calls || []).filter((c) => c.startsWith('eth_signTypedData_v4')), card: !!document.querySelector('#osof-dlg-gift:not([hidden])'), ev: window.__ev.slice(), open: window.__giftOpen.slice(), sent: window.__giftSent.slice() }));
+    ok(a.thanks && a.signed.join() === 'eth_signTypedData_v4:1000000:0x25965899f4600b3AA5362ee4f34be95E5E62c934' && r.seen.join() === '/verify,/settle', '11j RETURN: the Fountain opened itself at the wallet step, the wallet was asked ONCE for 1000000 units ($1), the rail verified + settled → 🌺 thanks' + (a.thanks ? '' : ' → ' + JSON.stringify(a).slice(0, 200)));
+    ok(a.search === '?keep=1' && !a.card && a.ev[0] === 'open:frames' && a.open.length === 1 && a.open[0].pending === true, '11j RETURN: ?osogift removed from the URL (other params kept), the card never opened, gift:open says via fountain + pending');
+    ok(a.sent.length === 1 && a.sent[0].route === 'fountain' && a.sent[0].amount === 1, '11j RETURN: the frame\'s gift:sent fired once with route "fountain" and $1');
+    { const e2 = noise(r.errs); ok(!e2.length, '11j RETURN: no console/page errors' + (e2.length ? ' → ' + e2.slice(0, 4).join(' | ') : '')); }
+    await r.ctx.close();
+    r = await mk('?osogift=frames:50:c8453:go');
+    await r.p.waitForSelector('.ofn-ovl .owh', { timeout: 12000 }).catch(() => {}); await r.p.waitForTimeout(3500);
+    ok(await r.p.evaluate(() => !!document.querySelector('.ofn-ovl .owh') && (window.__calls || []).filter((c) => /^eth_sign|^eth_sendTransaction/.test(c)).length === 0 && !document.querySelector('.ofn-ovl .ofn-thanks')), '11j RETURN with $50: the Fountain opens at the wallet step and waits — the wallet is NOT prompted (auto-start cap $10)');
+    await r.ctx.close();
+  }
+  // (e) NO DOUBLE MOUNT: a page that mounts its own Fountain inline (shakafans.com's root; it does not wear the frame today — /club/ does) + the frame → the 🌊 goes to it, no sheet on top, no second script; a page that only carries the module → the sheet opens, still ONE script
+  {
+    const ctx = await ctxFor('nobody.example', { width: 1280, height: 800 }, false, { fountain: true });
+    await ctx.addInitScript(LISTEN);
+    const p = await ctx.newPage(); const errs = errsOf(p);
+    await p.goto('http://nobody.example/fountainpage.html', { waitUntil: 'load' });
+    await p.waitForSelector('#oso-frames[data-osof-ready]', { state: 'attached' }); await p.waitForTimeout(1200);
+    const before = await p.evaluate(() => ({ scripts: document.querySelectorAll('script[src*="lib/fountain.js"]').length, pages: document.querySelectorAll('.ofn.ofn-page').length, top: document.getElementById('fountain').getBoundingClientRect().top }));
+    await p.click(bp); await p.waitForTimeout(1500);
+    const r = await p.evaluate(() => ({ scripts: document.querySelectorAll('script[src*="lib/fountain.js"]').length, pages: document.querySelectorAll('.ofn.ofn-page').length, ovl: document.querySelectorAll('.ofn-ovl').length, top: document.getElementById('fountain').getBoundingClientRect().top, card: !!document.querySelector('#osof-dlg-gift:not([hidden])'), inFocus: !!document.activeElement.closest('#fountain') }));
+    ok(before.scripts === 1 && before.pages === 1 && before.top > 800, '11j NO DOUBLE MOUNT: the page mounts its own Fountain far below the fold (one script, one mount)');
+    ok(r.scripts === 1 && r.pages === 1 && r.ovl === 0 && !r.card, '11j NO DOUBLE MOUNT: a tap on the 🌊 adds no second script, no second mount, no sheet on top, no card');
+    ok(r.top < 200 && r.inFocus, `11j NO DOUBLE MOUNT: the page scrolled to its own Fountain (top ${Math.round(r.top)} px) and focus is inside it`);
+    { const e2 = noise(errs); ok(!e2.length, '11j NO DOUBLE MOUNT: no console/page errors' + (e2.length ? ' → ' + e2.slice(0, 4).join(' | ') : '')); }
+    const p2 = await ctx.newPage();
+    await p2.goto('http://nobody.example/fountainlib.html', { waitUntil: 'load' });
+    await p2.waitForSelector('#oso-frames[data-osof-ready]', { state: 'attached' }); await p2.waitForTimeout(1000);
+    await p2.click(bp); await p2.waitForSelector(SHEET, { timeout: 6000 });
+    ok(await p2.evaluate(() => document.querySelectorAll('script[src*="lib/fountain.js"]').length === 1 && document.querySelectorAll('.ofn-ovl').length === 1), '11j a page that already carries the module (its own <script>) → the tap opens the sheet without a second script');
     await ctx.close();
   }
 }
