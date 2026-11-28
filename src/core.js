@@ -12,7 +12,7 @@
  */
 var FRAMES = (function (W) {
   'use strict';
-  var VERSION = '0.1.9';
+  var VERSION = '0.1.10';
   var MAJOR = VERSION.split('.')[0];
   if (W && W.OSOFrames && W.OSOFrames.__osof) {            // loaded twice: the first copy rules
     if (W.console) W.console.info('🎻 frames: already on this page; the second copy stays quiet.');
@@ -1807,6 +1807,13 @@ var FRAMES = (function (W) {
       F + '[data-mode=mobile] .osof-item[data-osof-pin]>.osof-fold-x.osof-ix{display:flex}',
       F + ' .osof-item[data-osof-folded]>.osof-fold-x.osof-ix,' + F + ' .osof-item[data-osof-gone]>.osof-fold-x.osof-ix{display:none!important}',
       F + ' .osof-item[data-osof-gone]>*{visibility:hidden!important}',
+      // v0.1.10 THE BOX LETS GO (Shaka, 28 Nov 2026, opensourceorchestra.org: "the x close button doesnt work on talk to oso"): a piece that stepped
+      // aside keeps its BOX (so nothing around it moves) but the box must never eat a click meant for the page — the held, invisible wrapper sat on
+      // the page's own ✕ (a .osof-slot child is pointer-events:auto, and only its CHILDREN were hidden). Folded: the wrapper falls through and only
+      // what is still SHOWN (the dot, the piece's own mini) takes taps. Gone: nothing inside takes a click. e2e test 13 is the oracle.
+      F + ' .osof-item[data-osof-folded]{pointer-events:none!important}',
+      F + ' .osof-item[data-osof-folded]>*{pointer-events:auto}',
+      F + ' .osof-item[data-osof-gone],' + F + ' .osof-item[data-osof-gone] *{pointer-events:none!important}',
       F + ' [data-slot=right] .osof-ix,' + F + ' [data-slot=top-right] .osof-ix,' + F + ' [data-slot=bottom-right] .osof-ix{left:auto;right:-7px}',
       F + ' .osof-credit-dot{padding:0!important;height:18px!important;width:18px!important;justify-content:center;opacity:.6}',
       F + ' .osof-credit-dot .osof-credit-i{display:none!important}',

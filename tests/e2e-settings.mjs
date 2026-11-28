@@ -11,6 +11,8 @@
 //   playing through a fold, the tiny ✕ folds a rail door on purpose, hide-all ✕; phones too.
 //   v0.1.9 (test 12): THE TOTEM STAYS IN THE SCREEN — a page that wears its own chat button (adopted at mount OR built late) still lets a totem face
 //   (rail + phone sheet) open the chat DRAWER in the page: no navigation to myagentohana.com, no second pill.
+//   v0.1.10 (test 13): A FOLDED PIECE NEVER EATS A CLICK — a page's own panel opens under a frame item (1470×797); the item folds/goes, its held box lets every
+//   click fall through to the page's ✕ (hit-test + a real mouse click), the dot / visible doors still take theirs.
 // usage: node tests/e2e-settings.mjs
 import http from 'node:http';
 import { readFile } from 'node:fs/promises';
@@ -114,7 +116,7 @@ const errsOf = (p) => { const e = []; p.on('pageerror', (x) => e.push('PE:' + St
   ok(r.id === 'pit-protocol', `data-door=auto on publicinform.com → id ${r.id}`);
   ok(r.accent === '#7fe0ff', `accent applied (${r.accent})`);
   ok(r.first === 'home' && r.pitGone && r.n >= 10, `slot ops: prepend + remove (left: ${r.n} items, first ${r.first})`);
-  ok(r.version === '0.1.9' && r.gear, `v${r.version} with the ⚙ gear in the credit mark`);
+  ok(r.version === '0.1.10' && r.gear, `v${r.version} with the ⚙ gear in the credit mark`);
   ok(!errs.length, 'no console/page errors' + (errs.length ? ' → ' + errs.join(' | ') : ''));
   await ctx.close();
 }
@@ -603,6 +605,60 @@ const AUDIO_STUB = `window.__audioLog = []; window.Audio = class { constructor()
   const r = await p.evaluate(() => { const d = document.querySelector('.osof-chat'); return { path: location.pathname, open: !!d && !d.hidden }; });
   ok(r.path === '/ownchat.html' && r.open, '📱 a face tile opens the drawer in the page (no navigation)');
   ok(!errs.filter((e) => /^PE:/.test(e)).length, '📱 no page errors');
+  await ctx.close();
+}
+
+// 13 · v0.1.10 A FOLDED PIECE NEVER EATS A CLICK (Shaka, 28 Nov 2026, opensourceorchestra.org: "the x close button doesnt work on talk to oso")
+// The page's own chat panel opened under a frame item at a 1470×797 window; the probe folded the item and then marked it GONE — but only its
+// CHILDREN were hidden: the wrapper kept its held box and pointer-events:auto, an invisible click-catcher over the page's ✕. The law of the box:
+// a piece that has stepped aside keeps its BOX (nothing moves) but lets every click fall through; only the dot / mini that is still shown takes taps.
+{
+  const ctx = await ctxFor('nobody.example', { width: 1470, height: 797 });
+  const p = await ctx.newPage(); const errs = errsOf(p);
+  await p.goto('http://nobody.example/narrow.html?frame=fresh', { waitUntil: 'load' });
+  await p.waitForSelector('#oso-frames[data-osof-ready]', { state: 'attached' }); await p.waitForTimeout(1200);
+  // build the page's OWN panel (a fixed widget of the page, like #oso-chat) with its ✕ exactly under the 2nd top-right item
+  const geo = await p.evaluate(() => {
+    const items = [...document.querySelectorAll('#oso-frames [data-slot=top-right]>.osof-item')].filter((e) => e.getBoundingClientRect().width > 4);
+    const t = items[1] || items[0]; if (!t) return null;
+    const r = t.getBoundingClientRect(); const cx = r.left + r.width / 2, cy = r.top + r.height / 2;
+    const panel = document.createElement('div'); panel.id = 'oso-chat';
+    panel.style.cssText = `position:fixed;z-index:61;width:300px;height:380px;left:${Math.round(cx + 18 - 300)}px;top:${Math.round(cy - 22)}px;background:#1a1736;color:#eee;border:1px solid #555;border-radius:14px;font:15px/1.4 Georgia,serif`;
+    panel.innerHTML = '<div id="oso-head" style="padding:12px 14px">OSO — live from the Open Source Orchestra</div>'
+      + '<button id="oso-x" type="button" style="position:absolute;top:10px;right:10px;width:16px;height:24px;padding:0;border:0;background:none;color:#fff;font:16px/24px sans-serif;cursor:pointer">✕</button>';
+    document.body.appendChild(panel);
+    window.__closed = 0; document.getElementById('oso-x').onclick = () => { window.__closed++; panel.style.display = 'none'; };
+    const xb = document.getElementById('oso-x').getBoundingClientRect();
+    return { item: { x: Math.round(r.left), y: Math.round(r.top), w: Math.round(r.width), h: Math.round(r.height) }, x: { l: xb.left, t: xb.top, w: xb.width, h: xb.height } };
+  });
+  ok(!!geo, 'fixture: the top-right slot has items to sit under');
+  // the probe (MutationObserver → debounce) folds/gones the item that now sits on the page's panel
+  await p.waitForFunction(() => document.querySelector('#oso-frames [data-slot=top-right]>.osof-item[data-osof-gone],#oso-frames [data-slot=top-right]>.osof-item[data-osof-folded]'), { timeout: 6000 }).catch(() => {});
+  await p.waitForTimeout(600);
+  const st = await p.evaluate(() => {
+    const out = [];
+    document.querySelectorAll('#oso-frames .osof-item[data-osof-gone],#oso-frames .osof-item[data-osof-folded]').forEach((w) => {
+      const cs = getComputedStyle(w); const gone = w.hasAttribute('data-osof-gone');
+      const kids = [...w.querySelectorAll('*')].filter((k) => { const c = getComputedStyle(k); return c.pointerEvents !== 'none' && c.visibility !== 'hidden' && c.display !== 'none' && k.getBoundingClientRect().width > 0 && !k.classList.contains('osof-idot') && !k.closest('.osof-idot') && !/osof-(rd|fab)-mini/.test(k.className); });
+      out.push({ gone, wrapPE: cs.pointerEvents, liveKids: gone ? kids.length : 0 });
+    });
+    return out;
+  });
+  ok(st.length > 0, `the law stepped a piece aside under the panel (${st.length} folded/gone wrapper${st.length === 1 ? '' : 's'}) — the test is not vacuous`);
+  ok(st.every((s) => s.wrapPE === 'none'), 'every folded/gone wrapper lets clicks fall through (pointer-events:none)' + (st.some((s) => s.wrapPE !== 'none') ? ' → ' + JSON.stringify(st) : ''));
+  ok(st.filter((s) => s.gone).every((s) => s.liveKids === 0), 'a GONE piece has no clickable descendant left');
+  // the page's ✕ is what a click at its centre/corners reaches — never a frame item
+  const hits = await p.evaluate((g) => {
+    const x = g.x, pts = [[x.l + x.w / 2, x.t + x.h / 2], [x.l + 3, x.t + 3], [x.l + x.w - 3, x.t + 3], [x.l + 3, x.t + x.h - 3], [x.l + x.w - 3, x.t + x.h - 3]];
+    return pts.map(([px, py]) => { const e = document.elementFromPoint(px, py); return e ? (e.id || e.tagName.toLowerCase() + '.' + String(e.className).slice(0, 24)) : null; });
+  }, geo);
+  ok(hits.every((h) => h === 'oso-x'), `a click anywhere on the page's ✕ reaches the ✕ (hit: ${hits.join(', ')})`);
+  await p.mouse.click(geo.x.l + geo.x.w / 2, geo.x.t + geo.x.h / 2); await p.waitForTimeout(300);
+  ok(await p.evaluate(() => window.__closed === 1), 'a REAL mouse click on the ✕ runs the page\'s close handler (the panel closes)');
+  // …and the frame still works everywhere else: a visible rail door is still a hit target, a dot (if any) still takes its tap
+  ok(await p.evaluate(() => { const a = document.querySelector('#oso-frames [data-slot=left] .osof-item:not([data-osof-gone]):not([data-osof-folded]) a, #oso-frames [data-slot=left] .osof-item:not([data-osof-gone]):not([data-osof-folded]) button'); if (!a) return true; const r = a.getBoundingClientRect(); const e = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2); return !!e && !!e.closest('.osof-item'); }), 'a visible frame door still takes its clicks (we did not switch pointer events off globally)');
+  ok(await p.evaluate(() => { const d = [...document.querySelectorAll('#oso-frames .osof-item[data-osof-folded]:not([data-osof-gone]) .osof-idot')].find((x) => x.getBoundingClientRect().width > 0); if (!d) return true; const r = d.getBoundingClientRect(); const e = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2); return !!e && (e === d || d.contains(e)); }), 'a folded piece\'s dot still takes its tap');
+  ok(!errs.filter((e) => /^PE:/.test(e)).length, 'no page errors' + (errs.length ? ' → ' + errs.join(' | ') : ''));
   await ctx.close();
 }
 

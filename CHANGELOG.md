@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.1.10 — 2026-11-28 "the box lets go" (hotfix)
+Shaka Lei Kaumaka, 28 Nov 2026 (12:37 Chiang Mai, screenshot of opensourceorchestra.org): *"the x close button doesnt work on talk to oso."* Built by the AI ʻohana.
+- **The bug** (found by reproducing it with a real mouse in Chromium at his 1470×797 window): when the page's own chat panel opens, the right rail's top-right piece (🎻 *Join the orchestra*) sits under the panel's ✕. The law folded it, then marked it **gone** — but `.osof-item[data-osof-gone]>*{visibility:hidden}` hid only the *children*. The wrapper kept its held box (so nothing moves — the v0.1.5 STAY-IN-PLACE promise) **and `pointer-events:auto`** (every `.osof-slot` child has it) → an invisible, click-eating rectangle over the page's own button. `document.elementsFromPoint(✕)[0]` was a `div.osof-item`. At 1568×850 the same click worked (the ✕ sat just below the piece) — which is why it hid for so long. Folded (dotted) wrappers had the same hole around their 17 px dot.
+- **The fix — a stepped-aside piece keeps its BOX, never its CLICKS**: folded wrapper → `pointer-events:none` (only what is still shown — the dot, the piece's own mini — takes taps); gone → nothing inside takes a click. Layout is untouched (no piece moves).
+- tests: `e2e-settings.mjs` **test 13** — rebuilds the situation (a page-owned fixed panel whose ✕ sits under the 2nd top-right item, 1470×797): folded/gone wrappers are click-through, all five probe points on the ✕ hit the ✕, a **real mouse click** runs the page's close handler, visible doors and dots still take clicks. RED on 0.1.9 (3 checks), GREEN on 0.1.10.
+- law added to NO COVERED TEXT: *a piece may leave its box behind, never its hit area.*
+
 ## 0.1.9 — 2026-11-28 "the totem stays in the screen"
 Shaka Lei Kaumaka, 28 Nov 2026 (12:03 Chiang Mai): *"that totem chat is better on older pages … the totem takes you to myagentohana.com — i like when you can talk to the totem in screen like this version https://devconpit.com/ as a standard."* Built by the AI ʻohana.
 - **The bug**: on every door whose page already wears its own chat button (shakaleikaumaka.com `#sp-fab`, opensourceorchestra.org `#oso-fab`/`#oso-mini`, the spector / jai / globy… widgets) the frame *adopted* the page's button and never mounted its chat piece — so a totem face had no drawer to open and fell back to `location.assign(totem.href)` = a full-page jump to myagentohana.com. Doors without their own button (devconpit.com) opened the drawer in the screen.
