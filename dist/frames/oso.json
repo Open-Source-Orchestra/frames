@@ -180,8 +180,7 @@
         "href": "https://blessingpool.com/",
         "pin": true,
         "tip": "The Blessing Pool: freely I give, freely I receive. Every drop ripples through the whole constellation.",
-        "anim": "sway",
-        "gift": true
+        "anim": "sway"
       },
       {
         "kind": "door",
