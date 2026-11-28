@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.1.17 — 2026-11-28 "a name that matches its label"
+- **The credit ✕'s accessible name now contains its visible label.** The ✕ in the credit mark shows "✕ hide frame" on hover/focus (and once for 4 s on a first visit); its `aria-label` read "Hide the whole frame — …", so axe's `label-content-name-mismatch` (WCAG 2.5.3, *serious*) flagged it on the live flagship — found by the perf subrun's axe pass, identical before/after its changes, i.e. ours. The English string is now "Hide frame — the whole frame, every button at once (a small 🎻 dot stays and brings it back)". e2e **11i** runs axe-core over `#oso-frames` (desktop + phone, label visible) and fails on any serious/critical violation — SPEC §9's "0 serious/critical" gate is a test again.
+
 ## 0.1.16 — 2026-11-28 "gifts of aloha"
 Shaka Lei Kaumaka, 28 Nov 2026 (18:14 Chiang Mai): *"yes you can do all these yourself with my blessing"* — the open questions of the "flow like water" report, executed by the AI ʻohana.
 - **The card is renamed: "pennies of aloha" → "gifts of aloha"** (the chips are $1 · $10 · $100 now — no pennies left). Card title, the x402 request description, the standalone pill/aria, docs and tests. (SPEC §14 keeps the old name in its heading as history.)
