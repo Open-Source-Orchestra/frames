@@ -8,6 +8,7 @@
 //   ✗ SIDE    a rail landed on the wrong side (page CSS leaked into our <nav> zones)
 // Exit 1 when anything is flagged. usage: node tests/audit.mjs [--hosts FILE] [--only host] [--out DIR] [--par 4] [--path /]
 //   [--override 'oso-frames="<version-id>"']   (serve a staged Worker version through the Cloudflare-Workers-Version-Overrides header)
+//   [--local DIR]   (serve frames.js + frames/** from a local build dir instead — the pre-stage trial)
 import { readFileSync, writeFileSync, mkdirSync, appendFileSync, existsSync } from 'node:fs';
 import { createRequire } from 'node:module';
 import { dirname, join } from 'node:path';
@@ -22,6 +23,7 @@ const OUT = arg('--out', join(HERE, '..', 'audit-out'));
 const PAR = +arg('--par', 4);
 const PATH = arg('--path', '/');
 const OVERRIDE = arg('--override', null);
+const LOCAL = arg('--local', null);   // v0.1.11: trial a LOCAL build (frames.js + frames/*.json) on the real doors — read-only, nothing is deployed
 mkdirSync(OUT + '/shots', { recursive: true });
 const defaultHosts = ['opensourceorchestra.org', 'publicinform.com', 'shakaleikaumaka.com', 'blessingpool.com', 'myagentohana.com'];
 const hosts = (existsSync(HOSTS_FILE) ? readFileSync(HOSTS_FILE, 'utf8').split('\n').map((s) => s.trim()).filter((s) => s && !s.startsWith('#')) : defaultHosts).filter((h) => !ONLY || h === ONLY || h === ONLY.replace(/^https?:\/\//, '').split('/')[0]);
@@ -138,6 +140,11 @@ async function one(host, v) {
   // the staged-version header is added at the network layer, only for the frames host: a custom header set by the page itself would
   // force a CORS preflight on every frames/*.json fetch (the assets Worker answers none) and the frame would stay away
   if (OVERRIDE) await ctx.route('https://frames.opensourceorchestra.org/**', (route) => route.continue({ headers: { ...route.request().headers(), 'Cloudflare-Workers-Version-Overrides': OVERRIDE } }));
+  if (LOCAL) await ctx.route('https://frames.opensourceorchestra.org/**', (route) => {
+    const u = new URL(route.request().url()); const f = u.pathname === '/frames.js' ? LOCAL + '/frames.js' : (u.pathname.startsWith('/frames/') ? LOCAL + u.pathname : null);
+    if (f && existsSync(f)) return route.fulfill({ status: 200, contentType: f.endsWith('.json') ? 'application/json' : 'text/javascript', headers: { 'access-control-allow-origin': '*' }, body: readFileSync(f) });
+    return route.continue();
+  });
   const page = await ctx.newPage();
   const rec = { host, view: v.name, status: null, error: null };
   const errs = []; page.on('pageerror', (e) => errs.push(String(e).slice(0, 120)));

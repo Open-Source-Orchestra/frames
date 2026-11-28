@@ -322,7 +322,7 @@
         "storage": "oso",
         "greeting": "Aloha! I am an AI agent of the ʻohana, here for the Open Source Orchestra. Ask me anything about the music, the circle, or how to join.",
         "tip": "A live line to an AI agent of the orchestra. Replies take a moment.",
-        "unless": "#oso-fab, #oso-mini"
+        "unless": "#oso-fab, #oso-mini, #oso-fabwrap, #sp-fab, #sp-fabwrap, #ij-fab, #ttp-fab, #cr-fab, #cr-fabwrap, #ohanaTalkRoot, #tchatBtn, #tchat, #gy-fab, #gy-fabwrap, #kprot-fab, #kprot-fab-mini, #tele-fab, #tele-fab-mini, #vlog-fab, #vlog-fab-mini, #traceyTalkRoot, #komoroTalkRoot"
       },
       {
         "kind": "spot",
