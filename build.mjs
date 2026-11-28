@@ -157,6 +157,8 @@ for (const p of doorFiles) {
   const doors = merged ? Object.values(merged.slots).reduce((n, l) => n + l.filter((it) => it.kind === 'door').length, 0) : 0;
   gallery.push({ host, file: p.replace(/^frames\/doors\//, ''), id: merged ? merged.id : d.id, name: merged ? merged.name : d.name, emoji: (merged && merged.emoji) || d.emoji || '🎻', accent: (merged && merged.accent) || '', extends: d.extends, items, doors, signature: merged ? merged.slots.overlay.some((it) => it.kind === 'signature') : false, url: 'https://' + host + '/' });
 }
+// gate 2c · v0.1.12 — every dataset's Blessing Pool door must carry "gift": true (frames/oso.json lacked it from v0.1.7 to v0.1.11: the flagship's 🌊 never opened the card)
+for (const p of dsFiles) { const d = loadJSON(p); if (!d) continue; for (const [slot, items] of Object.entries(d.slots || {})) for (const it of (Array.isArray(items) ? items : [])) if (it && it.kind === 'door' && /^https:\/\/blessingpool\.com\/?$/.test(it.href || '') && it.gift !== true) { dsBad++; fail(`${p} → ${slot}: the Blessing Pool door must carry "gift": true (the 🌊 opens the pennies-of-aloha card)`); } }
 if (!dsBad) ok(`${dsFiles.length} dataset(s) + ${doorFiles.length} door frame(s) validate against schema/frame-0.1.json (door frames also merged)`);
 if (doorFiles.length) {
   gallery.sort((a, b) => a.host.localeCompare(b.host));
