@@ -26,6 +26,7 @@
   var USDC = '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913';
   var PAYTO = '0x25965899f4600b3AA5362ee4f34be95E5E62c934';
   var BASE_CHAIN = 8453;
+  var DEFAULT_USD = 10;      // the preselected chip ($1 · $10 · $100 + custom) — Shaka 28 Nov 2026; "default $1" = flip this one number
   var RESOURCE = 'https://shakaleikaumaka.com/x402-bless.json';
   var F = '#oso-frames';
   var CSS = [
@@ -69,7 +70,7 @@
   function build(ctx) {
     var h = ctx.h, t = ctx.t;
     var d = ctx.panel({ id: 'gift', title: '🌊 ' + t('gift.title', 'pennies of aloha') });
-    var amt = 0.01, ui = null, owh = null, mounting = false, pend = null;
+    var amt = DEFAULT_USD, ui = null, owh = null, mounting = false, pend = null;
     var st = h('div', { class: 'osof-gift-st', role: 'status', 'aria-live': 'polite' });
     var slot = h('div', { class: 'osof-gift-slot' });
     var fb = h('div', { class: 'osof-gift-fb', hidden: true });      // the by-hand way — only if the picker could not load
@@ -83,8 +84,8 @@
       custom.value = hit ? '' : String(v);
       if (ui) ui.refresh();
     }
-    var amts = [['0.01', '1¢'], ['0.10', '10¢'], ['1', '$1']].map(function (pair, i) {
-      return h('button', { type: 'button', class: 'osof-gift-amt', 'data-v': pair[0], 'aria-pressed': i === 0 ? 'true' : 'false', on: {
+    var amts = [['1', '$1'], ['10', '$10'], ['100', '$100']].map(function (pair) {
+      return h('button', { type: 'button', class: 'osof-gift-amt', 'data-v': pair[0], 'aria-pressed': parseFloat(pair[0]) === DEFAULT_USD ? 'true' : 'false', on: {
         click: function () { setAmt(parseFloat(pair[0])); } } }, pair[1]);
     });
     custom.addEventListener('input', function () {
@@ -145,7 +146,7 @@
       mounting = true; slot.textContent = '…';
       loadOWH(ctx).then(function (O) {
         owh = O;
-        ui = O.connect({ surface: 'frames', usdc: USDC, payTo: PAYTO, payToName: 'osoartist.eth', chain: BASE_CHAIN, usd: function () { return amt; }, send: sendWith, t: t });
+        ui = O.connect({ surface: 'frames', usdc: USDC, payTo: PAYTO, payToName: 'osoartist.eth', safetyUrl: 'https://shakaleikaumaka.com/gift-safety/', chain: BASE_CHAIN, usd: function () { return amt; }, send: sendWith, t: t });
         slot.textContent = ''; slot.appendChild(ui.el);
         mounting = false; ui.refresh();
         if (pend) { var p = pend; pend = null; setAmt(p.usd); ui.autostart(p); }

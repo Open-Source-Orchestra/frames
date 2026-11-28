@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.1.14 — 2026-11-28 "$1 · $10 · $100"
+Shaka Lei Kaumaka, 28 Nov 2026 (16:56–16:57 Chiang Mai): *"get rid of the 1c and 10c payment make it only $3 or custom"* — 38 seconds later: *"or $1 $10 and $100 and custom"*.
+- **The gift card's amount row is exactly three chips — $1 · $10 · $100 — plus the custom $ box. No 1¢, no 10¢.** `$10` is preselected: ONE named constant per surface (`DEFAULT_USD = 10` in `src/pieces/gift.js`, and in `x402-tip.js`, `agent-gift-rail.js`, the blessingpool.com lane, and `OWH.DEFAULT_USD` for a garbage `?osogift=` amount) — "default $1" is a one-line flip per file. Custom stays free-form (the Base lane pins $0.001–$1000, so $100 passes). Auto-start after a wallet-app hand-off stays ≤ $10: $1 and $10 start by themselves, $100 opens the card and waits for a tap.
+- The explainer under the button ends with a link to **/gift-safety/** ("what will my wallet say? ↗", `OWH.connect({safetyUrl})`).
+- tests: `e2e-settings.mjs` **11a2** (chip row == [$1, $10✓, $100] + custom, no ¢ text, a default gift signs 10000000 units, $100 signs 100000000) → 167 checks; the un-mocked acceptance now also asserts the chip row and the verify body (`maxAmountRequired == authorization.value == "10000000"`).
+- NOT renamed: "pennies of aloha" (the card/pill title) — a naming question for Shaka.
+
 ## 0.1.13 — 2026-11-28 "flow like water"
 Shaka Lei Kaumaka, 28 Nov 2026 (14:12 Chiang Mai, on his phone): *"on mobil we have some slow UX experience… we need it to flow like water"*; then (a friend's gift) *"the wallet showed many security warnings, then the card said ⚠️ hiccup: Load failed"*. Built by the AI ʻohana; measured by the perf lane (`/workspace/mobile-flow-2026-11-28/perf/REPORT.md`).
 - **The probe engine does the same work once, not hundreds of times** (perf lane culprit #1): one NO-COVERED-TEXT probe pass asked the same page elements the same questions ~1 300 hit-tests × every ancestor (≈ 260 k visits per pass). A per-pass `WeakMap` memo (`passRun`/`sty`/`innerLen`/`ownTextLen`/`isBubble`/`inFixed`) answers each question once — the pass is synchronous and the frame never mutates page elements, so the law decides exactly as before. Fair A/B on the real doors, phone-throttled (4× CPU, Slow-4G, all variants served from local files): shakaleikaumaka.com load blocking time 2 002 → 738 ms · idle freezes 632 → 70 ms/10 s · scroll jank (frames > 20 ms) 38 % → 10 % · scroll blocking 2 772 → 153 ms; opensourceorchestra.org idle busy 39 → 27.5 %, idle long tasks 295 → 84 ms/10 s.

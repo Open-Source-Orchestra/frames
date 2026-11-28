@@ -1,4 +1,4 @@
-/*! Open Source Orchestra Frames v0.1.13 · https://github.com/Open-Source-Orchestra/frames
+/*! Open Source Orchestra Frames v0.1.14 · https://github.com/Open-Source-Orchestra/frames
  *  SPDX-License-Identifier: AGPL-3.0-or-later · Copyright (C) 2026 Shaka Lei Kaumaka / Open Source Orchestra and the AI ʻohana
  *  AGPL §7(b): keep the credit "Built on Open Source Orchestra Frames by Open Source Orchestra: Shaka Lei Kaumaka & the AI ʻohana
  *  (https://opensourceorchestra.org)" visible in the frame. See NOTICE. Source of this exact file: https://github.com/Open-Source-Orchestra/frames (the served /frames.js is a minified build of it; the readable file is /frames.src.js) */
@@ -18,7 +18,7 @@
  */
 var FRAMES = (function (W) {
   'use strict';
-  var VERSION = '0.1.13';
+  var VERSION = '0.1.14';
   var MAJOR = VERSION.split('.')[0];
   if (W && W.OSOFrames && W.OSOFrames.__osof) {            // loaded twice: the first copy rules
     if (W.console) W.console.info('🎻 frames: already on this page; the second copy stays quiet.');
@@ -4006,6 +4006,7 @@ FRAMES.define('signature', function (ctx, item) {
   var USDC = '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913';
   var PAYTO = '0x25965899f4600b3AA5362ee4f34be95E5E62c934';
   var BASE_CHAIN = 8453;
+  var DEFAULT_USD = 10;      // the preselected chip ($1 · $10 · $100 + custom) — Shaka 28 Nov 2026; "default $1" = flip this one number
   var RESOURCE = 'https://shakaleikaumaka.com/x402-bless.json';
   var F = '#oso-frames';
   var CSS = [
@@ -4049,7 +4050,7 @@ FRAMES.define('signature', function (ctx, item) {
   function build(ctx) {
     var h = ctx.h, t = ctx.t;
     var d = ctx.panel({ id: 'gift', title: '🌊 ' + t('gift.title', 'pennies of aloha') });
-    var amt = 0.01, ui = null, owh = null, mounting = false, pend = null;
+    var amt = DEFAULT_USD, ui = null, owh = null, mounting = false, pend = null;
     var st = h('div', { class: 'osof-gift-st', role: 'status', 'aria-live': 'polite' });
     var slot = h('div', { class: 'osof-gift-slot' });
     var fb = h('div', { class: 'osof-gift-fb', hidden: true });      // the by-hand way — only if the picker could not load
@@ -4063,8 +4064,8 @@ FRAMES.define('signature', function (ctx, item) {
       custom.value = hit ? '' : String(v);
       if (ui) ui.refresh();
     }
-    var amts = [['0.01', '1¢'], ['0.10', '10¢'], ['1', '$1']].map(function (pair, i) {
-      return h('button', { type: 'button', class: 'osof-gift-amt', 'data-v': pair[0], 'aria-pressed': i === 0 ? 'true' : 'false', on: {
+    var amts = [['1', '$1'], ['10', '$10'], ['100', '$100']].map(function (pair) {
+      return h('button', { type: 'button', class: 'osof-gift-amt', 'data-v': pair[0], 'aria-pressed': parseFloat(pair[0]) === DEFAULT_USD ? 'true' : 'false', on: {
         click: function () { setAmt(parseFloat(pair[0])); } } }, pair[1]);
     });
     custom.addEventListener('input', function () {
@@ -4125,7 +4126,7 @@ FRAMES.define('signature', function (ctx, item) {
       mounting = true; slot.textContent = '…';
       loadOWH(ctx).then(function (O) {
         owh = O;
-        ui = O.connect({ surface: 'frames', usdc: USDC, payTo: PAYTO, payToName: 'osoartist.eth', chain: BASE_CHAIN, usd: function () { return amt; }, send: sendWith, t: t });
+        ui = O.connect({ surface: 'frames', usdc: USDC, payTo: PAYTO, payToName: 'osoartist.eth', safetyUrl: 'https://shakaleikaumaka.com/gift-safety/', chain: BASE_CHAIN, usd: function () { return amt; }, send: sendWith, t: t });
         slot.textContent = ''; slot.appendChild(ui.el);
         mounting = false; ui.refresh();
         if (pend) { var p = pend; pend = null; setAmt(p.usd); ui.autostart(p); }

@@ -117,7 +117,7 @@ const errsOf = (p) => { const e = []; p.on('pageerror', (x) => e.push('PE:' + St
   ok(r.id === 'pit-protocol', `data-door=auto on publicinform.com → id ${r.id}`);
   ok(r.accent === '#7fe0ff', `accent applied (${r.accent})`);
   ok(r.first === 'home' && r.pitGone && r.n >= 10, `slot ops: prepend + remove (left: ${r.n} items, first ${r.first})`);
-  ok(r.version === '0.1.13' && r.gear, `v${r.version} with the ⚙ gear in the credit mark`);
+  ok(r.version === '0.1.14' && r.gear, `v${r.version} with the ⚙ gear in the credit mark`);
   ok(!errs.length, 'no console/page errors' + (errs.length ? ' → ' + errs.join(' | ') : ''));
   await ctx.close();
 }
@@ -536,13 +536,13 @@ const AUDIO_STUB = `window.__audioLog = []; window.Audio = class { constructor()
   ok(p.url() === urlBefore, 'the tap did NOT navigate away');
   ok(await p.evaluate(() => { const r = document.querySelector('#oso-frames .osof-gift-rails'); return !!r && /Stripe/.test(r.textContent) && /PayPal/.test(r.textContent) && /Venmo/.test(r.textContent) && /x402/.test(r.textContent) && !!r.querySelector('a[href^="https://blessingpool.com"]'); }), 'the card carries the rails: pool page + Stripe · PayPal · Venmo + the x402 agent instructions');
   ok(await p.evaluate(() => { const g = document.querySelector('#oso-frames .owh-go'); return !!g && !g.hidden && /send USDC with MetaMask/.test(g.textContent); }), 'v0.1.12 a detected wallet → ONE big button "send USDC with MetaMask" (2 taps from the 🌊 to the wallet prompt)');
-  await p.click('#oso-frames .osof-gift-amt[data-v="0.10"]');
+  await p.click('#oso-frames .osof-gift-amt[data-v="1"]');
   await p.click('#oso-frames .owh-go');
   await p.waitForFunction(() => /ALOHA RECEIVED/.test((document.querySelector('#oso-frames .osof-gift-st') || {}).innerHTML || ''), { timeout: 8000 });
   ok(true, 'gift flow settles through the mocked facilitator (the WALLET signs EIP-3009 itself → PayAI verify+settle)');
   ok(await p.evaluate(() => !!document.querySelector('#oso-frames .osof-gift-st a[href*="basescan.org/tx/0xcdcd"]')), 'on-chain receipt link shown');
-  ok(await p.evaluate(() => window.__giftSent.length === 1 && window.__giftSent[0].amount === 0.1), 'gift:sent event emitted with the amount');
-  ok(await p.evaluate(() => window.__rpc.filter((x) => x.startsWith('eth_signTypedData_v4')).join() === 'eth_signTypedData_v4:100000:0x25965899f4600b3AA5362ee4f34be95E5E62c934'), 'the wallet was asked to sign exactly 100000 USDC units (10¢) to the ʻohana wallet');
+  ok(await p.evaluate(() => window.__giftSent.length === 1 && window.__giftSent[0].amount === 1), 'gift:sent event emitted with the amount');
+  ok(await p.evaluate(() => window.__rpc.filter((x) => x.startsWith('eth_signTypedData_v4')).join() === 'eth_signTypedData_v4:1000000:0x25965899f4600b3AA5362ee4f34be95E5E62c934'), 'the wallet was asked to sign exactly 1000000 USDC units ($1) to the ʻohana wallet');
   ok(await p.evaluate(() => !window.ethers), 'v0.1.12 no ethers.js, no cdnjs — the signing library is gone');
   await p.keyboard.press('Escape'); await p.waitForTimeout(250);
   ok(await p.evaluate(() => { const d = document.querySelector('#oso-frames .osof-dlg[id*="gift"]'); return d && d.hidden; }), 'Esc closes the card');
@@ -572,6 +572,25 @@ const AUDIO_STUB = `window.__audioLog = []; window.Audio = class { constructor()
   await ctx2.close();
 }
 
+// 11a2 · Shaka 28 Nov 2026 16:57 BKK ("get rid of the 1c and 10c … $1 $10 and $100 and custom"): the amount row is EXACTLY $1 · $10 · $100 + the custom box, $10 preselected, and a default gift signs 10000000 units
+{
+  const ctx = await ctxFor('nobody.example', { width: 1280, height: 800 });
+  await ctx.route('https://gift-rail.opensourceorchestra.org/base/**', (route) => { const u = route.request().url(); if (u.endsWith('/verify')) return route.fulfill({ json: { isValid: true } }); return route.fulfill({ json: { success: true, transaction: '0x' + 'cd'.repeat(32) } }); });
+  await ctx.addInitScript(`window.__rpc = []; window.ethereum = { isMetaMask: true, request: async ({ method, params }) => { window.__rpc.push(method + (method === 'eth_signTypedData_v4' ? ':' + JSON.parse(params[1]).message.value : '')); if (method === 'eth_chainId') return '0x2105'; if (method === 'eth_signTypedData_v4') return '0x' + 'ab'.repeat(65); return ['0x1111111111111111111111111111111111111111']; } };`);
+  const p = await ctx.newPage();
+  await p.goto('http://nobody.example/narrow.html', { waitUntil: 'load' });
+  await p.waitForSelector('#oso-frames[data-osof-ready]', { state: 'attached' }); await p.waitForTimeout(900);
+  await p.click('#oso-frames [data-slot=top-right] a[href="https://blessingpool.com/"]'); await p.waitForTimeout(700);
+  const r = await p.evaluate(() => ({ chips: [...document.querySelectorAll('#oso-frames .osof-gift-amt')].map((b) => b.textContent + ':' + b.dataset.v + ':' + b.getAttribute('aria-pressed')), custom: !!document.querySelector('#oso-frames .osof-gift-custom'), text: document.querySelector('#osof-dlg-gift').innerText }));
+  ok(JSON.stringify(r.chips) === JSON.stringify(['$1:1:false', '$10:10:true', '$100:100:false']) && r.custom, '💲 the amount row = $1 · $10 · $100 + custom, $10 preselected (' + r.chips.join(' ') + ')');
+  ok(!/1¢|10¢/.test(r.text), '💲 no 1¢ / 10¢ anywhere in the card');
+  await p.click('#oso-frames .owh-go'); await p.waitForFunction(() => /ALOHA RECEIVED/.test((document.querySelector('#oso-frames .osof-gift-st') || {}).textContent || ''), { timeout: 8000 });
+  ok(await p.evaluate(() => window.__rpc.filter((x) => x.startsWith('eth_signTypedData_v4')).join() === 'eth_signTypedData_v4:10000000'), '💲 the default gift signs exactly 10000000 USDC units ($10)');
+  await p.click('#oso-frames .osof-gift-amt[data-v="100"]'); await p.click('#oso-frames .owh-go');
+  await p.waitForFunction(() => window.__rpc.filter((x) => x.startsWith('eth_signTypedData_v4')).length === 2, { timeout: 8000 });
+  ok(await p.evaluate(() => window.__rpc.filter((x) => x.startsWith('eth_signTypedData_v4'))[1] === 'eth_signTypedData_v4:100000000'), '💲 tapping $100 signs 100000000 units');
+  await ctx.close();
+}
 // 11b · PAʻA SITE-2 (28 Nov 2026): the facilitator's reply is NETWORK DATA — a hostile `transaction` must never become markup or an event payload
 {
   const WALLET = `
@@ -591,7 +610,7 @@ const AUDIO_STUB = `window.__audioLog = []; window.Audio = class { constructor()
     await p.goto('http://nobody.example/narrow.html', { waitUntil: 'load' });
     await p.waitForSelector('#oso-frames[data-osof-ready]', { state: 'attached' }); await p.waitForTimeout(1000);
     await p.click('#oso-frames [data-slot=top-right] a[href="https://blessingpool.com/"]'); await p.waitForTimeout(600);
-    await p.click('#oso-frames .osof-gift-amt[data-v="0.10"]');
+    await p.click('#oso-frames .osof-gift-amt[data-v="1"]');
     await p.click('#oso-frames .owh-go');
     await p.waitForFunction(() => /ALOHA RECEIVED/.test((document.querySelector('#oso-frames .osof-gift-st') || {}).textContent || ''), { timeout: 8000 });
     await p.waitForTimeout(300);
@@ -647,9 +666,9 @@ const AUDIO_STUB = `window.__audioLog = []; window.Audio = class { constructor()
     await p.goto('http://nobody.example/narrow.html' + q, { waitUntil: 'load' });
     return { ctx, p, errs };
   };
-  let r = await mk('?osogift=frames:0.1::go&keep=1');
+  let r = await mk('?osogift=frames:1::go&keep=1');
   await r.p.waitForFunction(() => /ALOHA RECEIVED/.test((document.querySelector('#oso-frames .osof-gift-st') || {}).textContent || ''), { timeout: 14000 });
-  ok(await r.p.evaluate(() => document.querySelector('#oso-frames .osof-gift-amt[aria-pressed="true"]').dataset.v === '0.10' && window.__rpc.filter((x) => x.startsWith('eth_signTypedData_v4')).join() === 'eth_signTypedData_v4:100000'), '🔙 way back: the card opened itself, 10¢ selected, the wallet asked ONCE for 100000 units, settled');
+  ok(await r.p.evaluate(() => document.querySelector('#oso-frames .osof-gift-amt[aria-pressed="true"]').dataset.v === '1' && window.__rpc.filter((x) => x.startsWith('eth_signTypedData_v4')).join() === 'eth_signTypedData_v4:1000000'), '🔙 way back: the card opened itself, $1 selected, the wallet asked ONCE for 1000000 units, settled');
   ok(await r.p.evaluate(() => location.search === '?keep=1'), '🔙 way back: ?osogift removed from the URL, other params kept');
   await r.ctx.close();
   r = await mk('?osogift=frames:50::go');
