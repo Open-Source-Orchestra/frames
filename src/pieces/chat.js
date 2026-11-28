@@ -535,7 +535,9 @@
       line: line,
       open: open,
       close: close,
-      addWrap: function (w, f) { D.wraps.push(w); if (!D.wrap) { D.wrap = w; D.fab = f; } }
+      addWrap: function (w, f) { D.wraps.push(w); if (!D.wrap) { D.wrap = w; D.fab = f; } },
+      // v0.1.9: the page grew its own chat button after us — this pill steps aside, the drawer stays (totem faces)
+      dropWrap: function (w) { D.wraps = D.wraps.filter(function (x) { return x !== w; }); if (D.wrap === w) { D.wrap = D.wraps[0] || null; D.fab = D.wrap ? D.wrap.querySelector('.osof-fab') : null; } }
     };
   };
 
@@ -577,6 +579,17 @@
       });
     });
 
+    // v0.1.9 · DRAWER ONLY: the page already wears its own chat button (adopt mode). No pill — the totem faces (rail + phone sheet) still
+    // open THIS drawer, in the screen, like devconpit.com. Nothing is drawn until a face is tapped.
+    if (item.drawerOnly) {
+      return {
+        el: null,
+        open: function () { engine.open(mainLine, null, null); },
+        close: function () { engine.close(); },
+        adopt: function () {}
+      };
+    }
+
     // ── the pill (+ ✕ that bows out to a tiny emoji, remembered) ──
     const ui = ctx.store('chat');
     const miniKey = 'fab:' + String(item.id || mainDef.storage) + ':mini';
@@ -609,6 +622,7 @@
       tour: item.tip || fill(T('tour', '{label}: an AI agent of the ʻohana answers you, live from Taurus.'), { label: label }),
       open: function () { engine.open(mainLine, fab, wrap); },
       close: function () { engine.close(); },
+      adopt: function () { engine.dropWrap(wrap); },
       // NO COVERED TEXT LAW (phones): the core folds the pill to the tiny emoji while words run under it — session only,
       // never undoing the visitor's own ✕ (remembered mini)
       fold: function (v) { if (ui.get(miniKey) === true) return; wrap.setAttribute('data-mini', v ? '1' : '0'); }

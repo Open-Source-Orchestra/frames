@@ -9,6 +9,8 @@
 //   (audio stubbed), captions never on words, Esc stops, nothing starts by itself, the ✕ says "hide frame", the phone sheet's first row hides all.
 //   v0.1.5 (test 10): STAY-IN-PLACE — a speech bubble under the dock folds it in place (anchors never move), clear ground unfolds, a song keeps
 //   playing through a fold, the tiny ✕ folds a rail door on purpose, hide-all ✕; phones too.
+//   v0.1.9 (test 12): THE TOTEM STAYS IN THE SCREEN — a page that wears its own chat button (adopted at mount OR built late) still lets a totem face
+//   (rail + phone sheet) open the chat DRAWER in the page: no navigation to myagentohana.com, no second pill.
 // usage: node tests/e2e-settings.mjs
 import http from 'node:http';
 import { readFile } from 'node:fs/promises';
@@ -34,6 +36,8 @@ const NAVLEAK = PAGE('nav leak', `<div style="max-width:560px;margin:60px auto 0
   .replace('<style>', '<style>nav{position:fixed;top:0;left:0;right:0;z-index:50;display:grid;grid-template-columns:auto 1fr auto;padding:14px 32px;background:#000}nav::after{content:"";width:110px}')
   .replace('<main>', '<nav><a href="/">A page nav</a><span></span><a href="/x">Links</a></nav><main>');
 // 23 Nov 2026 (v0.1.4): a door's shell (bl-shell.js) opens another door in a full-screen <iframe> over this page
+// 28 Nov 2026 (v0.1.9): a page that already wears its own chat button BEFORE the frame mounts (shakaleikaumaka.com #sp-fab, opensourceorchestra.org #oso-fab)
+const OWNCHAT = NARROW.replace('</main>', `</main><button id="oso-fab" type="button" style="position:fixed;right:20px;bottom:70px;z-index:40;padding:10px 16px;border-radius:22px;border:0;background:#c44;color:#fff;font:14px sans-serif">Talk to OSO (the page's own)</button>`);
 const SHELL = NARROW.replace('</main>', `</main><div id="oflo" style="position:fixed;top:10px;left:10px;z-index:9999;width:40px;height:40px">🌺</div><div id="oflop" style="display:none;position:fixed;top:60px;left:10px;z-index:9999">panel</div><a id="oviol" href="/join" style="position:fixed;top:60px;left:10px;z-index:9999;width:40px;height:40px">🎻</a><script>
 window.openRoad = function (src) { var d = document.createElement('div'); d.id = 'blroad'; d.innerHTML = '<div style="position:fixed;inset:0;z-index:99990;background:#000;display:flex;flex-direction:column"><div style="flex:0 0 42px;color:#fff">✕ home</div><iframe src="' + src + '" style="flex:1;border:0;width:100%"></iframe></div>'; document.body.appendChild(d); };
 window.closeRoad = function () { var d = document.getElementById('blroad'); if (d) d.remove(); };
@@ -66,6 +70,7 @@ function serve() {
         if (u.pathname === '/hero.html') return rsp.writeHead(200, { 'content-type': TYPES['.html'] }).end(HERO);
         if (u.pathname === '/comic.html') return rsp.writeHead(200, { 'content-type': TYPES['.html'] }).end(COMIC);
         if (u.pathname === '/navleak.html') return rsp.writeHead(200, { 'content-type': TYPES['.html'] }).end(NAVLEAK);
+        if (u.pathname === '/ownchat.html') return rsp.writeHead(200, { 'content-type': TYPES['.html'] }).end(OWNCHAT);
         if (u.pathname === '/shell.html') return rsp.writeHead(200, { 'content-type': TYPES['.html'] }).end(SHELL);
         if (u.pathname === '/allow.html') return rsp.writeHead(200, { 'content-type': TYPES['.html'] }).end(NARROW.replace('data-door="auto"', 'data-door="auto" data-embed="allow"'));
         if (u.pathname === '/overlay.json') return rsp.writeHead(200, { 'content-type': TYPES['.json'] }).end(JSON.stringify(OVERLAY));
@@ -109,7 +114,7 @@ const errsOf = (p) => { const e = []; p.on('pageerror', (x) => e.push('PE:' + St
   ok(r.id === 'pit-protocol', `data-door=auto on publicinform.com → id ${r.id}`);
   ok(r.accent === '#7fe0ff', `accent applied (${r.accent})`);
   ok(r.first === 'home' && r.pitGone && r.n >= 10, `slot ops: prepend + remove (left: ${r.n} items, first ${r.first})`);
-  ok(r.version === '0.1.8' && r.gear, `v${r.version} with the ⚙ gear in the credit mark`);
+  ok(r.version === '0.1.9' && r.gear, `v${r.version} with the ⚙ gear in the credit mark`);
   ok(!errs.length, 'no console/page errors' + (errs.length ? ' → ' + errs.join(' | ') : ''));
   await ctx.close();
 }
@@ -553,6 +558,54 @@ const AUDIO_STUB = `window.__audioLog = []; window.Audio = class { constructor()
   ok(await p2.evaluate(() => { const g = document.querySelector('#osof-dlg-gift'); const s = document.querySelector('#osof-dlg-sheet'); return g && !g.hidden && s && s.hidden; }), '📱 tile tap → card opens, sheet closes');
   await ctx2.close();
 }
+
+// 12 · v0.1.9 THE TOTEM STAYS IN THE SCREEN (Shaka, 28 Nov 2026: "i like when you can talk to the totem in screen like devconpit.com as a standard")
+{
+  const ctx = await ctxFor('nobody.example', { width: 1280, height: 800 });
+  const p = await ctx.newPage(); const errs = errsOf(p);
+  await p.goto('http://nobody.example/ownchat.html?frame=fresh', { waitUntil: 'load' });
+  await p.waitForSelector('#oso-frames[data-osof-ready]', { state: 'attached' }); await p.waitForTimeout(900);
+  let r = await p.evaluate(() => { const F = document.getElementById('oso-frames'); return { pill: !!F.querySelector('[data-osof-kind=chat]'), own: !!document.getElementById('oso-fab'), faces: F.querySelectorAll('.osof-tt-face').length, drawerBuilt: !!document.querySelector('.osof-chat'), path: location.pathname }; });
+  ok(r.own && !r.pill, 'the page already has its own chat button → the frame draws NO second pill (adopt mode kept)');
+  ok(r.faces >= 6, `the totem is on the rail (${r.faces} faces)`);
+  await p.click('#oso-frames .osof-tt-face'); await p.waitForTimeout(500);
+  r = await p.evaluate(() => { const d = document.querySelector('.osof-chat'); return { path: location.pathname, open: !!d && !d.hidden, name: (document.querySelector('.osof-chat-name') || {}).textContent || '', chips: document.querySelectorAll('.osof-chat-chips button').length }; });
+  ok(r.path === '/ownchat.html', `a face tap does NOT leave the page (still ${r.path})`);
+  ok(r.open && r.name.trim().length > 0, `the chat drawer opens IN the page, talking to ${r.name.trim()}`);
+  ok(r.chips >= 6, `the drawer carries the totem chips (${r.chips})`);
+  await p.click('.osof-chat-x'); await p.waitForTimeout(300);
+  ok(await p.evaluate(() => document.querySelector('.osof-chat').hidden), 'the ✕ closes the drawer');
+  ok(!errs.filter((e) => /^PE:/.test(e)).length, 'no page errors' + (errs.length ? ' → ' + errs.join(' | ') : ''));
+  await ctx.close();
+}
+{ // the page's own button is built LATE (after the frame offered its pill): the pill steps aside, the drawer stays
+  const ctx = await ctxFor('nobody.example', { width: 1280, height: 800 });
+  const p = await ctx.newPage(); const errs = errsOf(p);
+  await p.goto('http://nobody.example/navleak.html?frame=fresh', { waitUntil: 'load' });
+  await p.waitForSelector('#oso-frames[data-osof-ready]', { state: 'attached' }); await p.waitForTimeout(2600);
+  let r = await p.evaluate(() => { const F = document.getElementById('oso-frames'); return { pill: !!F.querySelector('[data-osof-kind=chat]'), own: !!document.getElementById('oso-fab') }; });
+  ok(r.own && !r.pill, 'late page FAB adopted: the frame pill stepped aside (no double chat)');
+  await p.click('#oso-frames .osof-tt-face'); await p.waitForTimeout(500);
+  r = await p.evaluate(() => { const d = document.querySelector('.osof-chat'); return { path: location.pathname, open: !!d && !d.hidden }; });
+  ok(r.path === '/navleak.html' && r.open, 'after a late adopt, a totem face still opens the drawer in the page (no navigation)');
+  await ctx.close();
+}
+{ // phones: the 🎻 sheet's face tile opens the drawer too
+  const ctx = await ctxFor('nobody.example', { width: 390, height: 844 }, true);
+  const p = await ctx.newPage(); const errs = errsOf(p);
+  await p.goto('http://nobody.example/ownchat.html?frame=fresh', { waitUntil: 'load' });
+  await p.waitForSelector('#oso-frames[data-osof-ready]', { state: 'attached' }); await p.waitForTimeout(900);
+  await p.click('#oso-frames .osof-sheetbtn'); await p.waitForTimeout(400);
+  for (let i = 0; i < 3 && !(await p.evaluate(() => !!document.querySelector('#osof-dlg-sheet:not([hidden])'))); i++) { await p.click('#oso-frames .osof-sheetbtn'); await p.waitForTimeout(400); }
+  const nFaces = await p.evaluate(() => document.querySelectorAll('#osof-dlg-sheet [data-osof-face]').length);
+  ok(nFaces >= 6, `📱 the sheet lists the totem faces (${nFaces})`);
+  await p.click('#osof-dlg-sheet [data-osof-face]'); await p.waitForTimeout(500);
+  const r = await p.evaluate(() => { const d = document.querySelector('.osof-chat'); return { path: location.pathname, open: !!d && !d.hidden }; });
+  ok(r.path === '/ownchat.html' && r.open, '📱 a face tile opens the drawer in the page (no navigation)');
+  ok(!errs.filter((e) => /^PE:/.test(e)).length, '📱 no page errors');
+  await ctx.close();
+}
+
 await b.close(); srv.close();
 console.log(fails ? `\n✗ ${fails} check(s) failed` : '\n✓ e2e-settings: all green');
 process.exit(fails ? 1 : 0);
